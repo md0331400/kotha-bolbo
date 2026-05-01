@@ -44,6 +44,7 @@
     color: var(--text-primary);
   }
 
+  /* ── SPLASH ── */
   #splash {
     position: fixed; inset: 0; z-index: 9999;
     background: var(--bg-primary);
@@ -53,25 +54,64 @@
     transition: opacity 0.6s ease, transform 0.6s ease;
   }
   #splash.hide { opacity:0; transform:scale(1.05); pointer-events:none; }
-  .splash-logo {
-    width: 90px; height: 90px; border-radius: 26px;
-    background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+  
+  /* Animated Logo */
+  .splash-logo-wrap {
+    position: relative;
+    width: 100px; height: 100px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 40px; animation: splash-pulse 2s ease infinite;
-    box-shadow: 0 0 40px rgba(0,212,255,0.4);
   }
-  @keyframes splash-pulse {
-    0%,100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,212,255,0.4); }
-    50% { transform: scale(1.08); box-shadow: 0 0 60px rgba(0,212,255,0.6); }
+  .splash-logo-ring {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 28px;
+    border: 3px solid transparent;
+    animation: ring-rotate 3s linear infinite;
+  }
+  .splash-logo-ring:nth-child(1) {
+    border-top-color: #00d4ff;
+    border-right-color: #00d4ff;
+    animation-duration: 2s;
+  }
+  .splash-logo-ring:nth-child(2) {
+    width: 85%; height: 85%;
+    border-bottom-color: #7c3aed;
+    border-left-color: #7c3aed;
+    animation-duration: 2.5s;
+    animation-direction: reverse;
+  }
+  .splash-logo-ring:nth-child(3) {
+    width: 70%; height: 70%;
+    border-top-color: #00d4ff;
+    border-left-color: #7c3aed;
+    animation-duration: 3s;
+  }
+  @keyframes ring-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .splash-logo-inner {
+    width: 55%; height: 55%;
+    background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    animation: logo-pulse 2s ease-in-out infinite;
+    z-index: 1;
+    position: relative;
+  }
+  @keyframes logo-pulse {
+    0%,100% { transform: scale(1); box-shadow: 0 0 30px rgba(0,212,255,0.4); }
+    50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(124,58,237,0.6); }
   }
   .splash-title {
     font-family: 'Exo 2', sans-serif; font-size: 32px; font-weight: 700;
     background: linear-gradient(135deg, #00d4ff, #7c3aed);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text; letter-spacing: 1px;
+    background-clip: text; letter-spacing: 1px; margin-top: 8px;
   }
   .splash-sub { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; text-transform: uppercase; }
-  .splash-loader { margin-top: 40px; display: flex; gap: 8px; }
+  .splash-loader { margin-top: 32px; display: flex; gap: 8px; }
   .splash-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--accent); animation: dot-bounce 1.2s ease infinite;
@@ -83,6 +123,44 @@
     50% { transform: translateY(-10px); opacity: 1; }
   }
 
+  /* Static Logo (for auth & favicon use) */
+  .app-logo {
+    position: relative;
+    width: 70px; height: 70px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+  }
+  .app-logo .logo-ring {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 22px;
+    border: 2.5px solid transparent;
+    animation: ring-rotate 3s linear infinite;
+  }
+  .app-logo .logo-ring:nth-child(1) {
+    border-top-color: #00d4ff;
+    border-right-color: #00d4ff;
+    animation-duration: 2s;
+  }
+  .app-logo .logo-ring:nth-child(2) {
+    width: 82%; height: 82%;
+    border-bottom-color: #7c3aed;
+    border-left-color: #7c3aed;
+    animation-duration: 2.5s;
+    animation-direction: reverse;
+  }
+  .app-logo .logo-inner {
+    width: 58%; height: 58%;
+    background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    z-index: 1;
+    position: relative;
+    animation: logo-pulse 2s ease-in-out infinite;
+  }
+
+  /* ── AUTH ── */
   #auth-screen {
     position: fixed; inset: 0; z-index: 100;
     background: var(--bg-primary);
@@ -92,7 +170,6 @@
     display: none;
   }
   .auth-logo { text-align: center; margin-bottom: 32px; }
-  .auth-logo .splash-logo { margin: 0 auto 12px; width: 70px; height: 70px; font-size: 30px; }
   .auth-logo h1 {
     font-family: 'Exo 2', sans-serif; font-size: 26px; font-weight: 700;
     background: linear-gradient(135deg, #00d4ff, #7c3aed);
@@ -134,6 +211,7 @@
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   .auth-error { font-size: 13px; color: #ff6b6b; text-align: center; margin-top: 10px; min-height: 18px; }
 
+  /* ── MAIN APP ── */
   #app {
     display: none; flex-direction: column;
     height: 100%; width: 100%; position: relative;
@@ -254,6 +332,7 @@
     flex-shrink: 0;
   }
 
+  /* ── CONVERSATION ── */
   #conv-screen {
     position: fixed; inset: 0; z-index: 50;
     background: var(--bg-primary);
@@ -286,11 +365,36 @@
   .msg-status.sent-status { color: var(--text-muted); }
   .msg-status.delivered { color: var(--text-secondary); }
   .msg-status.seen { color: var(--accent); }
-  .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: var(--bubble-recv); border-radius: 18px; border-bottom-left-radius: 4px; border: 1px solid var(--border); width: fit-content; }
+  
+  /* Typing area */
+  #typing-row {
+    padding: 0 12px 8px;
+    display: none;
+  }
+  #typing-row .typing-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #typing-row .typing-inner img {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .typing-indicator {
+    display: flex; align-items: center; gap: 4px;
+    padding: 10px 14px;
+    background: var(--bubble-recv);
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
   .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-secondary); animation: typing 1.2s ease infinite; }
   .typing-dot:nth-child(2) { animation-delay: 0.2s; }
   .typing-dot:nth-child(3) { animation-delay: 0.4s; }
   @keyframes typing { 0%,100% { transform:scale(0.7); opacity:0.4; } 50% { transform:scale(1); opacity:1; } }
+  
   .msg-input-area {
     display: flex; align-items: flex-end; gap: 10px;
     padding: 12px 14px; background: var(--bg-secondary);
@@ -329,7 +433,6 @@
   .friend-item img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); flex-shrink: 0; }
   .friend-info { flex: 1; min-width: 0; }
   .friend-name { font-size: 15px; font-weight: 600; }
-  .friend-number { font-size: 13px; color: var(--text-secondary); margin-top: 2px; display: none; }
   .friend-chat-btn {
     width: 42px; height: 42px; border-radius: 50%; border: none;
     background: linear-gradient(135deg, #00d4ff, #0099cc);
@@ -340,7 +443,6 @@
   }
   .friend-chat-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,212,255,0.5); }
 
-  #settings-screen .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 20px; }
   .settings-profile {
     display: flex; flex-direction: column; align-items: center;
     padding: 28px 16px 20px; gap: 12px;
@@ -441,8 +543,14 @@
 </head>
 <body>
 
+<!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">💬</div>
+  <div class="splash-logo-wrap">
+    <div class="splash-logo-ring"></div>
+    <div class="splash-logo-ring"></div>
+    <div class="splash-logo-ring"></div>
+    <div class="splash-logo-inner">💬</div>
+  </div>
   <div class="splash-title">Kotha Bolbo</div>
   <div class="splash-sub">Created by Sayem</div>
   <div class="splash-loader">
@@ -452,9 +560,14 @@
   </div>
 </div>
 
+<!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-logo">
-    <div class="splash-logo" style="width:70px;height:70px;font-size:30px;margin:0 auto 12px;">💬</div>
+    <div class="app-logo">
+      <div class="logo-ring"></div>
+      <div class="logo-ring"></div>
+      <div class="logo-inner">💬</div>
+    </div>
     <h1>Kotha Bolbo</h1>
     <p>Talk, stay connected</p>
   </div>
@@ -482,6 +595,7 @@
   </div>
 </div>
 
+<!-- CONVERSATION SCREEN -->
 <div id="conv-screen">
   <div class="app-header">
     <button class="header-back" onclick="closeConversation()"><i class="fas fa-arrow-left"></i></button>
@@ -496,20 +610,24 @@
     <button class="header-icon-btn" onclick="showToast('Call feature coming soon')"><i class="fas fa-phone"></i></button>
   </div>
   <div class="conv-messages" id="conv-messages"></div>
-  <div id="typing-row" style="padding:0 12px 8px;display:none;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <img id="conv-typing-avatar" src="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"/>
-      <div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+  <!-- Typing indicator - only shows when THE OTHER person is typing -->
+  <div id="typing-row">
+    <div class="typing-inner">
+      <img id="conv-typing-avatar" src="" />
+      <div class="typing-indicator">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
     </div>
   </div>
   <div class="msg-input-area">
     <div class="msg-input-wrap">
-      <textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);onTyping();" onkeydown="msgKeyDown(event)"></textarea>
+      <textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);" onkeydown="msgKeyDown(event)"></textarea>
     </div>
     <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
 
+<!-- MAIN APP -->
 <div id="app">
   <div class="screen active" id="chat-screen">
     <div class="app-header">
@@ -547,7 +665,7 @@
 
   <div class="screen" id="settings-screen">
     <div class="app-header"><div class="header-info"><h2>Settings</h2><span>Manage your profile</span></div></div>
-    <div class="scroll-area">
+    <div class="scroll-area" style="flex:1;overflow-y:auto;padding-bottom:20px;">
       <div class="settings-profile">
         <div class="profile-avatar-wrap" onclick="openAvatarUrlModal()">
           <img id="settings-avatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=default" />
@@ -602,6 +720,7 @@
   </nav>
 </div>
 
+<!-- MODALS -->
 <div class="modal-backdrop" id="edit-profile-modal">
   <div class="modal">
     <h2>Edit Profile</h2>
@@ -649,7 +768,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, where, orderBy, onSnapshot, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, where, orderBy, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBa2bIHkBNK_oajNeFxgKpz4VrIx1aR5Fo",
@@ -674,19 +793,22 @@ let allChats = [];
 let unreadCounts = {};
 let chatUnsubscribe = null;
 let presenceUnsubscribe = null;
+let typingUnsubscribe = null;
+let myTypingRef = null;
 
 window.triggerNotification = function(message) {
   console.log('[OneSignal Placeholder]', message);
   if (window.KodularBridge) window.KodularBridge.notify(message);
 };
 
+// ── SPLASH ──
 setTimeout(() => {
   document.getElementById('splash').classList.add('hide');
   setTimeout(() => {
     document.getElementById('splash').style.display = 'none';
     checkAuth();
   }, 600);
-}, 2500);
+}, 3000);
 
 function checkAuth() {
   onAuthStateChanged(auth, async (user) => {
@@ -726,11 +848,9 @@ function showAuthScreen() { document.getElementById('auth-screen').style.display
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').classList.add('visible');
-  // Set online status
   updateDoc(doc(db, 'users', currentUser.uid), { online: true });
   loadChats();
   loadFriends();
-  // Handle online/offline
   window.addEventListener('beforeunload', () => { if (currentUser) updateDoc(doc(db, 'users', currentUser.uid), { online: false }); });
   window.addEventListener('focus', () => { if (currentUser) updateDoc(doc(db, 'users', currentUser.uid), { online: true }); });
   window.addEventListener('blur', () => { if (currentUser) updateDoc(doc(db, 'users', currentUser.uid), { online: false }); });
@@ -787,7 +907,7 @@ window.switchTab = function(tab) {
   if (tab === 'settings') updateUI();
 };
 
-// ── CHAT LIST with unread counts ──
+// ── CHAT LIST ──
 async function loadChats() {
   if (!currentUser) return;
   if (chatUnsubscribe) chatUnsubscribe();
@@ -796,47 +916,30 @@ async function loadChats() {
     const seen = new Set();
     const chatMap = {};
     const counts = {};
-    
     snap.forEach(d => {
       const msg = d.data();
       if (msg.senderId !== currentUser.uid && msg.receiverId !== currentUser.uid) return;
       const otherId = msg.senderId === currentUser.uid ? msg.receiverId : msg.senderId;
-      
-      // Track last message for each chat
-      if (!seen.has(otherId)) {
-        seen.add(otherId);
-        chatMap[otherId] = msg;
-      }
-      
-      // Count unread messages (only messages FROM others TO me that are NOT read)
+      if (!seen.has(otherId)) { seen.add(otherId); chatMap[otherId] = msg; }
       if (msg.senderId !== currentUser.uid && msg.receiverId === currentUser.uid && !msg.read) {
         counts[otherId] = (counts[otherId] || 0) + 1;
       }
     });
-    
     unreadCounts = counts;
     const chatUsers = [];
     for (const uid of Object.keys(chatMap)) {
       try {
         const uSnap = await getDoc(doc(db, 'users', uid));
-        if (uSnap.exists()) {
-          const userData = uSnap.data();
-          chatUsers.push({ user: userData, lastMsg: chatMap[uid] });
-        }
+        if (uSnap.exists()) chatUsers.push({ user: uSnap.data(), lastMsg: chatMap[uid] });
       } catch(e) {}
     }
-    
-    // Sort: users with unread messages first, then by last message time
     chatUsers.sort((a, b) => {
-      const unreadA = unreadCounts[a.user.uid] || 0;
-      const unreadB = unreadCounts[b.user.uid] || 0;
-      if (unreadA > 0 && unreadB === 0) return -1;
-      if (unreadB > 0 && unreadA === 0) return 1;
-      const tA = a.lastMsg.timestamp?.seconds || 0;
-      const tB = b.lastMsg.timestamp?.seconds || 0;
-      return tB - tA;
+      const uA = unreadCounts[a.user.uid] || 0;
+      const uB = unreadCounts[b.user.uid] || 0;
+      if (uA > 0 && uB === 0) return -1;
+      if (uB > 0 && uA === 0) return 1;
+      return (b.lastMsg.timestamp?.seconds || 0) - (a.lastMsg.timestamp?.seconds || 0);
     });
-    
     allChats = chatUsers;
     renderChatList(chatUsers);
     updateTotalBadge();
@@ -846,36 +949,22 @@ async function loadChats() {
 function updateTotalBadge() {
   const total = Object.values(unreadCounts).reduce((a,b)=>a+b, 0);
   const badge = document.getElementById('chat-badge');
-  if (total > 0) {
-    badge.style.display = 'flex';
-    badge.textContent = total > 99 ? '99+' : total;
-  } else {
-    badge.style.display = 'none';
-  }
+  if (total > 0) { badge.style.display = 'flex'; badge.textContent = total > 99 ? '99+' : total; }
+  else { badge.style.display = 'none'; }
 }
 
 function renderChatList(chats) {
   const container = document.getElementById('chat-list-container');
   const empty = document.getElementById('chat-empty');
-  
-  // Remove existing items but keep empty state
-  const existingItems = container.querySelectorAll('.chat-list-item');
-  existingItems.forEach(e => e.remove());
-  
-  if (chats.length === 0) {
-    empty.style.display = 'flex';
-    return;
-  }
-  
+  container.querySelectorAll('.chat-list-item').forEach(e => e.remove());
+  if (chats.length === 0) { empty.style.display = 'flex'; return; }
   empty.style.display = 'none';
-  
   chats.forEach(({user, lastMsg}) => {
     const div = document.createElement('div');
     const unread = unreadCounts[user.uid] || 0;
     div.className = 'chat-list-item' + (unread > 0 ? ' unread' : '');
     div.onclick = () => openConversation(user);
     const ts = lastMsg.timestamp ? new Date(lastMsg.timestamp.seconds * 1000) : new Date();
-    
     div.innerHTML = `
       <div class="chat-avatar">
         <img src="${user.photoURL || avatarUrl(user.displayName || 'U')}" alt="${user.displayName}" />
@@ -894,46 +983,29 @@ function renderChatList(chats) {
 }
 
 window.filterChats = function(q) {
-  const filtered = allChats.filter(({user}) =>
-    (user.displayName || '').toLowerCase().includes(q.toLowerCase()) ||
-    (user.phone || '').includes(q)
-  );
+  const filtered = allChats.filter(({user}) => (user.displayName || '').toLowerCase().includes(q.toLowerCase()) || (user.phone || '').includes(q));
   renderChatList(filtered);
 };
 
 // ── FRIENDS ──
 window.loadFriends = async function() {
-  const icon = document.getElementById('friends-refresh-icon');
-  icon.classList.add('spinner');
+  const icon = document.getElementById('friends-refresh-icon'); icon.classList.add('spinner');
   try {
     const snap = await getDocs(collection(db, 'users'));
-    allFriends = [];
-    snap.forEach(d => {
-      if (d.id !== currentUser?.uid) allFriends.push(d.data());
-    });
+    allFriends = []; snap.forEach(d => { if (d.id !== currentUser?.uid) allFriends.push(d.data()); });
     renderFriends(allFriends);
-  } catch(e) {
-    console.error(e);
-    showToast('Error loading friends');
-  }
+  } catch(e) { console.error(e); showToast('Error loading friends'); }
   icon.classList.remove('spinner');
 };
 
 function renderFriends(friends) {
-  const container = document.getElementById('friends-list-container');
-  container.innerHTML = '';
-  if (friends.length === 0) {
-    container.innerHTML = `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>No Users Found</h3><p>No other users registered yet.</p></div>`;
-    return;
-  }
+  const container = document.getElementById('friends-list-container'); container.innerHTML = '';
+  if (friends.length === 0) { container.innerHTML = `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>No Users Found</h3><p>No other users registered yet.</p></div>`; return; }
   friends.forEach(user => {
-    const div = document.createElement('div');
-    div.className = 'friend-item';
+    const div = document.createElement('div'); div.className = 'friend-item';
     div.innerHTML = `
       <img src="${user.photoURL || avatarUrl(user.displayName || 'U')}" alt="${user.displayName}" />
-      <div class="friend-info">
-        <div class="friend-name">${user.displayName || 'User'}</div>
-      </div>
+      <div class="friend-info"><div class="friend-name">${user.displayName || 'User'}</div></div>
       <div class="friend-chat-btn"><i class="fas fa-comment"></i></div>`;
     div.querySelector('.friend-chat-btn').onclick = (e) => { e.stopPropagation(); openConversation(user); };
     div.onclick = () => openConversation(user);
@@ -942,12 +1014,34 @@ function renderFriends(friends) {
 }
 
 window.filterFriends = function(q) {
-  const filtered = allFriends.filter(u =>
-    (u.displayName || '').toLowerCase().includes(q.toLowerCase()) ||
-    (u.phone || '').includes(q)
-  );
-  renderFriends(filtered);
+  renderFriends(allFriends.filter(u => (u.displayName||'').toLowerCase().includes(q.toLowerCase()) || (u.phone||'').includes(q)));
 };
+
+// ── TYPING INDICATOR (Firestore-based) ──
+async function setMyTypingStatus(isTyping) {
+  if (!currentUser || !openChatUser) return;
+  const typingDoc = doc(db, 'typing', `${currentUser.uid}_${openChatUser.uid}`);
+  if (isTyping) {
+    await setDoc(typingDoc, { senderId: currentUser.uid, receiverId: openChatUser.uid, typing: true, timestamp: serverTimestamp() }, { merge: true });
+  } else {
+    await setDoc(typingDoc, { typing: false, timestamp: serverTimestamp() }, { merge: true });
+  }
+}
+
+function listenTyping(theirUid) {
+  if (typingUnsubscribe) typingUnsubscribe();
+  const typingDoc = doc(db, 'typing', `${theirUid}_${currentUser.uid}`);
+  typingUnsubscribe = onSnapshot(typingDoc, (snap) => {
+    if (snap.exists() && snap.data().typing === true) {
+      document.getElementById('typing-row').style.display = 'block';
+      // Auto hide after 3 seconds if no update
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => { document.getElementById('typing-row').style.display = 'none'; }, 3000);
+    } else {
+      document.getElementById('typing-row').style.display = 'none';
+    }
+  });
+}
 
 // ── CONVERSATION ──
 window.openConversation = function(user) {
@@ -957,21 +1051,19 @@ window.openConversation = function(user) {
   document.getElementById('conv-avatar').src = av;
   document.getElementById('conv-typing-avatar').src = av;
   document.getElementById('conv-messages').innerHTML = '';
+  document.getElementById('typing-row').style.display = 'none';
   document.getElementById('conv-screen').classList.add('open');
-  
-  // Update status display properly
   updateConvHeaderStatus();
-  
   subscribeMessages();
   markMessagesAsRead(user.uid);
   listenPresence(user.uid);
+  listenTyping(user.uid);
 };
 
 function updateConvHeaderStatus() {
   const statusEl = document.getElementById('conv-status-text');
   const dot = document.getElementById('conv-status-dot');
   if (!openChatUser) return;
-  
   if (openChatUser.online) {
     dot.className = 'status-dot';
     statusEl.innerHTML = '<span class="online-indicator"></span>Online';
@@ -985,8 +1077,7 @@ function listenPresence(uid) {
   if (presenceUnsubscribe) presenceUnsubscribe();
   presenceUnsubscribe = onSnapshot(doc(db, 'users', uid), (snap) => {
     if (snap.exists()) {
-      const userData = snap.data();
-      openChatUser = { ...openChatUser, online: userData.online || false };
+      openChatUser = { ...openChatUser, online: snap.data().online || false };
       updateConvHeaderStatus();
     }
   });
@@ -995,96 +1086,59 @@ function listenPresence(uid) {
 async function markMessagesAsRead(senderId) {
   if (!currentUser || !senderId) return;
   try {
-    const q = query(
-      collection(db, 'messages'),
-      where('senderId', '==', senderId),
-      where('receiverId', '==', currentUser.uid),
-      where('read', '==', false)
-    );
+    const q = query(collection(db, 'messages'), where('senderId','==',senderId), where('receiverId','==',currentUser.uid), where('read','==',false));
     const snap = await getDocs(q);
     const batch = [];
-    snap.forEach(d => {
-      batch.push(updateDoc(doc(db, 'messages', d.id), { read: true, seen: true }));
-    });
+    snap.forEach(d => { batch.push(updateDoc(doc(db, 'messages', d.id), { read: true, seen: true })); });
     await Promise.all(batch);
-  } catch(e) {
-    console.error('Error marking as read:', e);
-  }
+  } catch(e) { console.error('Mark read error:', e); }
 }
 
 window.closeConversation = function() {
   document.getElementById('conv-screen').classList.remove('open');
   if (msgUnsubscribe) { msgUnsubscribe(); msgUnsubscribe = null; }
   if (presenceUnsubscribe) { presenceUnsubscribe(); presenceUnsubscribe = null; }
+  if (typingUnsubscribe) { typingUnsubscribe(); typingUnsubscribe = null; }
+  setMyTypingStatus(false);
   openChatUser = null;
 };
 
 function subscribeMessages() {
   if (msgUnsubscribe) msgUnsubscribe();
   if (!currentUser || !openChatUser) return;
-
   const q = query(collection(db, 'messages'), orderBy('timestamp', 'asc'));
-
   msgUnsubscribe = onSnapshot(q, (snap) => {
     const msgs = [];
     snap.forEach(d => {
       const m = d.data();
-      const isMine = (m.senderId === currentUser.uid && m.receiverId === openChatUser.uid);
-      const isTheirs = (m.senderId === openChatUser.uid && m.receiverId === currentUser.uid);
-      if (isMine || isTheirs) {
-        msgs.push({ ...m, id: d.id });
+      if ((m.senderId===currentUser.uid && m.receiverId===openChatUser.uid) || (m.senderId===openChatUser.uid && m.receiverId===currentUser.uid)) {
+        msgs.push({...m, id: d.id});
       }
     });
     renderMessages(msgs);
-    
-    // Auto-mark as read when new messages arrive
-    if (openChatUser) {
-      markMessagesAsRead(openChatUser.uid);
-    }
+    if (openChatUser) markMessagesAsRead(openChatUser.uid);
   });
 }
 
 function renderMessages(msgs) {
-  const container = document.getElementById('conv-messages');
-  container.innerHTML = '';
-  let lastDate = '';
-  
+  const container = document.getElementById('conv-messages'); container.innerHTML = ''; let lastDate = '';
   msgs.forEach(m => {
     const ts = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
-    const dateStr = ts.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    
-    if (dateStr !== lastDate) {
-      const div = document.createElement('div');
-      div.className = 'date-divider';
-      div.textContent = dateStr;
-      container.appendChild(div);
-      lastDate = dateStr;
-    }
-    
+    const dateStr = ts.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    if (dateStr !== lastDate) { const div = document.createElement('div'); div.className = 'date-divider'; div.textContent = dateStr; container.appendChild(div); lastDate = dateStr; }
     const isSent = m.senderId === currentUser.uid;
-    const row = document.createElement('div');
-    row.className = 'msg-row ' + (isSent ? 'sent' : 'recv');
-    
+    const row = document.createElement('div'); row.className = 'msg-row ' + (isSent?'sent':'recv');
     let statusHtml = '';
     if (isSent) {
-      if (m.seen) {
-        statusHtml = '<span class="msg-status seen"><i class="fas fa-check-double"></i></span>';
-      } else if (m.delivered) {
-        statusHtml = '<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>';
-      } else {
-        statusHtml = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
-      }
+      if (m.seen) statusHtml = '<span class="msg-status seen"><i class="fas fa-check-double"></i></span>';
+      else if (m.delivered) statusHtml = '<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>';
+      else statusHtml = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
     }
-    
     row.innerHTML = `
-      ${!isSent ? `<img class="msg-avatar" src="${openChatUser?.photoURL || avatarUrl(openChatUser?.displayName || 'U')}" />` : ''}
-      <div class="bubble ${isSent ? 'sent' : 'recv'}">
-        ${m.text}
-        <span class="bubble-time">${formatTime(ts)} ${statusHtml}</span>
-      </div>`;
+      ${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U')}" />`:''}
+      <div class="bubble ${isSent?'sent':'recv'}">${m.text}<span class="bubble-time">${formatTime(ts)} ${statusHtml}</span></div>`;
     container.appendChild(row);
   });
-  
   container.scrollTop = container.scrollHeight;
 }
 
@@ -1092,214 +1146,120 @@ window.sendMessage = async function() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
   if (!text || !currentUser || !openChatUser) return;
-  input.value = '';
-  autoResize(input);
-  
+  input.value = ''; autoResize(input);
+  setMyTypingStatus(false);
   try {
     await addDoc(collection(db, 'messages'), {
-      senderId: currentUser.uid,
-      receiverId: openChatUser.uid,
-      text: text,
-      timestamp: serverTimestamp(),
-      delivered: false,
-      read: false,
-      seen: false
+      senderId: currentUser.uid, receiverId: openChatUser.uid, text: text,
+      timestamp: serverTimestamp(), delivered: false, read: false, seen: false
     });
-    
-    // Mark conversation partner's messages as delivered
     markAsDelivered(openChatUser.uid);
   } catch(e) {
-    console.error(e);
-    showToast('Failed to send message');
+    console.error('Send error:', e);
+    showToast('Failed to send message. Check Firebase rules.');
   }
 };
 
 async function markAsDelivered(senderId) {
   try {
-    const q = query(
-      collection(db, 'messages'),
-      where('senderId', '==', senderId),
-      where('receiverId', '==', currentUser.uid),
-      where('delivered', '==', false)
-    );
+    const q = query(collection(db, 'messages'), where('senderId','==',senderId), where('receiverId','==',currentUser.uid), where('delivered','==',false));
     const snap = await getDocs(q);
-    const batch = [];
-    snap.forEach(d => {
-      batch.push(updateDoc(doc(db, 'messages', d.id), { delivered: true }));
-    });
+    const batch = []; snap.forEach(d => { batch.push(updateDoc(doc(db, 'messages', d.id), { delivered: true })); });
     await Promise.all(batch);
-  } catch(e) {
-    console.error('Error marking as delivered:', e);
-  }
+  } catch(e) { console.error('Delivered error:', e); }
 }
 
 window.msgKeyDown = function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 };
 
-window.onTyping = function() {
-  clearTimeout(typingTimeout);
-  document.getElementById('typing-row').style.display = 'flex';
-  typingTimeout = setTimeout(() => {
-    document.getElementById('typing-row').style.display = 'none';
-  }, 2000);
-};
+// Typing event on input - sets MY typing status for the other person
+let typingDebounce = null;
+const msgInput = document.getElementById('msg-input');
+msgInput.addEventListener('input', () => {
+  if (!openChatUser) return;
+  setMyTypingStatus(true);
+  clearTimeout(typingDebounce);
+  typingDebounce = setTimeout(() => { setMyTypingStatus(false); }, 2000);
+});
 
 // ── SETTINGS ──
 window.openEditProfile = function() {
-  document.getElementById('edit-name').value = currentUserData?.displayName || '';
-  document.getElementById('edit-phone').value = currentUserData?.phone || '';
+  document.getElementById('edit-name').value = currentUserData?.displayName||'';
+  document.getElementById('edit-phone').value = currentUserData?.phone||'';
   document.getElementById('edit-profile-modal').classList.add('open');
 };
-
 window.saveProfile = async function() {
   const name = document.getElementById('edit-name').value.trim();
   const phone = document.getElementById('edit-phone').value.trim();
-  const btn = document.querySelector('#edit-profile-modal .btn-primary');
   if (!name) { showToast('Name is required'); return; }
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
+  const btn = document.querySelector('#edit-profile-modal .btn-primary'); btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    await updateDoc(doc(db, 'users', currentUser.uid), {
-      displayName: name,
-      phone: phone
-    });
+    await updateDoc(doc(db, 'users', currentUser.uid), { displayName: name, phone: phone });
     currentUserData = { ...currentUserData, displayName: name, phone: phone };
-    updateUI();
-    closeModal('edit-profile-modal');
-    showToast('Profile updated!');
-  } catch(e) {
-    showToast('Failed to save profile');
-  }
-  btn.disabled = false;
-  btn.textContent = 'Save Changes';
+    updateUI(); closeModal('edit-profile-modal'); showToast('Profile updated!');
+  } catch(e) { showToast('Failed to save profile'); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
 };
-
 window.openChangePassword = function() {
-  document.getElementById('old-pass').value = '';
-  document.getElementById('new-pass').value = '';
-  document.getElementById('confirm-pass').value = '';
-  document.getElementById('pass-error').textContent = '';
-  document.getElementById('change-pass-modal').classList.add('open');
+  document.getElementById('old-pass').value = ''; document.getElementById('new-pass').value = ''; document.getElementById('confirm-pass').value = '';
+  document.getElementById('pass-error').textContent = ''; document.getElementById('change-pass-modal').classList.add('open');
 };
-
 window.changePassword = async function() {
-  const old = document.getElementById('old-pass').value;
-  const np = document.getElementById('new-pass').value;
-  const cp = document.getElementById('confirm-pass').value;
-  const btn = document.querySelector('#change-pass-modal .btn-primary');
-  
-  if (!old || !np || !cp) {
-    document.getElementById('pass-error').textContent = 'Fill all fields';
-    return;
-  }
-  if (np !== cp) {
-    document.getElementById('pass-error').textContent = 'Passwords do not match';
-    return;
-  }
-  if (np.length < 6) {
-    document.getElementById('pass-error').textContent = 'Min 6 characters';
-    return;
-  }
-  
-  btn.disabled = true;
-  btn.textContent = 'Updating…';
-  
+  const old = document.getElementById('old-pass').value, np = document.getElementById('new-pass').value, cp = document.getElementById('confirm-pass').value;
+  if (!old||!np||!cp) { document.getElementById('pass-error').textContent = 'Fill all fields'; return; }
+  if (np !== cp) { document.getElementById('pass-error').textContent = 'Passwords do not match'; return; }
+  if (np.length < 6) { document.getElementById('pass-error').textContent = 'Min 6 characters'; return; }
+  const btn = document.querySelector('#change-pass-modal .btn-primary'); btn.disabled = true; btn.textContent = 'Updating…';
   try {
-    const credential = EmailAuthProvider.credential(currentUser.email, old);
-    await reauthenticateWithCredential(auth.currentUser, credential);
+    await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(currentUser.email, old));
     await updatePassword(auth.currentUser, np);
-    closeModal('change-pass-modal');
-    showToast('Password updated!');
+    closeModal('change-pass-modal'); showToast('Password updated!');
   } catch(e) {
-    if (e.code === 'auth/wrong-password') {
-      document.getElementById('pass-error').textContent = 'Please Logout then try to forget';
-    } else {
-      document.getElementById('pass-error').textContent = friendlyError(e.code);
-    }
+    document.getElementById('pass-error').textContent = e.code==='auth/wrong-password' ? 'Please Logout then try to forget' : friendlyError(e.code);
   }
-  btn.disabled = false;
-  btn.textContent = 'Update Password';
+  btn.disabled = false; btn.textContent = 'Update Password';
 };
-
 window.openAvatarUrlModal = function() {
   document.getElementById('avatar-url-input').value = currentUserData?.photoURL || '';
   document.getElementById('avatar-url-modal').classList.add('open');
 };
-
 window.updateAvatarUrl = async function() {
   const url = document.getElementById('avatar-url-input').value.trim();
   if (!url) { showToast('Enter a valid URL'); return; }
   try {
     await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: url });
     currentUserData = { ...currentUserData, photoURL: url };
-    updateUI();
-    closeModal('avatar-url-modal');
-    showToast('Profile picture updated!');
-  } catch(e) {
-    showToast('Failed to update picture');
-  }
+    updateUI(); closeModal('avatar-url-modal'); showToast('Profile picture updated!');
+  } catch(e) { showToast('Failed to update picture'); }
 };
-
 window.openUserProfileModal = function(user) {
   if (!user) return;
-  document.getElementById('upm-avatar').src = user.photoURL || avatarUrl(user.displayName || 'U');
+  document.getElementById('upm-avatar').src = user.photoURL || avatarUrl(user.displayName||'U');
   document.getElementById('upm-name').textContent = user.displayName || 'User';
   document.getElementById('upm-phone').textContent = user.phone || 'Not provided';
   document.getElementById('upm-email').textContent = user.email || 'Not provided';
   document.getElementById('upm-gender').textContent = user.gender || 'Not specified';
   document.getElementById('user-profile-modal').classList.add('open');
 };
-
 window.handleLogout = async function() {
   if (!confirm('Are you sure you want to logout?')) return;
   try {
-    if (currentUser) {
-      await updateDoc(doc(db, 'users', currentUser.uid), { online: false });
-    }
-    await signOut(auth);
-    currentUser = null;
-    currentUserData = null;
-    showAuthScreen();
-  } catch(e) {
-    showToast('Logout failed');
-  }
+    if (currentUser) await updateDoc(doc(db, 'users', currentUser.uid), { online: false });
+    await signOut(auth); currentUser = null; currentUserData = null; showAuthScreen();
+  } catch(e) { showToast('Logout failed'); }
 };
-
-window.closeModal = function(id) {
-  document.getElementById(id).classList.remove('open');
-};
-
-window.showToast = function(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-};
-
-window.autoResize = function(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
-};
-
+window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
+window.showToast = function(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); };
+window.autoResize = function(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; };
 function formatTime(date) {
   const now = new Date();
-  if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-  }
+  if (date.toDateString() === now.toDateString()) return date.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true});
   const diff = Math.floor((now - date) / 86400000);
-  if (diff < 7) return date.toLocaleDateString('en-US', { weekday: 'short' });
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  if (diff < 7) return date.toLocaleDateString('en-US',{weekday:'short'});
+  return date.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
-
-document.querySelectorAll('.modal-backdrop').forEach(b => {
-  b.addEventListener('click', e => {
-    if (e.target === b) b.classList.remove('open');
-  });
-});
+document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target===b) b.classList.remove('open'); }));
 </script>
 </body>
 </html>
