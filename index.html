@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Kotha Bolbo</title>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Exo+2:ital,wght@0,300;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,500;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
   <style>
@@ -38,7 +38,7 @@
     }
 
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    html, body { height:100%; width:100%; overflow:hidden; font-family:'Hind Siliguri',sans-serif; background:var(--bg-primary); color:var(--text-primary); font-size: 15px; }
+    html, body { height:100%; width:100%; overflow:hidden; font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); font-size: 15px; }
 
     /* ═══════ SMALLER SPLASH ═══════ */
     #splash {
@@ -211,6 +211,15 @@
     .chat-avatar img { width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--border); }
     .status-dot { position:absolute; bottom:1px; right:1px; width:10px; height:10px; border-radius:50%; background:var(--success); border:2px solid var(--bg-secondary); }
     .status-dot.offline { background:var(--text-muted); }
+    .gender-dot { position:absolute; bottom:1px; left:1px; width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg-secondary); font-size:7px; line-height:1; }
+    .gender-dot.male { background:#2196f3; color:#fff; }
+    .gender-dot.female { background:#e91e8c; color:#fff; }
+    .gender-dot.other { background:#7c3aed; color:#fff; }
+    .header-avatar-wrap { position:relative; flex-shrink:0; width:32px; height:32px; }
+    .header-avatar-wrap .header-avatar { width:32px; height:32px; }
+    .header-avatar-wrap .gender-dot { width:12px; height:12px; font-size:6px; bottom:0; left:0; }
+    .settings-gender-wrap { position:relative; display:inline-block; }
+    .settings-gender-wrap .gender-dot { width:18px; height:18px; font-size:9px; bottom:2px; left:2px; }
     .chat-info { flex:1; min-width:0; }
     .chat-info-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
     .chat-name { font-size:0.9rem; font-weight:600; }
@@ -317,6 +326,184 @@
     .user-profile-modal-content h3 { font-size:1.1rem; margin-bottom:2px; }
     .user-profile-modal-content .detail { font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; }
     .user-profile-modal-content .detail i { width:16px; color:var(--accent); margin-right:4px; }
+
+    /* ═══════ GENDER POPUP ═══════ */
+    .gender-trigger {
+      width:100%; padding:10px 12px; border-radius:var(--radius-sm);
+      background:var(--bg-input); border:1.5px solid var(--border); color:var(--text-primary);
+      font-family:inherit; font-size:0.85rem; cursor:pointer; transition:var(--transition);
+      display:flex; align-items:center; justify-content:space-between;
+      user-select:none;
+    }
+    .gender-trigger:hover, .gender-trigger.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-glow); }
+    .gender-trigger span { color:var(--text-muted); }
+    .gender-trigger span.selected { color:var(--text-primary); }
+    .gender-trigger i { font-size:12px; color:var(--text-muted); transition:transform 0.3s ease; }
+    .gender-trigger.active i { transform: rotate(180deg); }
+
+    .gender-overlay {
+      position:fixed; inset:0; z-index:9000;
+      backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+      background:rgba(10,14,26,0.75);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .gender-overlay.open { opacity:1; pointer-events:all; }
+
+    .gender-popup {
+      background:var(--bg-card);
+      border:1px solid rgba(0,212,255,0.2);
+      border-radius:20px;
+      padding:24px 20px;
+      width:min(320px, 90vw);
+      box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,212,255,0.08);
+      transform:scale(0.88) translateY(20px);
+      transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+      opacity:0;
+    }
+    .gender-overlay.open .gender-popup { transform:scale(1) translateY(0); opacity:1; }
+
+    .gender-popup-title {
+      text-align:center; margin-bottom:6px;
+      font-size:1.05rem; font-weight:700; color:var(--text-primary);
+    }
+    .gender-popup-sub {
+      text-align:center; font-size:0.72rem; color:var(--text-muted);
+      margin-bottom:20px; letter-spacing:0.3px;
+    }
+    .gender-options { display:flex; flex-direction:column; gap:10px; }
+    .gender-option {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 16px; border-radius:12px;
+      border:1.5px solid var(--border);
+      background:var(--bg-tertiary);
+      cursor:pointer; transition:all 0.2s ease;
+    }
+    .gender-option:hover { border-color:var(--accent); background:rgba(0,212,255,0.06); transform:translateX(3px); }
+    .gender-option.selected { border-color:var(--accent); background:rgba(0,212,255,0.1); box-shadow:0 0 12px rgba(0,212,255,0.15); }
+    .gender-option-icon {
+      width:40px; height:40px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:18px;
+    }
+    .gender-option-icon.male { background:rgba(0,150,255,0.15); color:#00aaff; }
+    .gender-option-icon.female { background:rgba(255,100,150,0.15); color:#ff6496; }
+    .gender-option-icon.other { background:rgba(124,58,237,0.15); color:#a78bfa; }
+    .gender-option-label { flex:1; }
+    .gender-option-label strong { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); }
+    .gender-option-label small { font-size:0.7rem; color:var(--text-muted); }
+    .gender-option-check { font-size:14px; color:var(--accent); opacity:0; transition:opacity 0.2s; }
+    .gender-option.selected .gender-option-check { opacity:1; }
+
+    .gender-popup-skip {
+      margin-top:16px; text-align:center;
+      font-size:0.75rem; color:var(--text-muted);
+      cursor:pointer; padding:6px;
+      transition:color 0.2s;
+    }
+    .gender-popup-skip:hover { color:var(--text-secondary); }
+
+    /* ═══════ PRIVACY POPUP ═══════ */
+    .privacy-overlay {
+      position:fixed; inset:0; z-index:9000;
+      backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+      background:rgba(10,14,26,0.78);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .privacy-overlay.open { opacity:1; pointer-events:all; }
+    .privacy-popup {
+      background:var(--bg-card);
+      border:1px solid rgba(0,212,255,0.2);
+      border-radius:20px; padding:24px 20px;
+      width:min(340px, 92vw);
+      box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,212,255,0.08);
+      transform:scale(0.88) translateY(20px); opacity:0;
+      transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    }
+    .privacy-overlay.open .privacy-popup { transform:scale(1) translateY(0); opacity:1; }
+    .privacy-popup-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+    .privacy-popup-header h3 { font-size:1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
+    .privacy-popup-header h3 i { color:var(--accent); font-size:0.9rem; }
+    .privacy-close-btn { width:28px; height:28px; border:none; background:var(--bg-tertiary); color:var(--text-muted); border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; transition:var(--transition); }
+    .privacy-close-btn:hover { background:var(--danger); color:#fff; }
+    .privacy-popup-sub { font-size:0.72rem; color:var(--text-muted); margin-bottom:20px; }
+    .privacy-item {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 16px; border-radius:12px;
+      border:1.5px solid var(--border); background:var(--bg-tertiary);
+      margin-bottom:10px; cursor:pointer; transition:all 0.2s ease;
+      user-select:none;
+    }
+    .privacy-item:hover { border-color:var(--accent); background:rgba(0,212,255,0.05); }
+    .privacy-item-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .privacy-item-icon.email-icon { background:rgba(0,212,255,0.12); color:var(--accent); }
+    .privacy-item-icon.phone-icon { background:rgba(124,58,237,0.12); color:#a78bfa; }
+    .privacy-item-info { flex:1; }
+    .privacy-item-info strong { display:block; font-size:0.88rem; font-weight:600; color:var(--text-primary); }
+    .privacy-item-info small { font-size:0.7rem; color:var(--text-muted); }
+    .privacy-item-preview { font-size:0.7rem; color:var(--text-secondary); margin-top:2px; font-family:monospace; letter-spacing:0.3px; }
+    .privacy-toggle { width:22px; height:22px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.25s ease; background:transparent; }
+    .privacy-toggle i { font-size:11px; color:transparent; transition:color 0.2s; }
+    .privacy-item.public-on .privacy-toggle { border-color:var(--accent); background:var(--accent); box-shadow:0 0 10px rgba(0,212,255,0.4); }
+    .privacy-item.public-on .privacy-toggle i { color:#000; }
+    .privacy-item.public-on { border-color:rgba(0,212,255,0.3); background:rgba(0,212,255,0.06); }
+    .privacy-status-tag { font-size:0.62rem; font-weight:700; letter-spacing:0.8px; padding:2px 7px; border-radius:999px; margin-left:4px; }
+    .privacy-status-tag.pub { background:rgba(0,212,255,0.15); color:var(--accent); }
+    .privacy-status-tag.priv { background:rgba(74,90,120,0.3); color:var(--text-muted); }
+    .privacy-save-btn { width:100%; padding:11px; border:none; border-radius:10px; background:linear-gradient(135deg,#00d4ff,#0099cc); color:#000; font-family:inherit; font-size:0.88rem; font-weight:700; cursor:pointer; margin-top:8px; transition:var(--transition); }
+    .privacy-save-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,212,255,0.35); }
+    /* ═══════ ABOUT DEVELOPER POPUP ═══════ */
+    .about-overlay {
+      position:fixed; inset:0; z-index:9000;
+      backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      background:rgba(10,14,26,0.82);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .about-overlay.open { opacity:1; pointer-events:all; }
+    .about-popup {
+      background:var(--bg-card); border:1px solid rgba(0,212,255,0.2);
+      border-radius:22px; padding:28px 22px 22px;
+      width:min(340px, 92vw);
+      box-shadow:0 24px 64px rgba(0,0,0,0.6), 0 0 40px rgba(0,212,255,0.08);
+      transform:scale(0.88) translateY(24px); opacity:0;
+      transition:transform 0.38s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+      position:relative;
+    }
+    .about-overlay.open .about-popup { transform:scale(1) translateY(0); opacity:1; }
+    .about-close-btn {
+      position:absolute; top:14px; right:14px;
+      width:30px; height:30px; border:none; background:var(--bg-tertiary);
+      color:var(--text-muted); border-radius:50%; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-size:13px;
+      transition:var(--transition);
+    }
+    .about-close-btn:hover { background:var(--danger); color:#fff; }
+    .about-greeting {
+      text-align:center; font-size:1.15rem; font-weight:700;
+      color:var(--text-primary); margin-bottom:18px; letter-spacing:0.3px;
+    }
+    .about-info-row {
+      display:flex; align-items:center; gap:12px;
+      padding:10px 14px; border-radius:10px;
+      background:var(--bg-tertiary); border:1px solid var(--border);
+      margin-bottom:8px;
+    }
+    .about-info-row i { width:18px; text-align:center; color:var(--accent); font-size:13px; flex-shrink:0; }
+    .about-info-row span { font-size:0.82rem; color:var(--text-primary); font-weight:500; }
+    .about-info-row a { font-size:0.82rem; color:var(--accent); font-weight:500; text-decoration:none; }
+    .about-info-row a:hover { text-decoration:underline; }
+    .about-bio-card {
+      margin-top:14px; padding:14px 16px;
+      background:linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(124,58,237,0.06) 100%);
+      border:1px solid rgba(0,212,255,0.18); border-radius:14px;
+      font-size:0.78rem; color:var(--text-secondary); line-height:1.65;
+      font-style:italic;
+    }
+    .about-bio-card strong { color:var(--accent); font-style:normal; }
   </style>
 </head>
 <body>
@@ -341,7 +528,7 @@
 <div id="conv-screen">
   <div class="app-header">
     <button class="header-back" onclick="closeConversation()"><i class="fas fa-arrow-left"></i></button>
-    <div class="chat-avatar" style="width:30px;height:30px;flex-shrink:0;"><img id="conv-avatar" src="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);" /><div class="status-dot" id="conv-status-dot"></div></div>
+    <div class="chat-avatar" style="width:30px;height:30px;flex-shrink:0;"><img id="conv-avatar" src="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);" /><div class="status-dot" id="conv-status-dot"></div><div class="gender-dot" id="conv-gender-dot" style="display:none;width:12px;height:12px;font-size:6px;"></div></div>
     <div class="header-info" onclick="openUserProfileModal(openChatUser)"><h2 id="conv-name"></h2><span id="conv-status-text">Offline</span></div>
   </div>
   <div class="conv-messages" id="conv-messages"></div>
@@ -355,7 +542,7 @@
 <div id="app">
   <div class="screen active" id="chat-screen">
     <div class="app-header">
-      <img id="my-avatar" src="" class="header-avatar" onclick="switchTab('settings')" />
+      <div class="header-avatar-wrap" onclick="switchTab('settings')" id="my-avatar-wrap"><img id="my-avatar" src="" class="header-avatar" /><div class="gender-dot" id="my-header-gender-dot" style="display:none;"></div></div>
       <div class="header-info"><h2>Kotha Bolbo</h2><span id="my-name-header"></span></div>
     </div>
     <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="chat-search" placeholder="Search chats…" oninput="filterChats(this.value)" /></div></div>
@@ -370,15 +557,17 @@
     <div class="app-header"><div class="header-info"><h2>Settings</h2><span>Manage your profile</span></div></div>
     <div class="scroll-area" style="flex:1;overflow-y:auto;padding-bottom:16px;">
       <div class="settings-profile">
-        <div class="profile-avatar-wrap" onclick="openAvatarUrlModal()"><img id="settings-avatar" src="" /><div class="avatar-edit-btn"><i class="fas fa-edit"></i></div></div>
+        <div class="profile-avatar-wrap settings-gender-wrap" onclick="openAvatarUrlModal()"><img id="settings-avatar" src="" /><div class="avatar-edit-btn"><i class="fas fa-edit"></i></div><div class="gender-dot" id="settings-gender-dot" style="display:none;"></div></div>
         <div class="profile-name" id="settings-name"></div><div class="profile-email" id="settings-email"></div>
       </div>
       <div class="settings-section"><h3>Account</h3><div class="settings-card">
-        <div class="settings-row" onclick="openEditProfile()"><div class="settings-row-icon" style="background:#00d4ff22;color:var(--accent);"><i class="fas fa-user"></i></div><div class="settings-row-info"><strong>Edit Profile</strong><small>Update name, phone</small></div><i class="fas fa-chevron-right chevron"></i></div>
+        <div class="settings-row" onclick="openEditProfile()"><div class="settings-row-icon" style="background:#00d4ff22;color:var(--accent);"><i class="fas fa-user"></i></div><div class="settings-row-info"><strong>Edit Profile</strong><small>Update name, phone, gender (7 days)</small></div><i class="fas fa-chevron-right chevron"></i></div>
         <div class="settings-row" onclick="openChangePassword()"><div class="settings-row-icon" style="background:#7c3aed22;color:#a78bfa;"><i class="fas fa-lock"></i></div><div class="settings-row-info"><strong>Change Password</strong><small>Update your password</small></div><i class="fas fa-chevron-right chevron"></i></div>
+        <div class="settings-row" onclick="openPrivacyPopup()"><div class="settings-row-icon" style="background:#4ade8022;color:#4ade80;"><i class="fas fa-shield-alt"></i></div><div class="settings-row-info"><strong>Privacy</strong><small>Control who sees your info</small></div><i class="fas fa-chevron-right chevron"></i></div>
       </div></div>
       <div class="settings-section"><h3>App</h3><div class="settings-card">
         <div class="settings-row"><div class="settings-row-icon" style="background:#4ade8022;color:var(--success);"><i class="fas fa-info-circle"></i></div><div class="settings-row-info"><strong>Version</strong><small>Kotha Bolbo v1.0 • By Sayem</small></div></div>
+        <div class="settings-row" onclick="openAboutDeveloper()"><div class="settings-row-icon" style="background:#f59e0b22;color:#f59e0b;"><i class="fas fa-code"></i></div><div class="settings-row-info"><strong>About Developer</strong><small>Meet the creator of this app</small></div><i class="fas fa-chevron-right chevron"></i></div>
         <div class="settings-row" onclick="showLogoutConfirm()"><div class="settings-row-icon" style="background:#ff4d6d22;color:var(--danger);"><i class="fas fa-sign-out-alt"></i></div><div class="settings-row-info"><strong>Logout</strong><small>Sign out of your account</small></div><i class="fas fa-chevron-right chevron"></i></div>
       </div></div>
     </div>
@@ -391,12 +580,137 @@
 </div>
 
 <!-- MODALS -->
-<div class="modal-backdrop" id="edit-profile-modal"><div class="modal"><button class="close-btn" onclick="closeModal('edit-profile-modal')"><i class="fas fa-times"></i></button><h2>Edit Profile</h2><div class="form-group"><label>Full Name</label><input type="text" id="edit-name" placeholder="Your name" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="edit-phone" placeholder="Phone number" /></div><button class="btn-primary" onclick="saveProfile()">Save Changes</button></div></div>
+<div class="modal-backdrop" id="edit-profile-modal"><div class="modal"><button class="close-btn" onclick="closeModal('edit-profile-modal')"><i class="fas fa-times"></i></button><h2>Edit Profile</h2><div id="edit-profile-cooldown-msg" style="display:none;background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:0.75rem;color:#ff6b6b;text-align:center;"></div><div class="form-group"><label>Full Name</label><input type="text" id="edit-name" placeholder="Your name" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="edit-phone" placeholder="Phone number" /></div><div class="form-group"><label>Gender</label><div class="gender-trigger" id="edit-gender-trigger" onclick="openGenderPopupEdit()"><span id="edit-gender-display-text">Select Gender</span><i class="fas fa-chevron-down"></i></div><input type="hidden" id="edit-gender" value="" /></div><p style="font-size:0.68rem;color:var(--text-muted);text-align:center;margin-bottom:12px;"><i class="fas fa-clock" style="margin-right:4px;"></i>Profile can be updated once every 7 days</p><button class="btn-primary" id="edit-profile-save-btn" onclick="saveProfile()">Save Changes</button></div></div>
 <div class="modal-backdrop" id="change-pass-modal"><div class="modal"><button class="close-btn" onclick="closeModal('change-pass-modal')"><i class="fas fa-times"></i></button><h2>Change Password</h2><div class="form-group"><label>Old Password</label><input type="password" id="old-pass" placeholder="Enter old password" /></div><div class="form-group"><label>New Password</label><input type="password" id="new-pass" placeholder="New password (min 6)" /></div><div class="form-group"><label>Confirm Password</label><input type="password" id="confirm-pass" placeholder="Confirm new password" /></div><button class="btn-primary" onclick="changePassword()">Update Password</button><div class="auth-error" id="pass-error"></div></div></div>
 <div class="modal-backdrop" id="avatar-url-modal"><div class="modal"><button class="close-btn" onclick="closeModal('avatar-url-modal')"><i class="fas fa-times"></i></button><h2>Change Profile Picture</h2><div class="form-group"><label>Image URL</label><input type="url" id="avatar-url-input" placeholder="https://..." /></div><button class="btn-primary" onclick="updateAvatarUrl()">Update Picture</button></div></div>
 <div class="modal-backdrop" id="user-profile-modal"><div class="modal user-profile-modal-content"><button class="close-btn" onclick="closeModal('user-profile-modal')"><i class="fas fa-times"></i></button><img id="upm-avatar" src="" /><h3 id="upm-name"></h3><div class="detail"><i class="fas fa-phone"></i> <span id="upm-phone"></span></div><div class="detail"><i class="fas fa-envelope"></i> <span id="upm-email"></span></div><div class="detail"><i class="fas fa-venus-mars"></i> <span id="upm-gender"></span></div></div></div>
 <div class="modal-backdrop" id="logout-confirm-modal"><div class="modal" style="text-align:center;"><div class="confirm-icon warning"><i class="fas fa-sign-out-alt"></i></div><h2 style="margin-bottom:6px;">Logout</h2><p class="confirm-text">Are you sure you want to logout?</p><div class="modal-buttons"><button class="btn-secondary" onclick="closeModal('logout-confirm-modal')">Cancel</button><button class="btn-danger" onclick="confirmLogout()">Logout</button></div></div></div>
 <div id="toast"></div>
+
+<!-- ABOUT DEVELOPER POPUP -->
+<div class="about-overlay" id="about-overlay" onclick="handleAboutOverlayClick(event)">
+  <div class="about-popup" id="about-popup">
+    <button class="about-close-btn" onclick="closeAboutDeveloper()"><i class="fas fa-times"></i></button>
+    <div class="about-greeting">Hello Dear User 👋</div>
+    <div class="about-info-row"><i class="fas fa-user"></i><span><strong>Name:</strong>&nbsp; Md. Abu Sayem</span></div>
+    <div class="about-info-row"><i class="fas fa-phone"></i><span><strong>Phone:</strong>&nbsp; 01962610866</span></div>
+    <div class="about-info-row"><i class="fas fa-envelope"></i><a href="mailto:abusayem0866@gmail.com"><strong>Email:</strong>&nbsp; abusayem0866@gmail.com</a></div>
+    <div class="about-bio-card">
+      "Hi, I'm <strong>Sayem</strong> — I built this amazing messenger app just for you! With <strong>Kotha Bolbo</strong>, you can send text messages to the people you know. I truly hope you enjoy using this app and make it a part of your daily routine. Your support means everything to me!"
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY POPUP -->
+<div class="privacy-overlay" id="privacy-overlay" onclick="handlePrivacyOverlayClick(event)">
+  <div class="privacy-popup">
+    <div class="privacy-popup-header">
+      <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
+      <button class="privacy-close-btn" onclick="closePrivacyPopup()"><i class="fas fa-times"></i></button>
+    </div>
+    <p class="privacy-popup-sub">Choose what others can see on your profile in Friends list.</p>
+    <div class="privacy-item" id="priv-email-row" onclick="togglePrivacy('email')">
+      <div class="privacy-item-icon email-icon"><i class="fas fa-envelope"></i></div>
+      <div class="privacy-item-info">
+        <strong>Email Address <span class="privacy-status-tag priv" id="priv-email-tag">PRIVATE</span></strong>
+        <div class="privacy-item-preview" id="priv-email-preview">Shown as: am****em@gmail.com</div>
+      </div>
+      <div class="privacy-toggle" id="priv-email-toggle"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="privacy-item" id="priv-phone-row" onclick="togglePrivacy('phone')">
+      <div class="privacy-item-icon phone-icon"><i class="fas fa-phone"></i></div>
+      <div class="privacy-item-info">
+        <strong>Phone Number <span class="privacy-status-tag priv" id="priv-phone-tag">PRIVATE</span></strong>
+        <div class="privacy-item-preview" id="priv-phone-preview">Shown as: 019******66</div>
+      </div>
+      <div class="privacy-toggle" id="priv-phone-toggle"><i class="fas fa-check"></i></div>
+    </div>
+    <button class="privacy-save-btn" onclick="savePrivacySettings()">Save Settings</button>
+  </div>
+</div>
+
+<!-- GENDER POPUP -->
+<div class="gender-overlay" id="gender-overlay" onclick="handleGenderOverlayClick(event)">
+  <div class="gender-popup" id="gender-popup">
+    <div class="gender-popup-title">👤 Select Your Gender</div>
+    <div class="gender-popup-sub">This will be shown on your profile</div>
+    <div class="gender-options">
+      <div class="gender-option" id="go-male" onclick="selectGender('Male')">
+        <div class="gender-option-icon male"><i class="fas fa-mars"></i></div>
+        <div class="gender-option-label"><strong>Male</strong><small>Man / Boy</small></div>
+        <i class="fas fa-check-circle gender-option-check"></i>
+      </div>
+      <div class="gender-option" id="go-female" onclick="selectGender('Female')">
+        <div class="gender-option-icon female"><i class="fas fa-venus"></i></div>
+        <div class="gender-option-label"><strong>Female</strong><small>Woman / Girl</small></div>
+        <i class="fas fa-check-circle gender-option-check"></i>
+      </div>
+      <div class="gender-option" id="go-other" onclick="selectGender('Other')">
+        <div class="gender-option-icon other"><i class="fas fa-genderless"></i></div>
+        <div class="gender-option-label"><strong>Other</strong><small>Prefer not to say</small></div>
+        <i class="fas fa-check-circle gender-option-check"></i>
+      </div>
+    </div>
+    <div class="gender-popup-skip-hidden"></div>
+  </div>
+</div>
+
+<script>
+  let genderPopupMode = 'signup'; // 'signup' or 'edit'
+
+  window.openGenderPopup = function() {
+    genderPopupMode = 'signup';
+    const overlay = document.getElementById('gender-overlay');
+    const trigger = document.getElementById('gender-trigger');
+    overlay.classList.add('open');
+    if(trigger) trigger.classList.add('active');
+  };
+
+  window.openGenderPopupEdit = function() {
+    genderPopupMode = 'edit';
+    const overlay = document.getElementById('gender-overlay');
+    overlay.classList.add('open');
+    // Reflect current edit gender value
+    const cur = document.getElementById('edit-gender')?.value;
+    ['Male','Female','Other'].forEach(g => {
+      const el = document.getElementById('go-'+g.toLowerCase());
+      if(el) el.classList.toggle('selected', g===cur);
+    });
+  };
+
+  window.closeGenderPopup = function() {
+    const overlay = document.getElementById('gender-overlay');
+    const trigger = document.getElementById('gender-trigger');
+    overlay.classList.remove('open');
+    if(trigger) trigger.classList.remove('active');
+    const editTrigger = document.getElementById('edit-gender-trigger');
+    if(editTrigger) editTrigger.classList.remove('active');
+  };
+
+  // Gender popup cannot be closed by clicking outside - gender is mandatory
+  window.handleGenderOverlayClick = function(e) {
+    // Disabled: user must select a gender
+  };
+
+  window.selectGender = function(val) {
+    if (genderPopupMode === 'signup') {
+      const input = document.getElementById('signup-gender');
+      if(input) input.value = val;
+      const display = document.getElementById('gender-display-text');
+      if(display) { display.textContent = val; display.classList.add('selected'); }
+    } else {
+      const input = document.getElementById('edit-gender');
+      if(input) input.value = val;
+      const display = document.getElementById('edit-gender-display-text');
+      if(display) { display.textContent = val; display.classList.add('selected'); }
+    }
+    ['Male','Female','Other'].forEach(g => {
+      const el = document.getElementById('go-'+g.toLowerCase());
+      if(el) el.classList.toggle('selected', g===val);
+    });
+    setTimeout(closeGenderPopup, 350);
+  };
+</script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -449,6 +763,24 @@ async function fetchMyData() {
   updateUI(); showApp();
 }
 
+function genderDotHTML(gender) {
+  if (!gender) return '';
+  const cfg = { 'Male': { cls:'male', icon:'fa-mars' }, 'Female': { cls:'female', icon:'fa-venus' }, 'Other': { cls:'other', icon:'fa-genderless' } };
+  const c = cfg[gender]; if (!c) return '';
+  return `<div class="gender-dot ${c.cls}"><i class="fas ${c.icon}"></i></div>`;
+}
+
+function applyGenderDot(dotEl, gender) {
+  if (!dotEl) return;
+  if (!gender) { dotEl.style.display='none'; return; }
+  const cfg = { 'Male': { cls:'male', icon:'fa-mars' }, 'Female': { cls:'female', icon:'fa-venus' }, 'Other': { cls:'other', icon:'fa-genderless' } };
+  const c = cfg[gender];
+  if (!c) { dotEl.style.display='none'; return; }
+  dotEl.className = `gender-dot ${c.cls}`;
+  dotEl.innerHTML = `<i class="fas ${c.icon}"></i>`;
+  dotEl.style.display = 'flex';
+}
+
 function updateUI() {
   if (!currentUserData) return;
   const av = currentUserData.photoURL || avatarUrl(currentUserData.displayName||'U', '');
@@ -457,10 +789,13 @@ function updateUI() {
   document.getElementById('settings-avatar').src = av;
   document.getElementById('settings-name').textContent = currentUserData.displayName||'User';
   document.getElementById('settings-email').textContent = currentUserData.email||'';
+  // Gender badges
+  applyGenderDot(document.getElementById('my-header-gender-dot'), currentUserData.gender);
+  applyGenderDot(document.getElementById('settings-gender-dot'), currentUserData.gender);
 }
 
 function showAuthScreen() {
-  document.getElementById('auth-screen').innerHTML = `<div class="auth-logo"><div class="auth-mini-logo"><i class="fas fa-comment-dots"></i></div><h1>Kotha Bolbo</h1><p>Talk, stay connected</p></div><div class="auth-card"><div class="auth-tabs"><button class="auth-tab active" onclick="switchAuthTab('login')">Login</button><button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button></div><div id="login-form"><div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" /></div><div class="form-group"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" /></div><button class="btn-primary" onclick="handleLogin()">Login</button></div><div id="signup-form" style="display:none;"><div class="form-group"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="signup-phone" placeholder="+880..." /></div><div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com" /></div><div class="form-group"><label>Gender</label><select id="signup-gender"><option value="">Select Gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div><div class="form-group"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters" /></div><button class="btn-primary" onclick="handleSignup()">Create Account</button></div><div class="auth-error" id="auth-error"></div></div>`;
+  document.getElementById('auth-screen').innerHTML = `<div class="auth-logo"><div class="auth-mini-logo"><i class="fas fa-comment-dots"></i></div><h1>Kotha Bolbo</h1><p>Talk, stay connected</p></div><div class="auth-card"><div class="auth-tabs"><button class="auth-tab active" onclick="switchAuthTab('login')">Login</button><button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button></div><div id="login-form"><div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" /></div><div class="form-group"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" /></div><button class="btn-primary" onclick="handleLogin()">Login</button></div><div id="signup-form" style="display:none;"><div class="form-group"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="signup-phone" placeholder="+880..." /></div><div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com" /></div><div class="form-group"><label>Gender</label><div class="gender-trigger" id="gender-trigger" onclick="openGenderPopup()"><span id="gender-display-text">Select Gender</span><i class="fas fa-chevron-down"></i></div><input type="hidden" id="signup-gender" value="" /></div><div class="form-group"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters" /></div><button class="btn-primary" onclick="handleSignup()">Create Account</button></div><div class="auth-error" id="auth-error"></div></div>`;
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('conv-screen').classList.remove('open');
@@ -477,10 +812,12 @@ function setOnlineStatus() {
   });
 }
 
+let _justLoggedIn = false;
 function showApp() {
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').classList.add('visible');
   if (currentUser) setOnlineStatus();
+  if (_justLoggedIn) { setTimeout(()=>showToast('Welcome to Kotha Bolbo Messenger! 🎉'), 600); _justLoggedIn=false; }
   loadChats(); loadFriends();
 }
 
@@ -520,20 +857,31 @@ window.handleLogin = async function() {
   const email = document.getElementById('login-email').value.trim(), pass = document.getElementById('login-pass').value;
   if (!email||!pass) { document.getElementById('auth-error').textContent='Please fill all fields'; return; }
   const btn = document.querySelector('#login-form .btn-primary'); btn.disabled=true; btn.textContent='Logging in…';
-  try { await signInWithEmailAndPassword(auth, email, pass); }
-  catch(e) { document.getElementById('auth-error').textContent = friendlyError(e.code); btn.disabled=false; btn.textContent='Login'; }
+  try { _justLoggedIn=true; await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e) { _justLoggedIn=false; document.getElementById('auth-error').textContent = friendlyError(e.code); btn.disabled=false; btn.textContent='Login'; }
 };
 
 window.handleSignup = async function() {
   const name = document.getElementById('signup-name').value.trim(), phone = document.getElementById('signup-phone').value.trim();
   const email = document.getElementById('signup-email').value.trim(), gender = document.getElementById('signup-gender').value, pass = document.getElementById('signup-pass').value;
   if (!name||!email||!pass) { document.getElementById('auth-error').textContent='Please fill required fields'; return; }
+  if (!gender) { document.getElementById('auth-error').textContent='Please select your gender'; openGenderPopup(); return; }
   if (pass.length<6) { document.getElementById('auth-error').textContent='Password min 6 characters'; return; }
-  const btn = document.querySelector('#signup-form .btn-primary'); btn.disabled=true; btn.textContent='Creating…';
+  const btn = document.querySelector('#signup-form .btn-primary'); btn.disabled=true; btn.textContent='Checking…';
+  // Check phone uniqueness if phone is provided
+  if (phone) {
+    try {
+      const phoneQ = query(collection(db,'users'), where('phone','==',phone));
+      const phoneSnap = await getDocs(phoneQ);
+      if (!phoneSnap.empty) { document.getElementById('auth-error').textContent='This phone number is already registered'; btn.disabled=false; btn.textContent='Create Account'; return; }
+    } catch(e) {}
+  }
+  btn.textContent='Creating…';
   try {
+    _justLoggedIn=true;
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await setDoc(doc(db, 'users', cred.user.uid), { uid:cred.user.uid, displayName:name, phone:phone||'', email:email, gender:gender||'', photoURL:avatarUrl(name,gender), createdAt:serverTimestamp(), online:true });
-  } catch(e) { document.getElementById('auth-error').textContent = friendlyError(e.code); btn.disabled=false; btn.textContent='Create Account'; }
+  } catch(e) { _justLoggedIn=false; document.getElementById('auth-error').textContent = friendlyError(e.code); btn.disabled=false; btn.textContent='Create Account'; }
 };
 
 function friendlyError(code) {
@@ -592,7 +940,7 @@ function renderChatList(chats) {
     div.className='chat-list-item'+(ur>0?' unread':'');
     div.onclick=()=>openConversation(user);
     const ts=lastMsg.timestamp?new Date(lastMsg.timestamp.seconds*1000):new Date();
-    div.innerHTML=`<div class="chat-avatar"><img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" /><div class="status-dot ${user.online?'':'offline'}"></div></div><div class="chat-info"><div class="chat-info-top"><span class="chat-name">${user.displayName||'User'}</span><span class="chat-time">${formatTime(ts)}</span></div><div class="chat-preview">${lastMsg.senderId===currentUser.uid?'You: ':''}${lastMsg.text||''}</div></div>${ur>0?`<span class="unread-badge">${ur}</span>`:''}`;
+    div.innerHTML=`<div class="chat-avatar"><img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" /><div class="status-dot ${user.online?'':'offline'}"></div>${genderDotHTML(user.gender)}</div><div class="chat-info"><div class="chat-info-top"><span class="chat-name">${user.displayName||'User'}</span><span class="chat-time">${formatTime(ts)}</span></div><div class="chat-preview">${lastMsg.senderId===currentUser.uid?'You: ':''}${lastMsg.text||''}</div></div>${ur>0?`<span class="unread-badge">${ur}</span>`:''}`;
     c.appendChild(div);
   });
 }
@@ -606,13 +954,37 @@ window.loadFriends = async function() {
   icon.classList.remove('spinner');
 };
 
+function maskEmail(email, isPublic) {
+  if (!email) return '';
+  if (isPublic) return email;
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  const masked = local.length <= 4
+    ? local[0] + '****' + local[local.length-1]
+    : local.substring(0,2) + '****' + local.substring(local.length-2);
+  return masked + '@' + domain;
+}
+
+function maskPhone(phone, isPublic) {
+  if (!phone) return '';
+  if (isPublic) return phone;
+  if (phone.length <= 5) return phone;
+  return phone.substring(0,3) + '******' + phone.substring(phone.length-2);
+}
+
 function renderFriends(friends) {
   const c=document.getElementById('friends-list-container'); c.innerHTML='';
   if (!friends.length) { c.innerHTML='<div class="empty-state"><i class="fas fa-user-slash"></i><h3>No Users Found</h3></div>'; return; }
   friends.forEach(user=>{
     const div=document.createElement('div'); div.className='friend-item';
-    const emailPrefix = user.email ? user.email.substring(0,6)+'...' : '';
-    div.innerHTML = `<img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" /><div class="friend-info"><div class="friend-name">${user.displayName||'User'}</div>${emailPrefix?`<small class="friend-email">${emailPrefix}</small>`:''}</div><div class="friend-chat-btn"><i class="fas fa-comment"></i></div>`;
+    const emailPublic = user.emailPublic === true;
+    const phonePublic = user.phonePublic === true;
+    const emailDisplay = maskEmail(user.email, emailPublic);
+    const phoneDisplay = maskPhone(user.phone, phonePublic);
+    const infoLines = [];
+    if (phoneDisplay) infoLines.push(`<small class="friend-email"><i class="fas fa-phone" style="font-size:0.6rem;margin-right:3px;"></i>${phoneDisplay}</small>`);
+    if (emailDisplay) infoLines.push(`<small class="friend-email"><i class="fas fa-envelope" style="font-size:0.6rem;margin-right:3px;"></i>${emailDisplay}</small>`);
+    div.innerHTML = `<div class="chat-avatar" style="width:42px;height:42px;flex-shrink:0;"><img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" />${genderDotHTML(user.gender)}</div><div class="friend-info"><div class="friend-name">${user.displayName||'User'}</div>${infoLines.join('')}</div><div class="friend-chat-btn"><i class="fas fa-comment"></i></div>`;
     div.querySelector('.friend-chat-btn').onclick=e=>{e.stopPropagation();openConversation(user);};
     div.onclick=()=>openConversation(user);
     c.appendChild(div);
@@ -631,8 +1003,71 @@ window.openConversation = function(user) {
   document.getElementById('conv-messages').innerHTML = '';
   document.getElementById('typing-row').style.display = 'none';
   document.getElementById('conv-screen').classList.add('open');
+  applyGenderDot(document.getElementById('conv-gender-dot'), user.gender);
   updateConvHeader(); subscribeMessages(); markRead(user.uid); listenPresence(user.uid); listenTyping(user.uid);
 };
+
+// ── Privacy popup ──
+let privacyState = { email: false, phone: false };
+
+window.openPrivacyPopup = function() {
+  privacyState.email = currentUserData?.emailPublic === true;
+  privacyState.phone = currentUserData?.phonePublic === true;
+  updatePrivacyUI();
+  document.getElementById('privacy-overlay').classList.add('open');
+};
+
+window.closePrivacyPopup = function() {
+  document.getElementById('privacy-overlay').classList.remove('open');
+};
+
+window.handlePrivacyOverlayClick = function(e) {
+  if (e.target === document.getElementById('privacy-overlay')) closePrivacyPopup();
+};
+
+window.togglePrivacy = function(field) {
+  privacyState[field] = !privacyState[field];
+  updatePrivacyUI();
+};
+
+function updatePrivacyUI() {
+  const email = currentUserData?.email || '';
+  const phone = currentUserData?.phone || '';
+  // email row
+  const eRow = document.getElementById('priv-email-row');
+  const eTag = document.getElementById('priv-email-tag');
+  const eToggle = document.getElementById('priv-email-toggle');
+  const ePreview = document.getElementById('priv-email-preview');
+  if (privacyState.email) {
+    eRow.classList.add('public-on'); eTag.textContent='PUBLIC'; eTag.className='privacy-status-tag pub';
+    ePreview.textContent = 'Shown as: ' + (email || 'your@email.com');
+  } else {
+    eRow.classList.remove('public-on'); eTag.textContent='PRIVATE'; eTag.className='privacy-status-tag priv';
+    ePreview.textContent = 'Shown as: ' + maskEmail(email || 'am****em@gmail.com', false);
+  }
+  // phone row
+  const pRow = document.getElementById('priv-phone-row');
+  const pTag = document.getElementById('priv-phone-tag');
+  const pPreview = document.getElementById('priv-phone-preview');
+  if (privacyState.phone) {
+    pRow.classList.add('public-on'); pTag.textContent='PUBLIC'; pTag.className='privacy-status-tag pub';
+    pPreview.textContent = 'Shown as: ' + (phone || 'your number');
+  } else {
+    pRow.classList.remove('public-on'); pTag.textContent='PRIVATE'; pTag.className='privacy-status-tag priv';
+    pPreview.textContent = 'Shown as: ' + maskPhone(phone || '019******66', false);
+  }
+}
+
+window.savePrivacySettings = async function() {
+  try {
+    await updateDoc(doc(db,'users',currentUser.uid), { emailPublic: privacyState.email, phonePublic: privacyState.phone });
+    currentUserData = {...currentUserData, emailPublic: privacyState.email, phonePublic: privacyState.phone};
+    closePrivacyPopup();
+    showToast('Privacy settings saved!');
+  } catch(e) { showToast('Failed to save','error'); }
+};
+
+document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b) b.classList.remove('open');}));
 
 function updateConvHeader() {
   if (!openChatUser) return;
@@ -653,25 +1088,87 @@ window.closeConversation = function() {
   openChatUser=null;
 };
 
+// Track rendered message IDs and last date divider to avoid full re-renders
+let renderedMsgIds = new Set();
+let lastRenderedDate = '';
+
 function subscribeMessages() {
   if(msgUnsubscribe) msgUnsubscribe();
   if(!currentUser||!openChatUser) return;
+  // Reset tracking on new conversation
+  renderedMsgIds = new Set();
+  lastRenderedDate = '';
+  document.getElementById('conv-messages').innerHTML = '';
+
   msgUnsubscribe=onSnapshot(query(collection(db,'messages'),orderBy('timestamp','asc')),snap=>{
-    const msgs=[]; snap.forEach(d=>{const m=d.data();if((m.senderId===currentUser.uid&&m.receiverId===openChatUser.uid)||(m.senderId===openChatUser.uid&&m.receiverId===currentUser.uid)) msgs.push({...m,id:d.id});});
-    renderMessages(msgs); if(openChatUser) markRead(openChatUser.uid);
+    const c = document.getElementById('conv-messages');
+    let scrolledToBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 60;
+    let addedAny = false;
+
+    snap.docChanges().forEach(change => {
+      const d = change.doc;
+      const m = { ...d.data(), id: d.id };
+      const isRelevant = (m.senderId===currentUser.uid&&m.receiverId===openChatUser.uid)||(m.senderId===openChatUser.uid&&m.receiverId===currentUser.uid);
+      if (!isRelevant) return;
+
+      if (change.type === 'added' && !renderedMsgIds.has(d.id)) {
+        renderedMsgIds.add(d.id);
+        appendMessage(m, c);
+        addedAny = true;
+      } else if (change.type === 'modified' && renderedMsgIds.has(d.id)) {
+        // Update status icon in existing bubble without re-rendering
+        updateMessageStatus(m, c);
+      }
+    });
+
+    if (addedAny && scrolledToBottom) c.scrollTop = c.scrollHeight;
+    if(openChatUser) markRead(openChatUser.uid);
   });
 }
 
+function appendMessage(m, c) {
+  const ts = m.timestamp ? new Date(m.timestamp.seconds*1000) : new Date();
+  const ds = ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  if (ds !== lastRenderedDate) {
+    const div = document.createElement('div');
+    div.className = 'date-divider';
+    div.textContent = ds;
+    c.appendChild(div);
+    lastRenderedDate = ds;
+  }
+  const isSent = m.senderId === currentUser.uid;
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (isSent ? 'sent' : 'recv');
+  row.dataset.msgId = m.id;
+  let sh = '';
+  if (isSent) {
+    if (m.seen) sh = '<span class="msg-status seen"><i class="fas fa-check-double"></i></span>';
+    else if (m.delivered) sh = '<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>';
+    else sh = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
+  }
+  row.innerHTML = `${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U',openChatUser?.gender)}" />`:''}<div class="bubble ${isSent?'sent':'recv'}">${m.text}<span class="bubble-time">${formatTime(ts)} ${sh}</span></div>`;
+  c.appendChild(row);
+}
+
+function updateMessageStatus(m, c) {
+  if (m.senderId !== currentUser.uid) return;
+  const row = c.querySelector(`[data-msg-id="${m.id}"]`);
+  if (!row) return;
+  const timeSpan = row.querySelector('.bubble-time');
+  if (!timeSpan) return;
+  const ts = m.timestamp ? new Date(m.timestamp.seconds*1000) : new Date();
+  let sh = '';
+  if (m.seen) sh = '<span class="msg-status seen"><i class="fas fa-check-double"></i></span>';
+  else if (m.delivered) sh = '<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>';
+  else sh = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
+  timeSpan.innerHTML = formatTime(ts) + ' ' + sh;
+}
+
 function renderMessages(msgs) {
-  const c=document.getElementById('conv-messages'); c.innerHTML=''; let ld='';
-  msgs.forEach(m=>{
-    const ts=m.timestamp?new Date(m.timestamp.seconds*1000):new Date(), ds=ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    if(ds!==ld){const d=document.createElement('div');d.className='date-divider';d.textContent=ds;c.appendChild(d);ld=ds;}
-    const isSent=m.senderId===currentUser.uid, row=document.createElement('div'); row.className='msg-row '+(isSent?'sent':'recv');
-    let sh=''; if(isSent){if(m.seen)sh='<span class="msg-status seen"><i class="fas fa-check-double"></i></span>'; else if(m.delivered)sh='<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>'; else sh='<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';}
-    row.innerHTML=`${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U',openChatUser?.gender)}" />`:''}<div class="bubble ${isSent?'sent':'recv'}">${m.text}<span class="bubble-time">${formatTime(ts)} ${sh}</span></div>`;
-    c.appendChild(row);
-  });
+  // Legacy fallback - not called in normal flow anymore
+  const c=document.getElementById('conv-messages'); c.innerHTML='';
+  renderedMsgIds = new Set(); lastRenderedDate = '';
+  msgs.forEach(m=>{ renderedMsgIds.add(m.id); appendMessage(m, c); });
   c.scrollTop=c.scrollHeight;
 }
 
@@ -687,12 +1184,62 @@ window.msgKeyDown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefa
 
 document.getElementById('msg-input').addEventListener('input',()=>{if(!openChatUser) return; setMyTyping(true); clearTimeout(typingDebounce); typingDebounce=setTimeout(()=>{setMyTyping(false);},2000);});
 
-window.openEditProfile = function() { document.getElementById('edit-name').value=currentUserData?.displayName||''; document.getElementById('edit-phone').value=currentUserData?.phone||''; document.getElementById('edit-profile-modal').classList.add('open'); };
+window.openEditProfile = function() {
+  const lastEdit = currentUserData?.lastProfileEdit;
+  const cooldownMsg = document.getElementById('edit-profile-cooldown-msg');
+  const saveBtn = document.getElementById('edit-profile-save-btn');
+  if (lastEdit) {
+    const lastEditDate = lastEdit.toDate ? lastEdit.toDate() : new Date(lastEdit);
+    const diffDays = (Date.now() - lastEditDate.getTime()) / (1000*60*60*24);
+    if (diffDays < 7) {
+      const daysLeft = Math.ceil(7 - diffDays);
+      cooldownMsg.style.display = 'block';
+      cooldownMsg.innerHTML = `<i class="fas fa-lock" style="margin-right:5px;"></i>You can update your profile again in <strong>${daysLeft} day(s)</strong>.`;
+      saveBtn.disabled = true; saveBtn.style.opacity = '0.5';
+    } else {
+      cooldownMsg.style.display = 'none';
+      saveBtn.disabled = false; saveBtn.style.opacity = '1';
+    }
+  } else {
+    cooldownMsg.style.display = 'none';
+    saveBtn.disabled = false; saveBtn.style.opacity = '1';
+  }
+  document.getElementById('edit-name').value = currentUserData?.displayName||'';
+  document.getElementById('edit-phone').value = currentUserData?.phone||'';
+  // Set gender
+  const curGender = currentUserData?.gender || '';
+  document.getElementById('edit-gender').value = curGender;
+  const editGenderDisplay = document.getElementById('edit-gender-display-text');
+  if (editGenderDisplay) { editGenderDisplay.textContent = curGender || 'Select Gender'; if(curGender) editGenderDisplay.classList.add('selected'); else editGenderDisplay.classList.remove('selected'); }
+  document.getElementById('edit-profile-modal').classList.add('open');
+};
+
 window.saveProfile = async function() {
   const n=document.getElementById('edit-name').value.trim(), p=document.getElementById('edit-phone').value.trim();
+  const g=document.getElementById('edit-gender').value;
   if(!n){showToast('Name required','error');return;}
-  try { await updateDoc(doc(db,'users',currentUser.uid),{displayName:n,phone:p}); currentUserData={...currentUserData,displayName:n,phone:p}; updateUI(); closeModal('edit-profile-modal'); showToast('Profile updated!'); }
-  catch(e){showToast('Failed','error');}
+  if(!g){showToast('Please select gender','error');openGenderPopupEdit();return;}
+  // 7-day cooldown check
+  const lastEdit = currentUserData?.lastProfileEdit;
+  if (lastEdit) {
+    const lastEditDate = lastEdit.toDate ? lastEdit.toDate() : new Date(lastEdit);
+    const diffDays = (Date.now() - lastEditDate.getTime()) / (1000*60*60*24);
+    if (diffDays < 7) { const daysLeft = Math.ceil(7-diffDays); showToast(`You can update again in ${daysLeft} day(s)`, 'error'); return; }
+  }
+  // Check phone uniqueness if phone changed
+  if (p && p !== currentUserData?.phone) {
+    try {
+      const phoneQ = query(collection(db,'users'), where('phone','==',p));
+      const phoneSnap = await getDocs(phoneQ);
+      if (!phoneSnap.empty) { showToast('This phone number is already registered','error'); return; }
+    } catch(e) {}
+  }
+  try {
+    const newPhotoURL = avatarUrl(n, g);
+    await updateDoc(doc(db,'users',currentUser.uid),{displayName:n,phone:p,gender:g,photoURL:newPhotoURL,lastProfileEdit:serverTimestamp()});
+    currentUserData={...currentUserData,displayName:n,phone:p,gender:g,photoURL:newPhotoURL,lastProfileEdit:new Date()};
+    updateUI(); closeModal('edit-profile-modal'); showToast('Profile updated!');
+  } catch(e){showToast('Failed','error');}
 };
 window.openChangePassword = function() { document.getElementById('old-pass').value=''; document.getElementById('new-pass').value=''; document.getElementById('confirm-pass').value=''; document.getElementById('pass-error').textContent=''; document.getElementById('change-pass-modal').classList.add('open'); };
 window.changePassword = async function() {
@@ -727,11 +1274,21 @@ window.confirmLogout = async function() {
   try {
     if (currentUser) { await set(ref(rtdb, `status/${currentUser.uid}`), { online: false, lastSeen: rtdbTimestamp() }); }
     await signOut(auth);
+    setTimeout(()=>{
+      const el = document.getElementById('auth-screen');
+      let msg = el.querySelector('#logout-success-msg');
+      if (!msg) { msg = document.createElement('div'); msg.id='logout-success-msg'; msg.style.cssText='background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:12px 18px;font-size:0.82rem;color:#4ade80;text-align:center;margin-top:-8px;margin-bottom:12px;display:flex;align-items:center;gap:8px;max-width:360px;width:100%;'; msg.innerHTML='<i class="fas fa-check-circle"></i> Successfully Logged Out Your Account'; const card = el.querySelector('.auth-card'); if(card) el.insertBefore(msg, card); }
+      msg.style.display='flex';
+      setTimeout(()=>{ msg.style.display='none'; }, 4000);
+    }, 300);
   } catch(e) { showToast('Logout failed','error'); }
 };
 window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
 window.showToast = function(msg,type) { const t=document.getElementById('toast'); t.textContent=msg; t.className=type==='error'?'show error':'show'; setTimeout(()=>t.className='',2500); };
 window.autoResize = function(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,80)+'px'; };
+window.openAboutDeveloper = function() { document.getElementById('about-overlay').classList.add('open'); };
+window.closeAboutDeveloper = function() { document.getElementById('about-overlay').classList.remove('open'); };
+window.handleAboutOverlayClick = function(e) { if(e.target===document.getElementById('about-overlay')) closeAboutDeveloper(); };
 
 function formatTime(d) {
   const n=new Date();
@@ -740,8 +1297,6 @@ function formatTime(d) {
   if(diff<7) return d.toLocaleDateString('en-US',{weekday:'short'});
   return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
-
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b) b.classList.remove('open');}));
 </script>
 </body>
 </html>
