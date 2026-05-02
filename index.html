@@ -31,7 +31,6 @@
       --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
       --danger: #ff4d6d;
       --success: #4ade80;
-      /* Scaled down base sizes */
       --font-sm: 0.8rem;
       --font-md: 0.9rem;
       --font-lg: 1.05rem;
@@ -41,7 +40,7 @@
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     html, body { height:100%; width:100%; overflow:hidden; font-family:'Hind Siliguri',sans-serif; background:var(--bg-primary); color:var(--text-primary); font-size: 15px; }
 
-    /* ══════════════════ NEW PREMIUM SPLASH WITH LOGO ══════════════════ */
+    /* ═══════ ORIGINAL SPLASH (সংরক্ষিত, শুধু টাইটেল পরিবর্তিত) ═══════ */
     #splash {
       position: fixed; inset:0; z-index:9999;
       background: radial-gradient(ellipse at center, #0f172a 0%, #020617 100%);
@@ -49,38 +48,20 @@
       gap: 24px; transition: opacity 0.8s cubic-bezier(0.23,1,0.32,1), transform 0.8s cubic-bezier(0.23,1,0.32,1);
     }
     #splash.hide { opacity:0; transform:scale(1.08); pointer-events:none; }
-    .splash-logo-wrap { position:relative; width:180px; height:180px; display:flex; align-items:center; justify-content:center; }
-    /* Speedy bubble logo */
-    .splash-logo-bubble {
-      position: relative; z-index:2;
-      background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 70%);
-      padding: 16px 24px 12px 24px;
-      border-radius: 40px 40px 40px 12px;
-      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    .splash-logo-wrap { position:relative; width:130px; height:130px; display:flex; align-items:center; justify-content:center; }
+    .splash-bubble {
+      width: 90px; height: 90px;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      border-radius: 50% 50% 50% 20%;
+      display: flex; align-items:center; justify-content:center;
       box-shadow: 0 0 40px rgba(0,212,255,0.5), 0 0 80px rgba(124,58,237,0.3);
       animation: bubble-float 2.4s ease-in-out infinite;
+      position: relative; z-index:2;
     }
-    .splash-logo-bubble i {
-      font-size: 32px; color: #fff;
+    .splash-bubble i {
+      font-size: 36px; color: #fff;
       filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-    }
-    .splash-logo-text {
-      font-family: 'Exo 2', sans-serif;
-      font-weight: 700; font-size: 1.4rem;
-      color: #fff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.4);
-      letter-spacing: 0.5px;
-    }
-    .splash-logo-bubble::after {
-      content: '';
-      position: absolute;
-      bottom: -12px;
-      left: calc(50% - 10px);
-      width: 0; height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 16px solid #7c3aed;
-      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+      margin-left: 4px;
     }
     @keyframes bubble-float {
       0%,100% { transform: translateY(0); }
@@ -88,31 +69,31 @@
     }
     .splash-rings {
       position: absolute; top:50%; left:50%; pointer-events:none;
-      width: 180px; height: 180px; margin-top:-90px; margin-left:-90px;
+      width: 130px; height: 130px; margin-top:-65px; margin-left:-65px;
     }
     .splash-ring {
       position: absolute; border-radius:50%; border:2px solid transparent;
       top:50%; left:50%; animation: ring-spin 3s linear infinite;
     }
     .splash-ring:nth-child(1) {
-      width:180px; height:180px; margin-top:-90px; margin-left:-90px;
+      width:130px; height:130px; margin-top:-65px; margin-left:-65px;
       border-top-color:#00d4ff; border-right-color:rgba(0,212,255,0.3);
       animation-duration:2.2s;
     }
     .splash-ring:nth-child(2) {
-      width:150px; height:150px; margin-top:-75px; margin-left:-75px;
+      width:110px; height:110px; margin-top:-55px; margin-left:-55px;
       border-bottom-color:#7c3aed; border-left-color:rgba(124,58,237,0.3);
       animation-duration:2.8s; animation-direction:reverse;
     }
     .splash-ring:nth-child(3) {
-      width:120px; height:120px; margin-top:-60px; margin-left:-60px;
+      width:90px; height:90px; margin-top:-45px; margin-left:-45px;
       border-top-color:#00d4ff; border-left-color:rgba(124,58,237,0.4);
       animation-duration:3.6s;
     }
     @keyframes ring-spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
     .splash-particles {
-      position:absolute; width:190px; height:190px; animation: particles-rotate 10s linear infinite;
-      top:50%; left:50%; margin-top:-95px; margin-left:-95px; pointer-events:none;
+      position:absolute; width:150px; height:150px; animation: particles-rotate 10s linear infinite;
+      top:50%; left:50%; margin-top:-75px; margin-left:-75px; pointer-events:none;
     }
     .splash-particles::before, .splash-particles::after {
       content:''; position:absolute; width:6px; height:6px; border-radius:50%;
@@ -121,13 +102,32 @@
     .splash-particles::before { top:0; left:50%; margin-left:-3px; background:#00d4ff; color:#00d4ff; }
     .splash-particles::after { bottom:0; left:50%; margin-left:-3px; background:#7c3aed; color:#7c3aed; }
     @keyframes particles-rotate { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+
+    /* টাইটেল – লোগো-স্টাইল */
+    .splash-title {
+      font-family: 'Exo 2', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 4px;
+      filter: drop-shadow(0 0 20px rgba(0,212,255,0.6));
+      animation: title-pulse 2.2s ease-in-out infinite alternate;
+      margin-top: 8px;
+    }
+    @keyframes title-pulse {
+      from { filter: drop-shadow(0 0 10px rgba(0,212,255,0.5)); }
+      to { filter: drop-shadow(0 0 28px rgba(124,58,237,0.8)); }
+    }
     .splash-sub {
       font-size: 0.8rem; color:#b0c4de; letter-spacing:4px; text-transform:uppercase;
       opacity:0.8; animation: fade-sub 2s ease-in-out infinite alternate;
     }
     @keyframes fade-sub { 0%{opacity:0.4;} 100%{opacity:1;} }
 
-    /* ══════════════════ AUTH / APP LAYOUT ══════════════════ */
+    /* ═════════════ AUTH/APP ═════════════ */
     .auth-mini-logo {
       width: 50px; height:50px; margin:0 auto 12px;
       background:linear-gradient(135deg,#00d4ff,#7c3aed); border-radius:14px;
@@ -305,483 +305,1020 @@
     #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
     #toast.error { border-color:var(--danger); color:var(--danger); }
 
-    .spinner { animation:spin 0.8s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    ::-webkit-scrollbar { width:4px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:999px; }
+    .spinner { animation:spin 0.8s linear 0.8s linear infinite; }
+ infinite; }
+    @key    @keyframes spinframes spin { to { to { transform { transform:rotate:rotate(360(360deg);deg); } }
+    :: } }
+    ::-webkit-webkit-scroll-scrollbar {bar { width: width:4px4px;; }
+    :: }
+    ::-webkit-webkit-scroll-scrollbar-trackbar-track { background { background:trans:transparent;parent; }
+    }
+    :: ::--webkit-scwebkit-scrollbarrollbar-thumb-thumb { background { background:var(--border:var); border(--border); border-radius:-radius:999px999px;; }
 
-    .date-divider { text-align:center; font-size:0.6rem; color:var(--text-muted); margin:6px 0; padding:2px 10px; background:var(--bg-tertiary); border-radius:999px; width:fit-content; align-self:center; }
-    .online-indicator { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--success); margin-right:4px; vertical-align:middle; }
+    .date-div }
 
-    .user-profile-modal-content { text-align:center; }
-    .user-profile-modal-content img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); margin-bottom:12px; }
-    .user-profile-modal-content h3 { font-size:1.1rem; margin-bottom:2px; }
-    .user-profile-modal-content .detail { font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; }
-    .user-profile-modal-content .detail i { width:16px; color:var(--accent); margin-right:4px; }
-  </style>
+    .date-divider { text-align:center; font-size:0.ider { text-align:center; font-size:0.6rem; color:6rem; color:var(--textvar(--text-muted-muted); margin); margin:6:6px px 0;0; padding: padding:2px2px 10 10px;px; background: background:var(--var(--bg-tertiary); border-radius:bg-tertiary); border-radius:999px999px; width; width:fit:fit-content;-content; align-self align-self:center:center;; }
+    . }
+    .online-indonline-indicator {icator { display: display:inline-blockinline-block; width; width:6:6px;px; height: height:6px6px; border; border-radius:-radius:50%;50%; background: background:var(--var(--success);success); margin-right margin-right:4:4px;px; vertical-align:middle vertical-align:middle;; }
+
+    .user-profile-modal-content }
+
+    .user-profile-modal-content { text { text-align:-align:center;center; }
+    }
+    .user .user-profile-modal-profile-modal-content img-content img { width { width::7070px;px; height: height:70px70px; border; border-radius:-radius:50%;50%; object-fit object-fit:cover:cover;; border border:2px solid var(--:2px solid var(--accentaccent); margin); margin-bottom:-bottom:12px12px;; }
+ }
+    .    .user-profileuser-profile-modal-content h3-modal-content h3 { font { font-size:-size:1.1.1rem; margin1rem; margin-bottom:-bottom:2px2px;; }
+    . }
+    .user-profileuser-profile-modal-content-modal-content .detail .detail { font { font-size:-size:0.0.8rem8rem; color:var; color:var(--text(--text-secondary);-secondary); margin-bottom margin-bottom:4:4px;px; }
+    }
+    .user .user-profile-modal-profile-modal-content .-content .detail idetail i { width { width:16:16px; color:var(--accent); margin-right:px; color:var(--accent); margin-right:4px4px;; }
+  </ }
+  </stylestyle>
+</head>
 </head>
 <body>
+<body>
 
-<!-- SPLASH (লোগো দেখানো) -->
-<div id="splash">
-  <div class="splash-logo-wrap">
-    <div class="splash-rings">
-      <div class="splash-ring"></div><div class="splash-ring"></div><div class="splash-ring"></div>
+<!-->
+
+<!-- SPL SPLASHASH -->
+<div -->
+<div id id="splash="splash">
+ ">
+  <div class <div class="s="splash-lplash-logo-wrap">
+   ogo-wrap">
+    <div <div class="splash-rings class="splash-rings">
+     ">
+      <div <div class=" class="splashsplash-ring"></-ring"></divdiv><div class><div class="s="splash-ringplash-ring"></div"></div><div><div class=" class="splashsplash-ring"></-ring"></divdiv>
+    </>
+    </divdiv>
+    <>
+   div class <div class="s="splash-pplash-particles"></articles"></div>
+   div>
+    <div class <div class="s="splash-bplash-bubbleubble">
+     ">
+      < <i class="fasi class="fas fa-com fa-comment-dment-dots"></ots"></ii>
     </div>
-    <div class="splash-particles"></div>
-    <div class="splash-logo-bubble">
-      <i class="fas fa-comment-dots"></i>
-      <span class="splash-logo-text">Kotha Bolbo</span>
     </div>
-  </div>
+  </>
+  </divdiv>
+ >
+  <div class <div class="s="splash-titleplash-title">K">Kothaotha Bolbo</div Bolbo</div>
   <div class="splash-sub">Created by Sayem</div>
+  <div class="splash-sub">Created by Sayem</div>
+</>
+</divdiv>
+
+<!-- A>
+
+<!-- AUTH SCREENUTH SCREEN -->
+<div id -->
+<div id="="authauth-screen-screen">
+ ">
+  <div class <div class="auth="auth-logo-logo">
+   ">
+    <div <div class="auth-min class="auth-mini-li-logoogo"><i class"><i class="fas="fas fa-com fa-comment-dment-dots"></ots"></i></i></divdiv>
+   >
+    <h1 <h1>K>Kothaotha Bolbo Bolbo</h</h11><p>><p>TalkTalk,, stay connected stay connected</p</p>
+ >
+  </div </div>
+ >
+  <div class=" <div class="auth-cardauth-card">
+   ">
+    <div <div class=" class="auth-tauth-tabsabs">
+     ">
+      <button class <button class="auth="auth-tab-tab active" active" onclick=" onclick="switchAuthswitchAuthTab('Tab('login')login')">Login">Login</button</button>
+      <button>
+      <button class=" class="auth-tauth-tab"ab" onclick=" onclick="switchAuthswitchAuthTab('Tab('signupsignup')">')">Sign UpSign Up</button</button>
+    </div>
+    </div>
+   >
+    <div < id="div id="login-formlogin-form">
+     ">
+      <div <div class=" class="form-group"><labelform-group"><label>Email>Email</label</label><input><input type=" type="email"email" id=" id="login-login-email"email" placeholder=" placeholder="your@your@email.comemail.com" /></" /></divdiv>
+     >
+      <div class <div class="form="form-group-group"><label>Password</"><label>Password</label><label><input type="passwordinput type="password" id" id="login="login-pass"-pass" placeholder=" placeholder="••••••••••••••••" /></div" /></div>
+     >
+      <button class <button class="btn="btn-primary"-primary" onclick=" onclick="handleLoginhandleLogin()">()">Login</Login</buttonbutton>
+    </>
+    </divdiv>
+   >
+    <div id <div id="sign="signup-formup-form" style" style="display="display:none;">
+      <div:none;">
+      <div class=" class="form-groupform-group"><label"><label>Full>Full Name</ Name</labellabel><input type><input type="text="text" id" id="sign="signup-nameup-name" placeholder" placeholder="Your="Your name" name" /></div>
+      /></div>
+      <div <div class=" class="form-groupform-group"><label"><label>Phone>Phone Number</ Number</labellabel><input type><input type="tel" id="tel" id="sign="signup-up-phone"phone" placeholder=" placeholder="+880+880..." /></..." /></divdiv>
+     >
+      <div class <div class="form="form-group-group"><label>"><label>Email</Email</label><input typelabel><input type="email="email" id" id="sign="signup-up-email"email" placeholder=" placeholder="your@your@email.comemail.com" /></div" /></div>
+     >
+      <div class="form <div class="form-group-group"><label>"><label>Gender</Gender</labellabel><select id><select id="signup-g="signenderup-gender"><option value"><option value="">Select="">Select Gender</ Gender</optionoption><option value><option value="Male="Male">Male">Male</option</option><option><option value=" value="Female">Female">Female</Female</optionoption><option value><option value="Other="Other">Other">Other</option</option></></select></div>
+     select></div>
+      <div <div class=" class="form-groupform-group"><label"><label>Password</label>Password</label><input><input type=" type="password"password" id=" id="signupsignup-pass"-pass" placeholder=" placeholder="Min Min 6 characters6 characters" /></div" /></div>
+     >
+      <button <button class class="btn="btn-primary"-primary" onclick=" onclick="handleSignhandleSignup()">Createup() Account</">Create Account</button>
+   button>
+    </ </divdiv>
+>
+       <div class <div class="auth="auth-error"-error" id=" id="auth-errorauth-error"></div>
+ "></div>
+  </div </div>
+</>
+</divdiv>
+
+<!-- CON>
+
+<!-- CONVERSVERSATION SCATION SCREENREEN -->
+<div id -->
+<div id="conv="conv-screen-screen">
+ ">
+  <div class <div class="="appapp-header-header">
+   ">
+    <button class <button class="header-back"="header-back" onclick="closeConvers onclick="closeConversation()ation()"><i"><i class=" class="fas fafas fa-arrow-arrow-left"></-left"></i></i></buttonbutton>
+   >
+    <div class <div class="chat-avatar="chat-avatar" style" style="width="width:30px;:30height:px;height:30px30px;flex;flex-shr-shrink:ink:00;"><img id;"><img id="conv-avatar="conv-avatar" src" src="" style="" style="width:30="width:30px;px;height:height:30px30px;border;border-radius:-radius:50%;50%;object-fitobject-fit:cover:cover;border;border:2:2px solidpx solid var(--accent);" /><div class var(--accent);" /><div class="status="status-dot" id="conv-status-dot-dot" id="conv-status-dot"></div"></div></div></div>
+   >
+    <div <div class=" class="header-infoheader-info" onclick" onclick="open="openUserProfileUserProfileModal(Modal(openChatopenChatUser)User)"><h"><h2 id2 id="conv="conv-name"></-name"></h2h2><span><span id id="="conv-statusconv-status-text">-text">OfflineOffline</span</span></div></div>
+   >
+    <button <button class=" class="header-iconheader-icon-btn" onclick="-btn" onclick="showToastshowToast('Call('Call coming soon coming soon')')"><i"><i class="fas class fa-="fas fa-phone"></phone"></i></i></buttonbutton>
+  </>
+  </div>
+ div>
+  <div class <div class="conv="conv-messages-messages" id" id="conv="conv-messages-messages"></div"></div>
+ >
+  <div <div id=" id="typingtyping-row"><div-row"><div class class="="tytyping-inping-innerner"><img id"><img id="conv="conv-ty-typing-ping-avatar"avatar" src="" src="" /><div class=" /><divty class="typingping-indicator-indicator"><div"><div class=" class="typingtyping-dot-dot"></div"></div><div><div class=" class="typingtyping-dot-dot"></div"></div><div><div class=" class="typingtyping-dot-dot"></div"></div></div></div></div></div></div>
+></div>
+  <div  <div class=" class="msg-inputmsg-input-area-area">
+   ">
+    <div class <div class="msg="msg-input-wrap-input-wrap"><textarea id"><textarea id="="msg-inputmsg-input" rows" rows="1="1" placeholder" placeholder="Type="Type a message a message……"" oninput oninput="auto="autoResizeResize(this);(this);" on" onkeydownkeydown="msg="msgKeyDownKeyDown(event)(event)"></textarea"></textarea></div></div>
+   >
+    <button <button class=" class="send-btnsend-btn" onclick" onclick="="sendsendMessage()"><iMessage()"><i class=" class="fas fafas fa-paper-paper-plane"></-plane"></i></buttoni></button>
+  </div>
+  </div>
+</div>
 </div>
 
-<!-- AUTH SCREEN (একই) -->
-<div id="auth-screen">
-  <div class="auth-logo">
-    <div class="auth-mini-logo"><i class="fas fa-comment-dots"></i></div>
-    <h1>Kotha Bolbo</h1><p>Talk, stay connected</p>
-  </div>
-  <div class="auth-card">
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
-      <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
-    </div>
-    <div id="login-form">
-      <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" /></div>
-      <div class="form-group"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" /></div>
-      <button class="btn-primary" onclick="handleLogin()">Login</button>
-    </div>
-    <div id="signup-form" style="display:none;">
-      <div class="form-group"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name" /></div>
-      <div class="form-group"><label>Phone Number</label><input type="tel" id="signup-phone" placeholder="+880..." /></div>
-      <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com" /></div>
-      <div class="form-group"><label>Gender</label><select id="signup-gender"><option value="">Select Gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-      <div class="form-group"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters" /></div>
-      <button class="btn-primary" onclick="handleSignup()">Create Account</button>
-    </div>
-    <div class="auth-error" id="auth-error"></div>
-  </div>
-</div>
+<!-->
 
-<!-- CONVERSATION SCREEN (অ্যাপের মতো) -->
-<div id="conv-screen">
-  <div class="app-header">
-    <button class="header-back" onclick="closeConversation()"><i class="fas fa-arrow-left"></i></button>
-    <div class="chat-avatar" style="width:30px;height:30px;flex-shrink:0;"><img id="conv-avatar" src="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);" /><div class="status-dot" id="conv-status-dot"></div></div>
-    <div class="header-info" onclick="openUserProfileModal(openChatUser)"><h2 id="conv-name"></h2><span id="conv-status-text">Offline</span></div>
-    <button class="header-icon-btn" onclick="showToast('Call coming soon')"><i class="fas fa-phone"></i></button>
-  </div>
-  <div class="conv-messages" id="conv-messages"></div>
-  <div id="typing-row"><div class="typing-inner"><img id="conv-typing-avatar" src="" /><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>
-  <div class="msg-input-area">
-    <div class="msg-input-wrap"><textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);" onkeydown="msgKeyDown(event)"></textarea></div>
-    <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-  </div>
-</div>
+<!-- MAIN APP MAIN APP -->
+<div -->
+<div id=" id="appapp">
+ ">
+  <div class <div class="screen="screen active" active" id id="="chat-screenchat-screen">
+   ">
+    <div <div class=" class="app-headerapp-header">
+     ">
+      <img <img id=" id="my-my-avatar"avatar" src="" src="" class=" class="header-header-avatar"avatar" onclick=" onclick="switchTabswitchTab('settings')('settings')"" />
+      <div />
+      <div class=" class="header-infoheader-info"><h"><h2>Koth2>Kotha Bola Bolbo</bo</h2h2><span><span id="my id="my-name-header"></span></div-name-header"></span></div>
+    </>
+    </divdiv>
+   >
+    <div class <div class="search="search-bar-bar"><div class"><div class="search="search-wrap"><i class-wrap"><i class="fas="fas fa-search"></i fa-search"></i><input><input type=" type="text"text" id=" id="chat-searchchat-search" placeholder" placeholder="Search="Search chats… chats…" on" oninput="input="filterChatfilterChats(thiss(this.value)".value)" /></div /></div></div>
+   ></div>
+    <div <div class=" class="scroll-areascroll-area" id" id="chat="chat-list-container-list-container"><div"><div class=" class="empty-stateempty-state" id" id="chat="chat-empty-empty"><i class="fas"><i class="fas fa-comments"></i><h3>No Chats Yet</h3 fa-comments"></i><h3>No Chats Yet</h3><><p>Gop>Go to Friends to Friends tab to start chatting tab to start chatting!</p></div></div!</p></div></div>
+ >
+  </div </div>
 
-<!-- MAIN APP -->
-<div id="app">
-  <div class="screen active" id="chat-screen">
-    <div class="app-header">
-      <img id="my-avatar" src="" class="header-avatar" onclick="switchTab('settings')" />
-      <div class="header-info"><h2>Kotha Bolbo</h2><span id="my-name-header"></span></div>
-    </div>
-    <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="chat-search" placeholder="Search chats…" oninput="filterChats(this.value)" /></div></div>
-    <div class="scroll-area" id="chat-list-container"><div class="empty-state" id="chat-empty"><i class="fas fa-comments"></i><h3>No Chats Yet</h3><p>Go to Friends tab to start chatting!</p></div></div>
-  </div>
+  <>
 
-  <div class="screen" id="friends-screen">
-    <div class="app-header"><div class="header-info"><h2>Friends</h2><span>Find people to chat</span></div><button class="header-icon-btn" onclick="loadFriends()"><i class="fas fa-sync-alt" id="friends-refresh-icon"></i></button></div>
-    <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="friends-search" placeholder="Search by name or phone…" oninput="filterFriends(this.value)" /></div></div>
-    <div class="scroll-area" id="friends-list-container"><div class="empty-state"><i class="fas fa-user-friends"></i><h3>Loading…</h3></div></div>
-  </div>
+  <divdiv class=" class="screen" id="screen" id="friends-screenfriends-screen">
+   ">
+    <div <div class=" class="app-headerapp-header"><div"><div class=" class="header-infoheader-info"><h"><h2>2>Friends</Friends</h2><spanh2><span>Find>Find people to people to chat</ chat</span></span></divdiv><button class><button class="header="header-icon-btn-icon-btn" onclick="load" onclick="loadFriends()Friends()"><i"><i class=" class="fas fafas fa-sync-sync-alt"-alt" id=" id="friends-reffriends-refresh-iconresh-icon"></i></button></div>
+    <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="friends-search" placeholder="Search by name or phone…" on"></i></button></div>
+    <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="friends-search" placeholder="Search by name or phone…" oninput="input="filterFriendsfilterFriends(this.value)" /></(this.value)" /></div></div></divdiv>
+   >
+    <div class <div class="scroll="scroll-area" id="-area" id="friends-listfriends-list-container-container"><div class=""><div class="emptyempty-state-state"><i class"><i class="fas="fas fa-user fa-user-friends-friends"></i"></i><h><h3>Loading…3></hLoading…3</h3></></div></divdiv></div>
+  </>
+  </divdiv>
 
-  <div class="screen" id="settings-screen">
-    <div class="app-header"><div class="header-info"><h2>Settings</h2><span>Manage your profile</span></div></div>
-    <div class="scroll-area" style="flex:1;overflow-y:auto;padding-bottom:16px;">
-      <div class="settings-profile">
-        <div class="profile-avatar-wrap" onclick="openAvatarUrlModal()"><img id="settings-avatar" src="" /><div class="avatar-edit-btn"><i class="fas fa-edit"></i></div></div>
-        <div class="profile-name" id="settings-name"></div>
-        <div class="profile-email" id="settings-email"></div>
+  <div class>
+
+ ="screen <div class="screen" id" id="settings="settings-screen">
+   -screen">
+    <div <div class class="app-header="app-header"><div class"><div class="header="header-info-info"><h"><h22>Settings>Settings</h</h22><span>Manage your><span>Manage your profile</ profile</span></span></div></divdiv></>
+   div>
+    <div class <div class="scroll="scroll-area" style="-area" style="flex:flex:1;1;overflow-yoverflow-y:auto:auto;padding;padding-bottom:-bottom:16px16px;">
+      <div;">
+      <div class=" class="settings-profile">
+settings-profile">
+               <div class=" <div class="profile-profile-avatar-wrapavatar-wrap" onclick" onclick="open="openAvatarUrlAvatarUrlModal()Modal()"><img"><img id=" id="settings-avatar" src="" /><div class="avatar-settings-avatar" src="" /><div class="avatar-edit-btnedit-btn"><i"><i class=" class="fas fa-fas fa-edit"></iedit"></i></div></div></div></div>
+       >
+        <div class=" <div class="profile-name" idprofile-name" id="settings-name"></div="settings-name"></div>
+       >
+        <div class <div class="profile="profile-email-email"" id id="settings-email="settings-email"></div"></div>
+     >
       </div>
-      <div class="settings-section"><h3>Account</h3><div class="settings-card">
-        <div class="settings-row" onclick="openEditProfile()"><div class="settings-row-icon" style="background:#00d4ff22;color:var(--accent);"><i class="fas fa-user"></i></div><div class="settings-row-info"><strong>Edit Profile</strong><small>Update name, phone</small></div><i class="fas fa-chevron-right chevron"></i></div>
+      </div>
+      <div <div class=" class="settings-sectionsettings-section"><h"><h3>3>Account</Account</h3><divh3 class="><div class="settings-card">
+       settings-card <div">
+        <div class=" class="settings-rowsettings-row" onclick"="open onclick="openEditProfileEditProfile()"><div class="settings()"><div class="settings-row-icon-row-icon" style" style="background="background:#00:#00d4d4ff22ff22;color;color:var:var(--accent);"><i class="fas fa-user"></i></div><div class="settings-row-info"><strong>Edit Profile</strong><small>Update name(--accent);"><i class="fas fa-user"></i></div><div class="settings-row-info"><strong>Edit Profile</strong><small>Update name, phone</small></div><i class="fas fa-chevron-right chevron"></i></div>
         <div class="settings-row" onclick="openChangePassword()"><div class="settings-row-icon" style="background:#7c3aed22;color:#a78bfa;"><i class="fas fa-lock"></i></div><div class="settings-row-info"><strong>Change Password</strong><small>Update your password</small></div><i class="fas fa-chevron-right chevron"></i></div>
       </div></div>
       <div class="settings-section"><h3>App</h3><div class="settings-card">
-        <div class="settings-row"><div class="settings-row-icon" style="background:#4ade8022;color:var(--success);"><i class="fas fa-info-circle"></i></div><div class="settings-row-info"><strong>Version</strong><small>Kotha Bolbo v1.0 • By Sayem</small></div></div>
-        <div class="settings-row" onclick="showLogoutConfirm()"><div class="settings-row-icon" style="background:#ff4d6d22;color:var(--danger);"><i class="fas fa-sign-out-alt"></i></div><div class="settings-row-info"><strong>Logout</strong><small>Sign out of your account</small></div><i class="fas fa-chevron-right chevron"></i></div>
+        <div class="settings-row"><div class="settings-row-icon" style="background:#4ade8022;color:var(--success);"><i class="fas fa-info-circle"></i></div><div class="settings-row-info"><strong>Version</strong><small>Kotha Bolbo v1.0 • By Sayem, phone</small></div><i class="fas fa-chevron-right chevron"></i></div>
+        <div class="settings-row" onclick="openChangePassword()"><div class="settings-row-icon" style="background:#7c3aed22;color:#a78bfa;"><i class="fas fa-lock"></i></div><div class="settings-row-info"><strong>Change Password</strong><small>Update your password</small></div><i class="fas fa-chevron-right chevron"></i></div>
       </div></div>
+      <div class="settings-section"><h3>App</h3><div class="settings-card">
+        <div class="settings-row"><div class="settings-row-icon" style="background:#4ade8022;color:var(--success);"><i class="fas fa-info-circle"></i></div><div class="settings-row-info"><strong>Version</strong><small>Kotha Bolbo v1.0 • By Sayem</small></div></div</small></div></div>
+        <div>
+        <div class="settings-row class="settings-row" onclick" onclick="show="showLogoutLogoutConfirm()Confirm()"><div"><div class=" class="settings-rowsettings-row-icon"-icon" style=" style="background:#background:#ff4ff4d6d6d22d22;color;color:var:var(--danger(--danger););"><i class"><i class="fas="fas fa-sign fa-sign-out-alt-out-alt"></i"></i></div><div></div><div class=" class="settings-rowsettings-row-info-info"><strong>"><strong>LogoutLogout</strong><small</strong><small>Sign>Sign out of your account out of your account</small</small></div></div><i><i class=" class="fas fafas fa-chev-chevron-rightron-right chev chevron"></i></ron"></i></divdiv>
+      </div>
+      </></div></div>
     </div>
-  </div>
+ div>
+    </div>
+  </div </div>
 
-  <nav class="bottom-nav">
-    <button class="nav-btn active" id="nav-chat" onclick="switchTab('chat')"><i class="fas fa-comment-dots"></i><span>Chats</span><span class="badge" id="chat-badge" style="display:none;">0</span></button>
-    <button class="nav-btn" id="nav-friends" onclick="switchTab('friends')"><i class="fas fa-users"></i><span>Friends</span></button>
-    <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')"><i class="fas fa-cog"></i><span>Settings</span></button>
+ >
+
+  <nav class <nav class="="bottom-navbottom-nav">
+   ">
+    <button class <button class="nav="nav-btn active" id-btn active" id="nav="nav-chat-chat" onclick="" onclick="switchTab('switchTab('chat')"><ichat')"><i class=" class="fas fafas fa-comment-comment-dots-dots"></i><span"></i><span>Chat>Chats</s</span><span classspan="bad><span class="badge"ge" id=" id="chat-badge"chat-badge" style=" style="display:ndisplay:none;">one;">0</span0</span></></buttonbutton>
+   >
+    <button class <button class="nav="nav-btn"-btn" id=" id="nav-friends"nav-f onclick="riends" onclick="switchTab('friendsswitchTab('friends')')"><i class="fas"><i class="fas fa-users fa"></i-users"></i><span><span>Friends</span>Friends</span></button></button>
+   >
+    <button <button class="nav-btn class="nav-btn" id="nav-settings" onclick" id="nav-settings" onclick="switch="switchTab('Tab('settings')settings')"><i"><i class="fas fa class="fas fa-cog-cog"></i"></i><span><span>Settings>Settings</span</span></button>
   </nav>
 </div>
 
-<!-- MODALS (সব একই) -->
-<div class="modal-backdrop" id="edit-profile-modal">
-  <div class="modal"><h2>Edit Profile</h2><button class="close-btn" onclick="closeModal('edit-profile-modal')"><i class="fas fa-times"></i></button>
-    <div class="form-group"><label>Full Name</label><input type="text" id="edit-name" placeholder="Your name" /></div>
-    <div class="form-group"><label>Phone Number</label><input type="tel" id="edit-phone" placeholder="Phone number" /></div>
-    <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
-  </div>
+<!-- MODALS -->
+<div class="modal-backdrop></button>
+  </nav>
 </div>
 
-<div class="modal-backdrop" id="change-pass-modal">
-  <div class="modal"><h2>Change Password</h2><button class="close-btn" onclick="closeModal('change-pass-modal')"><i class="fas fa-times"></i></button>
-    <div class="form-group"><label>Old Password</label><input type="password" id="old-pass" placeholder="Enter old password" /></div>
-    <div class="form-group"><label>New Password</label><input type="password" id="new-pass" placeholder="New password (min 6)" /></div>
-    <div class="form-group"><label>Confirm Password</label><input type="password" id="confirm-pass" placeholder="Confirm new password" /></div>
-    <button class="btn-primary" onclick="changePassword()">Update Password</button>
-    <div class="auth-error" id="pass-error"></div>
+<!-- MODALS -->
+<div class="modal-backdrop" id" id="edit="edit-profile-modal">
+ -profile-modal">
+  <div <div class="modal class="modal"><h2"><h2>Edit>Edit Profile</ Profile</h2h2><button><button class=" class="close-btnclose-btn" onclick" onclick="close="closeModal('Modal('edit-profileedit-profile-modal')-modal')"><i"><i class="fas fa class="-times"></fas fa-times"></i></i></buttonbutton>
+   >
+    <div class <div class="form="form-group-group"><label>"><label>Full NameFull Name</label</label><input><input type=" type="text"text" id="edit-name id="" placeholderedit-name" placeholder="Your="Your name" name" /></div /></div>
+   >
+    <div <div class=" class="form-group"><labelform-group"><label>Phone>Phone Number</ Number</labellabel><input type><input type="tel="tel" id" id="edit="edit-phone-phone" placeholder" placeholder="Phone="Phone number" number" /></div>
+    /></div>
+    <button class=" <button class="btn-primarybtn-primary" onclick="save" onclick="saveProfile()Profile()">Save">Save Changes</ Changes</buttonbutton>
+  </div>
+</>
+  </div>
+</divdiv>
+
+<div>
+
+<div class=" class="modal-backmodal-backdrop"drop" id=" id="change-passchange-pass-modal-modal">
+ ">
+  <div class <div class="modal="modal"><h2>"><h2>Change PasswordChange Password</h2</h2><button class><button class="close="close-btn"-btn" onclick="close onclick="closeModalModal('change-pass-modal('change-pass-modal')')"><i class=""><i class="fasfas fa-times"></i fa-times"></i></button></button>
+   >
+    <div <div class=" class="form-groupform-group"><label"><label>Old>Old Password</label Password</label><input type><input type="password="password" id="" idold="old-pass"-pass" placeholder=" placeholder="Enter oldEnter old password" password" /></div /></div>
+   >
+    <div <div class="form-group class=""><labelform-group"><label>New>New Password</ Password</labellabel><input type="><input type="passwordpassword" id="new-pass"" id="new placeholder="-pass" placeholder="New passwordNew password (min (min 6)" /></div>
+    <div 6)" /></div>
+    <div class class="="form-groupform-group"><label>"><label>Confirm PasswordConfirm Password</label</label><input><input type=" type="passwordpassword"" id=" id="confirm-passconfirm-pass" placeholder" placeholder="Confirm="Confirm new password new password" /></div" /></div>
+   >
+    <button class="btn-primary" <button class="btn-primary" onclick=" onclick="changePasswordchangePassword()">Update Password()">Update Password</button</button>
+   >
+    <div <div class="auth-error class="auth-error" id" id="pass="pass-error"></-error"></divdiv>
+  </div>
   </div>
 </div>
-
-<div class="modal-backdrop" id="avatar-url-modal">
-  <div class="modal"><h2>Change Profile Picture</h2><button class="close-btn" onclick="closeModal('avatar-url-modal')"><i class="fas fa-times"></i></button>
-    <div class="form-group"><label>Image URL</label><input type="url" id="avatar-url-input" placeholder="https://..." /></div>
-    <button class="btn-primary" onclick="updateAvatarUrl()">Update Picture</button>
-  </div>
 </div>
 
-<div class="modal-backdrop" id="user-profile-modal">
-  <div class="modal user-profile-modal-content"><button class="close-btn" onclick="closeModal('user-profile-modal')"><i class="fas fa-times"></i></button>
-    <img id="upm-avatar" src="" /><h3 id="upm-name"></h3>
-    <div class="detail"><i class="fas fa-phone"></i> <span id="upm-phone"></span></div>
-    <div class="detail"><i class="fas fa-envelope"></i> <span id="upm-email"></span></div>
-    <div class="detail"><i class="fas fa-venus-mars"></i> <span id="upm-gender"></span></div>
-  </div>
+<div>
+
+<div class=" class="modal-backmodal-backdropdrop"" id=" id="avatar-urlavatar-url-modal">
+ -modal">
+  <div class <div class="modal="modal"><h"><h2>2>Change ProfileChange Profile Picture</ Picture</h2h2><button class="><buttonclose-btn class="close-btn" onclick" onclick="close="closeModal('Modal('avatar-urlavatar-url-modal')-modal')"><i"><i class=" class="fas fafas fa-times"></-times"></i></i></buttonbutton>
+   >
+    <div class="form <div class="form-group-group"><label>Image URL"><label>Image URL</label</label><input><input type=" type="url"url" id=" id="avatar-urlavatar-url-input"-input" placeholder placeholder="https://="https://..." /></..." /></div>
+   div>
+    <button <button class class="btn="btn-primary"-primary" onclick=" onclick="updateAvatarupdateAvatarUrl()Url()">Update">Update Picture</button Picture</button>
+  </>
+  </divdiv>
+</div>
 </div>
 
-<div class="modal-backdrop" id="logout-confirm-modal">
-  <div class="modal" style="text-align:center;">
-    <div class="confirm-icon warning"><i class="fas fa-sign-out-alt"></i></div>
-    <h2 style="margin-bottom:6px;">Logout</h2>
-    <p class="confirm-text">Are you sure you want to logout?</p>
-    <div class="modal-buttons">
-      <button class="btn-secondary" onclick="closeModal('logout-confirm-modal')">Cancel</button>
-      <button class="btn-danger" onclick="confirmLogout()">Logout</button>
-    </div>
-  </div>
-</div>
+<div>
 
-<div id="toast"></div>
+<div class=" class="modal-backmodal-backdrop"drop" id="user-profile id="user-profile-modal-modal">
+ ">
+  <div class <div class="modal user-profile="modal user-profile-modal-content-modal-content"><button"><button class=" class="close-btnclose-btn" onclick" onclick="close="closeModal('Modal('user-profileuser-profile-modal')-modal')"><i"><i class=" class="fas fafas fa-times"></-times"></i></i></buttonbutton>
+    <img id="up>
+    <img id="upm-m-avatar"avatar" src="" src="" /><h /><h3 id3 id="up="upm-namem-name"></h"></h33>
+    <div class>
+    <div class="detail="detail"><i"><i class=" class="fas fafas fa-phone-phone"></i"></i>> <span id <span id="up="upm-m-phone"></phone"></span></span></divdiv>
+    <div class="detail>
+    <div class="detail"><i"><i class=" class="fas fafas fa-envelope-envelope"></i"></i> <span id> <span id="upm-="upm-email"></email"></span></span></divdiv>
+   >
+    <div class <div class="detail="detail"><i"><i class=" class="fas fafas fa-ven-venus-mus-mars"></ars"></i>i> <span < idspan id="="upmupm-gender-gender"></span"></span></div></div>
+ >
+  </div </div>
+</>
+</divdiv>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, orderBy, onSnapshot, updateDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<div class>
 
-const firebaseConfig = { apiKey:"AIzaSyBa2bIHkBNK_oajNeFxgKpz4VrIx1aR5Fo", authDomain:"kotha-bolbo-aso.firebaseapp.com", projectId:"kotha-bolbo-aso", storageBucket:"kotha-bolbo-aso.firebasestorage.app", messagingSenderId:"343828860232", appId:"1:343828860232:web:b566c74f630f8a2532b77d" };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+<div class="modal="modal-backdrop-backdrop" id" id="logout="logout-confirm-confirm-modal">
+ -modal">
+  <div class <div class="modal" style="text="modal" style="text-align:-align:centercenter;">
+   ;">
+    <div class <div class="confirm="confirm-icon warning-icon warning"><i"><i class="fas fa-sign-out class="fas fa-sign-out-alt"></-alt"></i></idiv>
+   ></div <h2>
+    <h2 style=" style="margin-bottommargin-bottom:6:6px;">px;">LogoutLogout</h</h2>
+   2 <>
+    <p classp class="confirm="confirm-text">-text">Are you sure youAre you sure you want want to to logout?</p logout?</p>
+   >
+    <div class <div class="modal="modal-butt-buttonsons">
+     ">
+      <button class <button class="btn="btn-secondary"-secondary" onclick=" onclick="closecloseModal('logout-confirmModal('logout-modal')-confirm-modal')">Cancel</button>
+     ">Cancel</button>
+      <button <button class=" class="btn-dangerbtn-danger" onclick" onclick="confirm="confirmLogoutLogout()">Logout()">Logout</button</button>
+   >
+    </div </div>
+  </>
+  </divdiv>
+>
+</div</div>
 
-let currentUser = null, currentUserData = null, openChatUser = null;
-let msgUnsubscribe = null, chatUnsubscribe = null, presenceUnsubscribe = null, typingUnsubscribe = null;
-let typingTimeout = null, typingDebounce = null;
-let allFriends = [], allChats = [], unreadCounts = {};
+<div id="to>
 
-function avatarUrl(name, gender) {
-  const seed = encodeURIComponent(name || 'User');
-  if (gender === 'Female') return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=female`;
-  if (gender === 'Male') return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=male`;
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+<div idast"></="toast"></divdiv>
+
+<script>
+
+<script type="module type="module">
+import { initialize">
+import { initializeApp } from "App } from "https://www.gstatic.comhttps://www.gstatic.com/fire/firebasejs/10.12.0basejs/10.12.0/fire/firebase-app.js";
+import {base-app.js";
+import { getAuth, createUserWithEmailAnd getAuth, createUserWithEmailAndPassword,Password, signInWithEmail signInWithEmailAndPassword,AndPassword, sign signOut, onAuthStateChanged, updatePassword, reauthenticateWithOut, onAuthStateChanged, updatePassword, reauthenticateWithCredentialCredential, EmailAuthProvider } from "https, EmailAuthProvider } from "https://www.gstatic.com/firebase://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc,js/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDoc getDoc, get, getDocs,Docs, addDoc addDoc, query, query, order, orderBy,By, onSnapshot onSnapshot, update, updateDoc,Doc, serverTimestamp serverTimestamp, where, where } from } from "https "https://www://www.gstatic.com/f.gstatic.com/firebaseirebasejs/js/10.10.12.0/f12.0/firebaseirebase-firestore.js-firestore";
+
+const.js";
+
+const fire firebaseConfigbaseConfig = { = { apiKey apiKey:"AI:"AIzaSyzaSyBaBa22bIHbIHkBNkBNK_oK_oajNeajNeFxgFxgKpKpz4z4VrIxVrIx1a1aR5R5Fo",Fo", authDomain authDomain:"k:"kothaotha-bol-bolbo-aso.firebo-aso.firebaseappbaseapp.com",.com", projectId projectId:"kotha-bol:"kotha-bolbo-asbo-aso",o", storageBucket storageBucket:"k:"kothaotha-bol-bolbo-asbo-aso.firebasestorageo.firebasestorage.app.app", messaging", messagingSenderIdSenderId:"343:"343828860232", appId:"1:343828860232", appId:"1:343828860828860232:232:web:bweb:b566c566c74f74f630f630f8a2538a25322b77b77d"d" };
+const };
+const app = app = initialize initializeApp(fireApp(firebaseConfig);
+const auth =baseConfig);
+const auth = getAuth getAuth(app(app);
+const db);
+const db = get = getFirestoreFirestore(app(app);
+
+let currentUser =);
+
+let currentUser = null, currentUser null,Data = currentUserData = null, null, openChat openChatUser = nullUser = null;
+let;
+let msgUnsubscribe msgUnsubscribe = null = null, chatUnsubscribe, chatUnsubscribe = null = null, presence, presenceUnsubscribeUnsubscribe = null = null, typing, typingUnUnsubscribe = nullsubscribe = null;
+let;
+let typingTimeout typingTimeout = null, typing = nullDebounce, typing = nullDebounce = null;
+let;
+let allFriends allFriends = [], = [], allChats = allChats = [], un [], unreadCountsreadCount = {s =};
+
+function avatar {};
+
+function avatarUrl(name, genderUrl(name, gender)) {
+  const seed = {
+  const seed = encodeURI encodeURIComponentComponent(name(name || ' || 'UserUser');
+  if');
+  if (gender (gender === ' === 'Female') return `Female') return `https://https://api.dapi.dicebear.com/icebear.com/7.x7.x/avataa/avataaarsars/svg?seed=${/svg?seed=${seed}&seed}&gender=fgender=femaleemale`;
+  if`;
+  if (gender (gender === ' === 'Male') returnMale') `https:// return `https://api.dapi.dicebearicebear.com/.com/7.x7.x/av/avataaataaars/sars/svg?seed=${vg?seed=${seed}&seed}&gender=mgender=maleale`;
+  return`;
+  return `https://api `https://api.dicebear.com/7.x/avataaars/svg?seed.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+}
+
+// SPL=${seed}`;
 }
 
 // SPLASH
-setTimeout(() => { document.getElementById('splash').classList.add('hide'); setTimeout(() => { document.getElementById('splash').style.display = 'none'; checkAuth(); }, 800); }, 3500);
+setTimeout(() => { document.getElementById('splash').classList.add('hide'); setTimeout(() => { documentASH
+setTimeout(() => { document.getElementById('splash').classList.add('hide'); setTimeout(() => { document.getElementById('.getElementById('splash').style.display =splash').style.display = 'none 'none'; checkAuth(); }, '; checkAuth(); }, 800);800); }, 3500);
+
+function checkAuth }, 3500);
 
 function checkAuth() {
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(a() {
+  onAuthStateChanged(auth,uth, (user) => {
+    if (user) { currentUser = user; (user) => {
     if (user) { currentUser = user; fetchMyData(); }
-    else { currentUserData = null; currentUser = null; showAuthScreen(); }
+    fetchMyData(); }
+    else { else { currentUserData = currentUserData = null; null; currentUser = null currentUser = null; show; showAuthScreenAuthScreen();(); }
+  }
   });
 }
 
-async function fetchMyData() {
+async function });
+}
+
+async function fetchMyData fetch() {
+ MyData() try {
   try {
-    const snap = await getDoc(doc(db, 'users', currentUser.uid));
-    if (snap.exists()) { currentUserData = snap.data(); }
-    else { currentUserData = { displayName: currentUser.email?.split('@')[0] || 'User', email: currentUser.email, photoURL: avatarUrl(currentUser.email?.split('@')[0] || 'U', ''), gender: '' }; }
-    updateUI(); showApp();
-  } catch(e) { currentUserData = { displayName: 'User', email: currentUser.email, photoURL: avatarUrl('User', ''), gender: '' }; updateUI(); showApp(); }
+    {
+    const const snap = await snap = await getDoc getDoc(doc(db, 'users(doc(db, 'users', current', currentUser.User.uiduid));
+    if));
+    if (sn (snap.existsap.exists()) { currentUser()) { currentUserData =Data = snap.data snap.data();(); }
+    else }
+    else { { current currentUserDataUserData = { = { displayName displayName: current: currentUser.emailUser.email?.split?.split('@('@')[0')[0] ||] || 'User 'User', email', email: current: currentUserUser.email, photo.emailURL:, photoURL: avatarUrl avatarUrl(current(currentUser.email?.User.email?.split('split('@@')[0]')[0] || 'U || 'U',', ''), ''), gender: gender: '' }; '' }; }
+    }
+    updateUI updateUI(); show(); showAppApp();
+  }();
+  } catch(e catch(e) {) { currentUser currentUserDataData = = { display { displayName:Name: 'User 'User', email', email: currentUser.email: currentUser.email, photo, photoURL:URL: avatar avatarUrlUrl('User('User', ''', ''), gender), gender: '' }; update: '' }; updateUI();UI(); show showAppApp(); }
 }
 
-function updateUI() {
-  if (!currentUserData) return;
-  const av = currentUserData.photoURL || avatarUrl(currentUserData.displayName || 'U', currentUserData.gender || '');
-  document.getElementById('my-avatar').src = av;
-  document.getElementById('my-name-header').textContent = currentUserData.displayName || currentUser.email?.split('@')[0] || 'User';
-  document.getElementById('settings-avatar').src = av;
-  document.getElementById('settings-name').textContent = currentUserData.displayName || currentUser.email?.split('@')[0] || 'User';
-  document.getElementById('settings-email').textContent = currentUserData.email || currentUser.email || '';
+function(); }
 }
 
-function showAuthScreen() { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app').classList.remove('visible'); document.getElementById('conv-screen').classList.remove('open'); }
-function showApp() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app').classList.add('visible'); if (currentUser) updateDoc(doc(db, 'users', currentUser.uid), { online: true }); loadChats(); loadFriends(); }
-
-window.switchAuthTab = function(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
-  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
-  document.getElementById('signup-form').style.display = tab==='signup'?'block':'none';
-  document.getElementById('auth-error').textContent = '';
-};
-
-window.handleLogin = async function() {
-  const email = document.getElementById('login-email').value.trim(), pass = document.getElementById('login-pass').value;
-  if (!email||!pass) { setAuthError('Please fill all fields'); return; }
-  const btn = document.querySelector('#login-form .btn-primary'); btn.disabled=true; btn.textContent='Logging in…';
-  try { await signInWithEmailAndPassword(auth, email, pass); }
-  catch(e) { setAuthError(friendlyError(e.code)); btn.disabled=false; btn.textContent='Login'; }
-};
-
-window.handleSignup = async function() {
-  const name = document.getElementById('signup-name').value.trim(), phone = document.getElementById('signup-phone').value.trim();
-  const email = document.getElementById('signup-email').value.trim(), gender = document.getElementById('signup-gender').value;
-  const pass = document.getElementById('signup-pass').value;
-  if (!name||!email||!pass) { setAuthError('Please fill required fields'); return; }
-  if (pass.length<6) { setAuthError('Password min 6 characters'); return; }
-  const btn = document.querySelector('#signup-form .btn-primary'); btn.disabled=true; btn.textContent='Creating…';
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await setDoc(doc(db, 'users', cred.user.uid), { uid:cred.user.uid, displayName:name, phone:phone||'', email:email, gender:gender||'', photoURL:avatarUrl(name,gender), createdAt:serverTimestamp(), online:true });
-  } catch(e) { setAuthError(friendlyError(e.code)); btn.disabled=false; btn.textContent='Create Account'; }
-};
-
-function setAuthError(msg) { document.getElementById('auth-error').textContent = msg; }
-function friendlyError(code) {
-  const m = { 'auth/user-not-found':'No account found','auth/wrong-password':'Incorrect password','auth/email-already-in-use':'Email already in use','auth/invalid-email':'Invalid email','auth/weak-password':'Password too weak','auth/too-many-requests':'Too many attempts.' };
-  return m[code] || 'Something went wrong.';
+function updateUI updateUI()() {
+  if (!current {
+  if (!currentUserDataUserData) return;
+ ) return;
+  const av const = av = current currentUserDataUserData.photo.photoURL || avatarUrlURL ||(currentUser avatarUrl(currentUserData.displayData.displayName ||Name || 'U', currentUser 'U', currentUserDataData.gender.gender || ' || '');
+  document.getElementById');
+  document.getElementById('my('my-avatar-avatar').src = av').src = av;
+ ;
+  document.getElementById document.getElementById('my('my-name-header-name-header').textContent =').textContent = currentUser currentUserData.displayName ||Data.displayName || currentUser.email?. currentUser.email?.split('@split('@')[0]')[0] || ' || 'UserUser';
+  document';
+  document.getElementById('.getElementById('settings-settings-avatar').avatar').srcsrc = = av av;
+  document;
+  document.getElementById('.getElementById('settings-namesettings-name').textContent =').textContent = currentUserData.display currentUserData.displayName || currentName || currentUserUser.email?.split('.email?.split('@@')[0] || '')[0]User || 'User';
+  document';
+  document.getElementById('settings-.getElementById('settings-email').email').textContent = currenttextContentUser = currentUserData.email ||Data.email || currentUser currentUser.email ||.email || '';
+ '';
 }
 
-window.switchTab = function(tab) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(tab+'-screen').classList.add('active');
-  document.getElementById('nav-'+tab).classList.add('active');
-  if (tab==='friends') loadFriends();
-  if (tab==='settings') updateUI();
-};
+function show}
 
-// CHATS (unchanged logic, just smaller UI elements)
-async function loadChats() {
-  if (!currentUser) return;
-  if (chatUnsubscribe) chatUnsubscribe();
-  const q = query(collection(db, 'messages'), orderBy('timestamp','desc'));
-  chatUnsubscribe = onSnapshot(q, async (snap) => {
-    const seen=new Set(), chatMap={}, counts={};
-    snap.forEach(d=>{
-      const msg=d.data();
-      if (msg.senderId!==currentUser.uid && msg.receiverId!==currentUser.uid) return;
-      const oid=msg.senderId===currentUser.uid?msg.receiverId:msg.senderId;
-      if (!seen.has(oid)) { seen.add(oid); chatMap[oid]=msg; }
-      if (msg.senderId!==currentUser.uid && msg.receiverId===currentUser.uid && !msg.read) counts[oid]=(counts[oid]||0)+1;
+function showAuthScreenAuthScreen() { document.getElementById() { document.getElementById('auth-screen').('auth-screen').style.displaystyle.display = ' = 'flexflex'; document.getElementById';('app').class document.getElementById('app').classList.removeList.remove('visible('visible'); document'); document.getElementById('conv-screen.getElementById('conv-screen').class').classList.remove('openList.remove('open');'); }
+
+function show }
+
+function showApp()App() {
+  document.getElementById {
+  document.getElementById('auth('auth-screen').style.display-screen').style.display = 'none = '';
+none  document';
+  document.getElementById('.getElementById('app').app').classListclassList.add('.add('visiblevisible');
+  if');
+  if (currentUser) (currentUser) {
+    {
+    updateDoc updateDoc(doc(doc(db,(db, 'users 'users', currentUser.', currentUser.uid),uid), { online { online: true: true });
     });
-    unreadCounts=counts;
-    const cu=[]; for(const uid of Object.keys(chatMap)) { try { const u=await getDoc(doc(db,'users',uid)); if(u.exists()) cu.push({user:u.data(),lastMsg:chatMap[uid]}); } catch(e){} }
-    cu.sort((a,b)=>{ const uA=unreadCounts[a.user.uid]||0,uB=unreadCounts[b.user.uid]||0; if(uA&&!uB) return -1; if(uB&&!uA) return 1; return (b.lastMsg.timestamp?.seconds||0)-(a.lastMsg.timestamp?.seconds||0); });
-    allChats=cu; renderChatList(cu); updateBadge();
-  });
-}
-function updateBadge() { const t=Object.values(unreadCounts).reduce((a,b)=>a+b,0); const b=document.getElementById('chat-badge'); if(t>0) { b.style.display='flex'; b.textContent=t>99?'99+':t; } else b.style.display='none'; }
-function renderChatList(chats) {
-  const c=document.getElementById('chat-list-container'), e=document.getElementById('chat-empty');
-  c.querySelectorAll('.chat-list-item').forEach(x=>x.remove());
-  if (!chats.length) { e.style.display='flex'; return; }
-  e.style.display='none';
-  chats.forEach(({user,lastMsg})=>{
-    const div=document.createElement('div'), ur=unreadCounts[user.uid]||0;
-    div.className='chat-list-item'+(ur>0?' unread':'');
-    div.onclick=()=>openConversation(user);
-    const ts=lastMsg.timestamp?new Date(lastMsg.timestamp.seconds*1000):new Date();
-    div.innerHTML=`<div class="chat-avatar"><img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" /><div class="status-dot ${user.online?'':'offline'}"></div></div><div class="chat-info"><div class="chat-info-top"><span class="chat-name">${user.displayName||'User'}</span><span class="chat-time">${formatTime(ts)}</span></div><div class="chat-preview">${lastMsg.senderId===currentUser.uid?'You: ':''}${lastMsg.text||''}</div></div>${ur>0?`<span class="unread-badge">${ur}</span>`:''}`;
-    c.appendChild(div);
-  });
-}
-window.filterChats = function(q) { renderChatList(allChats.filter(({user})=>(user.displayName||'').toLowerCase().includes(q.toLowerCase()))); };
+    // Heart // Heartbeat everybeat every 30 30 sec sec
 
-// FRIENDS - now search by name AND phone, strict matching + ইমেইল প্রিফিক্স দেখানো
-window.loadFriends = async function() {
-  const icon=document.getElementById('friends-refresh-icon'); icon.classList.add('spinner');
-  try { const snap=await getDocs(collection(db,'users')); allFriends=[]; snap.forEach(d=>{if(d.id!==currentUser?.uid) allFriends.push(d.data());}); renderFriends(allFriends); }
-  catch(e) { showToast('Error loading','error'); }
-  icon.classList.remove('spinner');
-};
-function renderFriends(friends) {
-  const c=document.getElementById('friends-list-container'); c.innerHTML='';
-  if (!friends.length) { c.innerHTML='<div class="empty-state"><i class="fas fa-user-slash"></i><h3>No Users Found</h3></div>'; return; }
-  friends.forEach(user=>{
-    const div=document.createElement('div'); div.className='friend-item';
-    const emailPrefix = user.email ? user.email.substring(0,6)+'...' : '';
-    div.innerHTML = `<img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" />
-      <div class="friend-info">
-        <div class="friend-name">${user.displayName||'User'}</div>
-        ${emailPrefix ? `<small class="friend-email">${emailPrefix}</small>` : ''}
-      </div>
-      <div class="friend-chat-btn"><i class="fas fa-comment"></i></div>`;
-    div.querySelector('.friend-chat-btn').onclick=e=>{e.stopPropagation();openConversation(user);};
-    div.onclick=()=>openConversation(user);
-    c.appendChild(div);
-  });
+    if (window.heart    if (window.heartbeatIntervalbeatInterval) clear) clearInterval(window.heartInterval(windowbeatInterval.heartbeatInterval);
+   );
+    window. window.heartbeatInterval =heartbeat setIntervalInterval = setInterval(() =>(() => {
+      {
+      if ( if (currentUsercurrentUser) update) updateDoc(dDoc(doc(db, 'oc(db, 'users', currentUserusers',.uid currentUser.uid), {), { online: online: true true });
+    }, });
+    }, 300 3000000);
+ );
+  }
+  loadChats }
+  loadChats();(); load loadFriends();
 }
-window.filterFriends = function(q) {
-  const query = q.toLowerCase().trim();
-  if (!query) { renderFriends(allFriends); return; }
-  const filtered = allFriends.filter(u => {
-    const name = (u.displayName || '').toLowerCase();
-    const phone = (u.phone || '').toLowerCase();
-    return name.includes(query) || phone.includes(query);
-  });
-  renderFriends(filtered);
+
+//Friends();
+}
+
+// ট্য ট্যাব কাব ক্লোজ্লোজ / র / রিফিফ্রেশ হলে অ্রেশফলাইন হলে অফলাইন
+window.addEventListener
+window.addEventListener('before('beforeunloadunload', ()', () => => {
+  if {
+  if (currentUser) (current {
+   User) {
+    navigator navigator.sendBe.sendBeaconacon(
+      `(
+      `https://https://firestorefirestore.googleapis.com.googleapis.com/v1/v1/projects/${firebaseConfig/projects/${firebaseConfig.projectId.projectId}/dat}/databases/(abases/(default)/default)/documentsdocuments/users/${/users/${currentUsercurrentUser.uid}?.uid}?updateMaskupdateMask.fieldPaths.fieldPaths=online=online`,
+     `,
+      JSON.stringify JSON.stringify({ fields({ fields: { online:: { online: { boolean { booleanValue:Value: false } false } } } })
+    );
+  })
+    );
+  }
+  if (window }
+  if (window.heart.heartbeatIntervalbeatInterval) clear) clearInterval(windowInterval(window.heart.heartbeatIntervalbeatInterval);
+);
+});
+
+window.sw});
+
+window.switchAuthitchAuthTab =Tab = function(tab) function(tab) {
+  {
+  document.querySelectorAll('. document.querySelectorauth-tAll('.auth-tab').ab').forEach((t,iforEach((t,i) =>) => t.classList t.classList.toggle.toggle('active('active', (', (i===i===0&&0&&tab==tab==='login='login')||')||(i(i===1===1&&tab&&tab==='==='signupsignup')));
+'  document)));
+  document.getElementById('login-form.getElementById('login-form').style').style.display =.display = tab== tab==='login'?'='login'?'block':'noneblock':'';
+  documentnone';
+ .getElementById(' document.getElementById('signup-form').signup-form').style.display = tabstyle.display = tab==='==='signupsignup'?''?'block':'noneblock':'none';
+  document';
+  document.getElementById('.getElementById('auth-errorauth-error').text').textContent =Content = '';
+ '';
 };
 
-// CONVERSATION (unchanged except sizing and typing bug fix)
-window.openConversation = function(user) {
+window.handle};
+
+window.handleLogin = async function()Login = async function() {
+  const {
+  const email = email = document.getElementById document.getElementById('login('login-email-email').value').value.trim(), pass = document.getElementById('login-pass').value;
+  if (!email||!pass).trim(), pass = document.getElementById('login-pass').value;
+  if (!email||!pass) { set { setAuthErrorAuthError('Please('Please fill fill all all fields'); fields'); return; return; }
+  }
+  const btn const btn = document.querySelector('# = document.querySelector('#login-form .btnlogin-form .btn-primary');-primary'); btn.dis btn.disabled=trueabled=true; btn.textContent; btn.textContent='Log='Logging inging in……';
+  try';
+  try { await { await signIn signInWithEmailWithEmailAndPasswordAndPassword(auth(auth, email, email, pass, pass);); }
+  catch }
+  catch(e)(e) { set { setAuthErrorAuthError(friendly(friendlyError(eError(e.code));.code)); btn.dis btn.disabled=false; btn.textContent='abled=false; btn.textContent='Login'; }
+};
+
+windowLogin'; }
+};
+
+window.handleSign.handleSignup = async functionup = async function()() {
+  const name = {
+  const name = document.getElementById document.getElementById('sign('signup-nameup-name').value').value.trim(),.trim(), phone = phone = document.getElementById document.getElementById('sign('signup-up-phone').phone').value.trimvalue.trim();
+ ();
+  const email const email = document = document.getElementById('signup.getElementById('signup-email-email').value').value.trim(),.trim(), gender = gender = document.getElementById document.getElementById('sign('signup-gup-gender').ender').value;
+  constvalue;
+  const pass = pass = document.getElementById document.getElementById('signup-pass('signup-pass').value').value;
+ ;
+  if (! if (!name||name||!email!email||!pass)||!pass) { setAuthError { setAuthError('Please('Please fill required fill required fields fields'); return;'); return; }
+  }
+  if ( if (pass.length<pass.length<6) {6) { setAuthError(' setAuthError('PasswordPassword min min 6 6 characters'); return; }
+  characters'); return; }
+  const btn const btn = document = document.querySelector('#.querySelector('#signupsignup-form .-form .btn-primarybtn-primary'); btn'); btn.disabled.disabled=true;=true; btn.textContent=' btn.textContent='Creating…';
+ Creating…';
+  try try {
+    const cred = {
+    const cred = await create await createUserWithUserWithEmailAndEmailAndPassword(aPassword(auth,uth, email, email, pass pass);
+    await);
+    await setDoc setDoc(doc(doc(db,(db, 'users 'users', cred.user.', creduid),.user.uid), { uid { uid:cred:cred.user.uid, displayName:name, phone.user.uid, displayName:name, phone:phone:phone||||'', email:'', email:email,email, gender: gender:gender||'', photogender||'', photoURL:avatarUrlURL:avatarUrl(name,(name,gender), createdAt:gender), createdAt:serverTimestampserverTimestamp(), online(), online:true:true });
+  });
+  } catch } catch(e)(e) { setAuthError { setAuthError(f(friendlyriendlyError(eError(e.code));.code)); btn btn.disabled=false.dis; btnabled=false; btn.textContent='Create.textContent='Create Account'; Account'; }
+ }
+};
+
+function setAuthError};
+
+function setAuthError(msg)(msg) { document.getElementById(' { document.getElementById('auth-errorauth-error').textContent =').text msg;Content = msg; }
+function friendlyError }
+function friendlyError(code)(code) {
+  {
+  const m const m = { = { 'auth/user-not 'auth/user-not-found':'-found':'No accountNo account found',' found','auth/wrong-password':'auth/wrong-pIncorrectassword':'Incorrect password','auth/ password','email-alauth/email-already-inready-in-use':'Email already-use':'Email already in in use use','auth','auth/invalid-email/invalid-email':'Invalid email','':'Invalid email','auth/auth/weak-pweak-password':'Password tooassword':'Password too weak',' weak','auth/auth/too-many-too-many-requests':'requests':'Too manyToo many attempts.' attempts.' };
+  };
+  return m return m[code] || 'Something went[code] || 'Something went wrong wrong.';
+}
+
+window.switch.';
+}
+
+window.switchTab =Tab = function(tab) function(tab) {
+  {
+  document.querySelector document.querySelectorAll('.All('.screen').forEach(sscreen').forEach(s=>s=>s.classList.remove.classList.remove('active('active'));
+ '));
+  document.querySelector document.querySelectorAll('.All('.navnav-btn-btn').forEach(b=>').forEach(b=>b.classList.remove('b.classListactive.remove('active'));
+  document'));
+  document.getElementById(tab+.getElementById(tab+'-screen'-screen').class').classList.addList.add('active');
+ ('active');
+  document.getElementById document.getElementById('nav-'+('nav-'+tab).classtab).ListclassList.add('.add('activeactive');
+');
+  if (tab  if (tab==='==='friends') loadFriendsfriends') loadFriends();
+ ();
+  if (tab== if (='settingstab==='settings') update') updateUIUI();
+};
+
+//();
+};
+
+// CHATS CHATS
+async
+async function load function loadChatsChats()() {
+  if (! {
+  if (!currentUser)currentUser) return return;
+  if;
+  if (chat (chatUnsubscribe) chatUnsubscribe) chatUnsubscribeUnsubscribe();
+();
+   const q = query const q = query(collection(collection(db, 'messages(db, 'messages'), orderBy(''), orderBy('timestamp','timestamp','descdesc'));
+  chatUnsubscribe = on'));
+  chatUnsubscribe = onSnapshot(qSnapshot(q, async, async (sn (snap)ap) => => {
+    const {
+    const seen=new seen=new Set Set(),(), chatMap chatMap={},={}, counts={ counts={};
+    snap.forEach};
+    snap.forEach(d=>(d=>{
+     {
+      const msg const msg=d.data();
+=d.data     ();
+      if ( if (msg.smsg.senderId!==enderId!==currentUsercurrentUser.uid.uid && msg && msg.receiver.receiverId!Id!==current==currentUser.User.uid)uid) return return;
+      const;
+      const oid oid=msg=msg.sender.senderId===currentUserId===currentUser.uid.uid?msg?msg.receiver.receiverId:Id:msgmsg.s.senderId;
+     enderId;
+      if (!seen.has if (!seen.has(oid(oid)) {)) { seen.add seen.add(oid(oid); chatMap); chat[oid]=Map[oid]=msg;msg; }
+      }
+      if ( if (msg.smsg.senderId!==enderId!==currentUsercurrentUser.uid && msg.uid.receiver && msg.receiverId===Id===currentUsercurrentUser.uid && !.uid && !msg.readmsg.read) counts) counts[oid]=([oid]counts=(counts[oid]||[oid]||0)+0)+1;
+   1;
+    });
+    un });
+    unreadCountreadCounts=s=counts;
+    const cu=[]counts;
+    const cu=[]; for; for(const uid(const uid of Object.keys( of Object.keys(chatMapchatMap)) {)) { try { const u try { const u=await=await getDoc getDoc(doc(doc(db,'(db,'users',users',uid));uid)); if(u if(u.exists()).exists()) cu.push cu.push({user:u({user:u.data(),.data(),lastMsg:chatlastMsg:chatMapMap[uid]}[uid]}); }); } catch(e catch(e){}){} }
+    cu }
+    cu.sort((a.sort((a,b)=,b)=>{ const uA=un>{ const uA=unreadCountreadCounts[a.users[a.user..uid]uid]||0||0,uB,uB=un=unreadCounts[breadCounts[b.user..user.uid]||0uid]||0; if; if(uA&&!(uA&&!uBuB) return) return -1; if -1; if(uB(uB&&!&&!uuAA) return) return 1 1; return; return (b (b.lastMsg.lastMsg.timestamp.timestamp?.seconds?.seconds||0||0)-(a)-(a.lastMsg.lastMsg.timestamp.timestamp?.seconds?.seconds||0||0);); });
+    allChats });
+    allChats=cu; renderChatList(cu); update=cu; renderChatList(cu); updateBadgeBadge();
+ ();
+  });
+ });
+}
+function update}
+function updateBadge() {Badge() { const t const t=Object=Object.values.values(un(unreadCounts).readCounts).reduce((a,breduce((a,b)=>a)=>a+b,+b,0); const b0); const b=document=document.getElementById('.getElementById('chat-bchat-badge'); if(t>0adge'); if(t>0) {) { b.style.display=' b.style.display='flex';flex'; b.text b.textContent=t>99Content=t>99?'99?'99+':t; } else+':t; } else b.style b.style.display='none';.display=' }
+functionnone'; }
+function renderChat renderChatList(chList(chats)ats) {
+  {
+  const c const c=document=document.getElementById('.getElementById('chat-listchat-list-container'),-container'), e= e=document.getElementById('chatdocument.getElementById('chat-empty-empty');
+  c');
+  c.querySelectorAll('.chat.querySelectorAll('.chat-list-item').forEach-list-item').forEach(x=>(x=>x.removex.remove());
+ ());
+  if if (!ch (!chatsats.length).length) { e.style.display { e.style.display='flex='flex'; return;'; return; }
+  e.style.display }
+  e.style.display='none='none';
+ ';
+  chats.forEach chats.forEach(({(({user,user,lastMsglastMsg})=>{
+   })=>{
+ const div    const div=document.createElement('=document.createElement('div'), ur=div'), ur=unreadunreadCountsCounts[user.uid[user.uid]||]||0;
+    div0.className;
+    div.className='chat='chat-list-item-list-item'+('+(ur>0?'ur>0?' un unread':'read':'');
+    div');
+    div.onclick.onclick=()=()=>open=>openConversationConversation(user(user);
+    const);
+    const ts= ts=lastMsg.timestamplastMsg.timestamp?new Date?new(last Date(lastMsg.timestamp.Msg.timestamp.seconds*seconds*10001000):new):new Date();
+    div Date();
+   .innerHTML=` div.innerHTML=`<div class="chat-<div class="chat-avataravatar"><img src"><img src="${user.photoURL||="${user.photoURL||avatarUrl(user.displayName||avatarUrl(user.displayName||''U',user.gender)}"U',user.gender)}" /><div class="status-dot ${ /><div class="status-dot ${user.onuser.online?'':'offline'}line?'':'offline'}"></div"></div></div><div class="></div><div class="chat-infochat-info"><div class="chat-info"><div class="chat-info-top-top"><span class="chat-name">"><span class="chat-name">${user${user.displayName||'User'}</span.displayName||'User'}</span><span><span class="chat-time">${ class="chat-time">${formatTime(ts)}</span></formatTime(ts)}</span></div><div class="chat-previewdiv><div class="chat-preview">${lastMsg">${.senderlastMsg.senderId===Id===currentUsercurrentUser.uid.uid?'You: ':?'You: ':''}''}${last${lastMsg.textMsg.text||''}</div||''}</div></div></div>${>${ur>ur>0?`0?`<<span class="unspan class="unread-bread-badge">adge">${ur${ur}</span>`:''}`;
+    c.appendChild}</span>`:''}`;
+    c.appendChild(div(div);
+ );
+  });
+ });
+}
+window.filter}
+window.filterChats = function(q)Chats = function(q) { render { renderChatList(allChatChatList(allChats.filters.filter(({user})=(({user})=>(user>(user.displayName||''.displayName).toLowerCase().||'').toLowerCase().includes(qincludes(q.toLowerCase())).toLowerCase())));); };
+
+// F };
+
+// FRIENDS (ইRIENDS (ইমেইমেইল প্রল প্রিফিফিক্সিক্স সহ)
+window সহ)
+window.loadFriends.loadFriends = async = async function() function() {
+  {
+  const icon const icon=document.getElementById('=document.getElementById('friends-reffriends-refresh-iconresh-icon'); icon'); icon.classList.add.classList.add('sp('spinnerinner');
+  try { const');
+  try { const snap= snap=await getawait getDocs(Docs(collection(dbcollection(db,'users,'users')); allFriends')); allFriends=[]; snap=[]; snap.forEach.forEach(d(d=>{=>{if(dif(d.id!.id!==current==currentUser?.User?.uid) allFriendsuid) allFriends.push(d.data());.push(d.data());}); render}); renderFriendsFriends(all(allFriends);Friends); }
+  catch(e }
+  catch(e) { showToast) { showToast('Error('Error loading','error'); loading','error'); }
+  }
+  icon.classList icon.classList.remove('.remove('spinnerspinner');
+');
+};
+function render};
+function renderFriends(fFriends(friends)riends) {
+  {
+  const c const c=document=document.getElementById('friends-list.getElementById('friends-list-container');-container'); c.innerHTML c.innerHTML='='';
+  if';
+  if (!friends (!friends.length).length) { c { c.innerHTML='.innerHTML='<div class="<div class="empty-stateempty-state"><i"><i class=" class="fas fafas fa-user-sl-user-slash"></ash"></ii><h3>No><h3>No Users Found Users Found</h</h3></3></div>'; returndiv>'; return;; }
+  friends }
+  friends.forEach(user=>.forEach(user{
+    const=>{
+    const div= div=document.createElementdocument.createElement('div('div'); div'); div.className.className='friend-item='friend-item';
+';
+    const emailPrefix    const emailPrefix = user.email ? = user user.email.email ? user.email.substring(.substring(0,0,6)+6)+'...' :'...' : '';
+    '';
+    div.innerHTML = div.innerHTML = `<img src `<img src="${user="${user.photoURL||.photoURL||avatarUrlavatarUrl(user.display(user.displayName||Name||'U'U',user',user.gender.gender)}" />
+)}" />
+           <div <div class=" class="friend-infofriend-info">
+       ">
+        <div class=" <div class="friend-name">${friend-name">${user.displayuser.displayName||Name||'User'}</'User'}</divdiv>
+        ${emailPrefix>
+        ${emailPrefix ? `< ? `<small class="friendsmall class="friend-email-email">${">${emailPrefixemailPrefix}</small}</small>` :>` : '' ''}
+      </}
+      </divdiv>
+      <div class>
+      <div class="friend-chat="friend-chat-btn-btn"><i class"><i class="fas="fas fa-com fa-comment"></i></ment"></i></div>div>`;
+   `;
+    div.querySelector div.querySelector('.friend-chat('.friend-chat-btn').-btn').ononclick=e=>click=e=>{e{e.stopProp.stopPropagation();agation();openConversopenConversation(user);ation(user);};
+    div};
+    div.onclick.onclick=()=()=>open=>openConversationConversation(user(user);
+    c);
+    c.appendChild(.appendChild(divdiv);
+ );
+  });
+}
+window });
+}
+window.filterFriends.filterFriends = function(q) = function(q) {
+  {
+  const query = q const query.toLowerCase(). = q.toLowerCase().trim();
+  iftrim();
+  if (!query (!query) { renderFriends) { renderFriends(allFriends(allFriends); return); return;; }
+  const }
+  const filtered = filtered = allFriends.filter(u allFriends.filter(u => {
+    const => {
+    const name = name = (u (u.displayName.displayName || '' || '').to).toLowerCaseLowerCase();
+    const();
+    const phone = phone = (u (u.phone.phone || '').to || '').toLowerCaseLowerCase();
+    return();
+    return name.includes name.includes(query)(query) || phone || phone.includes(query.includes(query);
+);
+   });
+  renderFriends });
+  renderFriends(filtered(filtered);
+);
+};
+
+// CON};
+
+// CONVERSVERSATIONATION
+window.open
+window.openConversationConversation = function(user) = function(user) {
+  closeConvers {
   closeConversation();
-  openChatUser = user;
-  document.getElementById('conv-name').textContent = user.displayName||'User';
-  const av = user.photoURL || avatarUrl(user.displayName||'U', user.gender);
-  document.getElementById('conv-avatar').src = av;
-  document.getElementById('conv-typing-avatar').src = av;
-  document.getElementById('conv-messages').innerHTML = '';
-  document.getElementById('typing-row').style.display = 'none';
-  document.getElementById('conv-screen').classList.add('open');
-  updateConvHeader(); subscribeMessages(); markRead(user.uid); listenPresence(user.uid); listenTyping(user.uid);
+  openation();
+  openChatUserChatUser = = user;
+  user document.getElementById;
+  document.getElementById('conv('conv-name').-name').textContenttextContent = user = user.displayName.displayName||'||'UserUser';
+  const av =';
+  const user. av = user.photoURL || avatarphotoURL || avatarUrl(userUrl(user.displayName.displayName||'||'U',U', user.g user.genderender);
+  document);
+  document.getElementById('conv-.getElementById('conv-avatar').avatar').src = avsrc = av;
+  document;
+  document.getElementById('.getElementById('conv-conv-typing-avatartyping-avatar').src').src = av = av;
+ ;
+  document.getElementById('conv document.getElementById('conv-messages-messages').inner').innerHTML =HTML = '';
+  '';
+  document.getElementById document.getElementById('ty('typing-rowping-row').style').style.display = 'none';
+ .display = 'none document.getElementById';
+  document.getElementById('conv('conv-screen').-screen').classListclassList.add('.add('open');
+  updateopen');
+  updateConvHeaderConvHeader(); subscribeMessages(); markRead(); subscribeMessages(); markRead(user.uid); listenPresence(user(user.uid); listenPresence(user.uid.uid); listen); listenTyping(user.Typing(user.uiduid);
 };
-function updateConvHeader() {
-  if (!openChatUser) return;
-  const s=document.getElementById('conv-status-text'), d=document.getElementById('conv-status-dot');
-  if (openChatUser.online) { d.className='status-dot'; s.innerHTML='<span class="online-indicator"></span>Online'; }
-  else { d.className='status-dot offline'; s.textContent='Offline'; }
+);
+};
+function updateConvfunction updateConvHeader()Header() {
+  {
+  if (! if (!openChatopenChatUser)User) return return;
+  const;
+  const s= s=document.getElementByIddocument.getElementById('conv('conv-status-text-status-text'), d=document'), d=document.getElementById('conv-status.getElementById('conv-status-dot-dot');
+ ');
+  if ( if (openChatUser.online)openChatUser.online) { d { d.className.className='status='status-dot-dot'; s'; s.innerHTML='.innerHTML='<span<span class="online-ind class="online-indicator"></span>icator"></span>Online';Online'; }
+ }
+  else {  else { d.class d.className='Name='status-dot offlinestatus-dot offline'; s'; s.textContent.textContent='Off='Offline';line'; }
+ }
 }
-function listenPresence(uid) { if(presenceUnsubscribe) presenceUnsubscribe(); presenceUnsubscribe=onSnapshot(doc(db,'users',uid),s=>{if(s.exists()){openChatUser={...openChatUser,online:s.data().online||false};updateConvHeader();}}); }
-async function markRead(sid) { if(!currentUser||!sid) return; const q=query(collection(db,'messages'),where('senderId','==',sid),where('receiverId','==',currentUser.uid),where('read','==',false)); const snap=await getDocs(q); snap.forEach(async d=>{await updateDoc(doc(db,'messages',d.id),{read:true,seen:true});}); }
+function listen}
+function listenPresencePresence(uid(uid) {) { if(p if(presenceresenceUnsubscribeUnsubscribe) presence) presenceUnsubscribeUnsubscribe(); presence(); presenceUnsubscribeUnsubscribe=onSnapshot(d=onSnapshot(doc(dboc(db,'users,'users',uid',uid),s),s=>{=>{if(sif(s.exists()).exists()){open{openChatUser={...ChatUser={...openChatopenChatUser,online:sUser,online:s.data()..data().online||online||false};false};updateConvHeader();updateConvHeader();}}); }
+async}}); function mark }
+async function markRead(sid)Read(s { ifid) { if(!current(!currentUser||User||!sid!sid) return;) return; const const q=query( q=query(collection(dbcollection(db,'messages,'messages'),where('senderId',''),where('senderId','==',sid),==',sid),where('where('receiverIdreceiver','==',Id','==',currentUser.uidcurrentUser.uid),where),where('read','==('read','==',false',false)); const snap=)); const snap=await getDocs(q); snap.forEach(async d=>{await updateDoc(docawait getDocs(q); snap.forEach(async d=>{await updateDoc(doc(db,'messages',d.id(db,'messages',d.id),{),{read:true,seen:read:true,seen:true});true});}); }
+window.closeConversation = function}); }
 window.closeConversation = function() {
-  if (openChatUser && currentUser) setDoc(doc(db, 'typing', `${currentUser.uid}_${openChatUser.uid}`), { typing: false }, { merge: true });
-  document.getElementById('conv-screen').classList.remove('open');
-  if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}
-  if(presenceUnsubscribe){presenceUnsubscribe();presenceUnsubscribe=null;}
-  if(typingUnsubscribe){typingUnsubscribe();typingUnsubscribe=null;}
-  clearTimeout(typingTimeout); clearTimeout(typingDebounce);
-  setMyTyping(false); openChatUser=null;
+  if (open() {
+  if (openChatUserChatUser && currentUser) setDoc && currentUser) setDoc(doc(doc(db, 'typing',(db, 'typing', `${current `${currentUser.uid}_${openChatUserUser.uid}_${openChatUser.uid}`), { typing: false.uid}`), { typing: false }, { }, { merge: true });
+  document merge: true });
+  document.getElementById('.getElementById('conv-screen').classconv-screen').classList.remove('List.remove('openopen');
+ ');
+  if(msg if(msgUnsubscribe){msgUnsubscribeUn){msgUnsubscribe();msgsubscribe();msgUnsubscribeUnsubscribe=null=null;}
+  if(p;}
+  if(presenceUnsubscriberesenceUnsubscribe){pres){presenceUnenceUnsubscribe();subscribe();presenceUnsubscribepresenceUnsubscribe=null=null;}
+  if(typing;}
+  if(typingUnsubscribeUnsubscribe){ty){typingUnsubscribe();pingUntypingsubscribe();typingUnsubscribeUnsubscribe=null=null;}
+ ;}
+  clearTimeout(ty clearTimeout(typingTimeout); clearpingTimeout); clearTimeout(Timeout(typingDebouncetyping);
+ Debounce);
+  setMy setMyTypingTyping(false); openChat(false); openChatUser=nullUser=null;
 };
-function subscribeMessages() {
-  if(msgUnsubscribe) msgUnsubscribe();
-  if(!currentUser||!openChatUser) return;
-  msgUnsubscribe=onSnapshot(query(collection(db,'messages'),orderBy('timestamp','asc')),snap=>{
-    const msgs=[]; snap.forEach(d=>{const m=d.data();if((m.senderId===currentUser.uid&&m.receiverId===openChatUser.uid)||(m.senderId===openChatUser.uid&&m.receiverId===currentUser.uid)) msgs.push({...m,id:d.id});});
-    renderMessages(msgs); if(openChatUser) markRead(openChatUser.uid);
+function subscribeMessages;
+};
+function subscribeMessages()() {
+  if {
+  if(msgUnsubscribe)(msgUnsubscribe) msgUn msgUnsubscribesubscribe();
+  if();
+  if(!current(!currentUser||User||!open!openChatUserChatUser) return) return;
+ ;
+  msgUn msgUnsubscribe=subscribe=onSnapshot(query(collection(dbonSnapshot(query(collection(db,'messages,'messages'),order'),orderBy('timestamp','By('timestamp','asc')asc')),sn),snap=>ap=>{
+   {
+    const msgs=[]; const msgs=[]; snap.forEach snap.forEach(d=>(d=>{const{const m=d m=d.data();.data();if((if((m.senderIdm.senderId===current===currentUser.User.uid&&uid&&m.rem.receiverIdceiverId===open===openChatUserChatUser.uid)||.uid)||(m(m.sender.senderId===Id===openChatopenChatUser.uid&&User.m.reuid&&m.receiverIdceiverId===current===currentUser.User.uid))uid)) msgs.push({ msgs.push({...m...m,id,id:d.id:d.id});});
+    render});});
+    renderMessages(Messages(msgs); ifmsgs); if(open(openChatUserChatUser) mark) markRead(Read(openChatopenChatUser.User.uiduid);
   });
 }
-function renderMessages(msgs) {
-  const c=document.getElementById('conv-messages'); c.innerHTML=''; let ld='';
-  msgs.forEach(m=>{
-    const ts=m.timestamp?new Date(m.timestamp.seconds*1000):new Date(), ds=ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    if(ds!==ld){const d=document.createElement('div');d.className='date-divider';d.textContent=ds;c.appendChild(d);ld=ds;}
-    const isSent=m.senderId===currentUser.uid, row=document.createElement('div'); row.className='msg-row '+(isSent?'sent':'recv');
-    let sh=''; if(isSent){if(m.seen)sh='<span class="msg-status seen"><i class="fas fa-check-double"></i></span>'; else if(m.delivered)sh='<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>'; else sh='<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';}
-    row.innerHTML=`${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U',openChatUser?.gender)}" />`:''}<div class="bubble ${isSent?'sent':'recv'}">${m.text}<span class="bubble-time">${formatTime(ts)} ${sh}</span></div>`;
-    c.appendChild(row);
+function renderMessages(ms);
   });
-  c.scrollTop=c.scrollHeight;
+}
+function renderMessages(msgs)gs) {
+  const c {
+  const c=document.getElementById('=document.getElementById('convconv-messages'); c-messages'); c.innerHTML.innerHTML=''; let ld=''; let ld='';
+  ms='';
+  msgs.forEachgs.forEach(m=>(m=>{
+   {
+    const ts=m const ts=m.t.timestamp?imestamp?new Date(m.tnew Date(m.timestamp.imestamp.seconds*seconds*10001000):new):new Date(), Date(), ds= ds=ts.tots.toLocaleDateLocaleDateString('String('en-Gen-GB',B',{day{day:'numeric:'numeric',month',month:'short:'short',year',year:'numeric:'numeric'});
+'});
+    if    if(ds(ds!==ld){!==ld){const dconst d=document.createElement('=document.createElement('div');d.classdiv');d.className='Name='date-divdate-divider';d.textider';d.textContent=ds;Content=ds;c.appendChild(d);c.appendChild(d);ld=ld=dsds;}
+    const;}
+    const isSent isSent=m.s=m.senderIdenderId===current===currentUser.User.uid,uid, row= row=document.createElementdocument.createElement('div('div'); row'); row.className.className='msg='msg-row '-row '+(is+(isSent?'Sent?'sent':'recvsent':'recv');
+   ');
+    let sh let sh='';=''; if(isSent){ if(isSent){if(mif(m.seen.seen)sh)sh='='<span class="msg<span class="msg-status seen-status seen"><"><i class="i class="fas fafas fa-check-double"></i></-check-double"></i></span>span>'; else'; else if(m if(m.d.delelivered)ivered)sh='sh='<span class="<span class="msg-statusmsg-status delivered delivered"><i class"><i class="fas fa-check="fas fa-check-double-double"></i"></i></span></span>';>'; else sh else sh='='<span class="msg<span class="msg-status sent-status sent-status-status"><i class="fas"><i class="fas fa-check fa-check"></i"></i></span></span>';>';}
+}
+    row.innerHTML    row.innerHTML=`${=`${!isSent?!isSent?`<img class`<img class="msg="msg-avatar" src-avatar" src="${open="${openChatUser?.photoChatUser?.photoURL||URL||avatarUrlavatarUrl(open(openChatUserChatUser?.displayName||'U?.displayName||'U',open',openChatUser?.gender)}" />`:ChatUser?.gender)}" />`:''}<div class="b''}<div class="bubble ${ubble ${isSent?'sent':'recisSent?'sent':'recv'}v'}">${m.text}<span class="bubble-time">${formatTime">${m.text}<span class="bubble-time">${formatTime((ts)} ${sh}</span></ts)} ${sh}</span></divdiv>`;
+    c.appendChild(row);
+>`;
+    c.appendChild(row);
+   });
+  c.scrollTop=c.sc });
+  c.scrollTop=c.scrollHeightrollHeight;
+}
+window.sendMessage =;
 }
 window.sendMessage = async function() {
-  const input=document.getElementById('msg-input'), text=input.value.trim();
-  if(!text||!currentUser||!openChatUser) return;
-  input.value=''; autoResize(input); setMyTyping(false);
-  try { await addDoc(collection(db,'messages'),{senderId:currentUser.uid,receiverId:openChatUser.uid,text,timestamp:serverTimestamp(),delivered:false,read:false,seen:false}); }
-  catch(e) { showToast('Send failed','error'); }
+  const input= async function() {
+  const input=document.getElementById('msg-input'), text=inputdocument.getElementById('msg-input'), text=input.value.trim.value.trim();
+  if(!();
+  if(!text||text||!currentUser||!currentUser||!open!openChatUserChatUser) return;
+  input.value) return;
+  input.value='';=''; autoResize(input autoResize(input); set); setMyTypMyTyping(falseing(false);
+ );
+  try { try { await add await addDoc(collection(dbDoc(collection(db,'messages,'messages'),'),{{senderIdsenderId:current:currentUser.User.uid,uid,receiverreceiverId:Id:openChatopenChatUser.uid,text,tUser.uid,text,timestamp:imestamp:serverTimestampserverTimestamp(),del(),delivered:false,ivered:false,readread::false,false,seen:false});seen:false}); }
+  catch(e }
+  catch(e) {) { showToast showToast('Send('Send failed',' failed','error'); }
+error'); }
 };
-window.msgKeyDown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} };
+window.};
+window.msgKeymsgKeyDown =Down = function(e) { function(e) { if(e if(e.key==.key==='Enter='Enter'&&'&&!e.shift!e.shiftKey){e.preventDefaultKey){e.preventDefault();send();sendMessage();}Message();} };
 
-// TYPING (fixed: clearTimeout আগে যোগ করা হয়েছে)
-async function setMyTyping(v) { if(!currentUser||!openChatUser) return; await setDoc(doc(db,'typing',`${currentUser.uid}_${openChatUser.uid}`),{typing:v},{merge:true}); }
-function listenTyping(tid) {
-  if(typingUnsubscribe) typingUnsubscribe();
-  clearTimeout(typingTimeout); // পুরনো টাইমার ক্লিয়ার
-  typingUnsubscribe = onSnapshot(doc(db,'typing',`${tid}_${currentUser.uid}`), s => {
-    if (s.exists() && s.data().typing === true) {
-      document.getElementById('typing-row').style.display = 'block';
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        document.getElementById('typing-row').style.display = 'none';
-      }, 3000);
-    } else {
-      document.getElementById('typing-row').style.display = 'none';
+// T };
+
+// TYPING (পুরYPINGনো টাই (পুরনোমার টাই ফমার ফিক্সিক্স সহ সহ)
+async function)
+async function setMy setMyTypingTyping(v)(v) { if { if(!current(!currentUser||User||!open!openChatUser) returnChatUser) return; await; await setDoc setDoc(d(doc(db,'oc(db,'typingtyping',`',`${current${currentUser.User.uiduid}_${open}_${openChatUserChatUser.uid.uid}`),}`),{ty{typing:vping:v},{merge},{merge:true});:true}); }
+function listen }
+function listenTypingTyping(tid(tid)) {
+  if {
+  if(ty(typingUnsubscribe)pingUnsubscribe) typingUnsubscribe typingUnsubscribe();
+  clear();
+  clearTimeout(Timeout(typingtypingTimeoutTimeout);
+  typing);
+  typingUnsubscribeUnsubscribe = onSnapshot(doc(db = onSnapshot(doc(db,'typing',`${,'typing',`${tid}_tid}_${current${currentUser.User.uid}`), suid}`), s => {
+    if => {
+    if (s (s.exists().exists() && s.data(). && s.data().typingtyping === true) === true) {
+      document {
+      document.getElementById('.getElementById('typingtyping-row').-row').style.displaystyle.display = ' = 'blockblock';
+      clear';
+      clearTimeout(typingTimeout(typingTimeoutTimeout);
+);
+      typingTimeout =      typingTimeout = setTimeout(() setTimeout(() => {
+        => {
+        document document.getElementById('.getElementById('typing-row').typing-row').style.displaystyle.display = ' = 'none';
+      },none';
+      }, 300 3000);
+    }0);
+    } else else {
+      document {
+      document.getElementById('.getElementById('typing-row').typingstyle.display-row').style.display = = ' 'nonenone';
+   ';
     }
   });
 }
-document.getElementById('msg-input').addEventListener('input',()=>{if(!openChatUser) return; setMyTyping(true); clearTimeout(typingDebounce); typingDebounce=setTimeout(()=>{setMyTyping(false);},2000);});
+document.getElementById(' }
+ msg-input });
+}
+document.getElementById('msg-input').add').addEventListener('EventListener('input',input',()=>{if()=>(!{if(!openopenChatUserChatUser) return; setMyTyp) return; setMyTyping(trueing(true); clear); clearTimeout(Timeout(typingtypingDebounceDebounce); typingDebounce=set); typingDebounce=setTimeout(()Timeout(()=>{=>{setMysetMyTypingTyping(false);(false);},200},2000);0);});
 
-// SETTINGS (with placeholders)
-window.openEditProfile = function() { document.getElementById('edit-name').value=currentUserData?.displayName||''; document.getElementById('edit-phone').value=currentUserData?.phone||''; document.getElementById('edit-profile-modal').classList.add('open'); };
+// SETT});
+
+// SETTINGSINGS
+window.open
+window.openEditProfileEditProfile = function() { = function() { document.getElementById document.getElementById('edit('edit-name').value=currentUserData?.displayName||''; document-name').value=currentUserData?.displayName||''; document.getElementById('.getElementById('edit-phone').value=edit-phone').value=currentUsercurrentUserData?.phone||''; document.getElementById('edit-profile-modal').classList.addData?.phone||''; document.getElementById('edit-profile-modal').classList.add('open'); };
+window.saveProfile = async function() {
+  const n=document.getElementById('edit-name').value.trim(), p=document.getElementById('edit-phone').value.trim();
+  if(!n){showToast('Name required','('open'); };
 window.saveProfile = async function() {
   const n=document.getElementById('edit-name').value.trim(), p=document.getElementById('edit-phone').value.trim();
   if(!n){showToast('Name required','error');return;}
-  try { await updateDoc(doc(db,'users',currentUser.uid),{displayName:n,phone:p}); currentUserData={...currentUserData,displayName:n,phone:p}; updateUI(); closeModal('edit-profile-modal'); showToast('Profile updated!'); }
-  catch(e){showToast('Failed','error');}
+  tryerror');return;}
+  try { await { await updateDoc updateDoc(doc(doc(db(db,','users',users',currentUsercurrentUser.uid.uid),{),{displayNamedisplayName:n,phone:p:n,phone:p}); current}); currentUserData={...UserData={...currentUserData,currentUserdisplayNameData,displayName:n,:n,phonephone:p:p}; updateUI();}; updateUI(); closeModal closeModal('edit('edit-profile-modal'); show-profile-modal'); showToast('Toast('Profile updated!');Profile updated!'); }
+  }
+  catch(e){show catch(e){showToast('Toast('Failed','Failed','error');error');}
+}
 };
-window.openChangePassword = function() { document.getElementById('old-pass').value=''; document.getElementById('new-pass').value=''; document.getElementById('confirm-pass').value=''; document.getElementById('pass-error').textContent=''; document.getElementById('change-pass-modal').classList.add('open'); };
-window.changePassword = async function() {
-  const o=document.getElementById('old-pass').value, n=document.getElementById('new-pass').value, c=document.getElementById('confirm-pass').value;
-  if(!o||!n||!c){document.getElementById('pass-error').textContent='Fill all fields';return;}
-  if(n!==c){document.getElementById('pass-error').textContent='Passwords do not match';return;}
-  if(n.length<6){document.getElementById('pass-error').textContent='Min 6 characters';return;}
-  try { await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(currentUser.email,o)); await updatePassword(auth.currentUser,n); closeModal('change-pass-modal'); showToast('Password updated!'); }
-  catch(e){document.getElementById('pass-error').textContent=e.code==='auth/wrong-password'?'Incorrect old password':friendlyError(e.code);}
+window.open};
+window.openChangePassword = function() {ChangePassword = function() { document.getElementById document.getElementById('old-pass('old').-pass').value='value=''; document.getElementById('new-pass'; document.getElementById('new-pass').value').value='';=''; document.getElementById document.getElementById('confirm('confirm-pass').-pass').value=''; documentvalue=''; document.getElementById('pass-error.getElementById('pass-error').text').textContent='Content=''; document'; document.getElementById('.getElementById('change-passchange-pass-modal').-modal').classListclassList.add('.add('open');open'); };
+window };
+window.changePassword = async function().changePassword = async function() {
+  const o {
+  const o=document=document.getElementById('.getElementById('old-pass').value, nold-pass').value, n=document=document.getElementById('.getElementById('new-passnew-pass').value, c').value, c=document.getElementById('=document.getElementById('confirm-passconfirm-pass').value').value;
+ ;
+  if(! if(!o||o||!n!n||!||!c){documentc){.getElementById('document.getElementByIdpass('pass-error').-error').textContenttextContent='Fill='Fill all fields all fields';return';return;}
+ ;}
+  if(n if(n!==!==c){c){document.getElementByIddocument.getElementById('pass('pass-error').textContent-error').textContent='Passwords do not match';return='Passwords do not match';return;}
+ ;}
+  if(n if(n.length.length<6){<6){document.getElementById('passdocument.getElementById('pass-error').-error').textContenttextContent='Min='Min 6 characters'; 6 characters';returnreturn;}
+  try;}
+  try { await reauthent { await reauthenticateWithicateWithCredentialCredential(auth(auth.currentUser.currentUser, EmailAuthProvider, EmailAuthProvider.cred.credential(currentential(currentUser.emailUser.email,o,o)); await)); await updatePassword updatePassword(auth(auth.currentUser.currentUser,n);,n); closeModal closeModal('change('change-pass-modal-pass-modal'); show'); showToast('Password updatedToast('Password updated!');!'); }
+  }
+  catch(e catch(e){document){document.getElementById('.getElementById('pass-errorpass-error').text').textContent=eContent=e.code==.code==='auth='auth/wrong/wrong-password-password'?''?'IncorrectIncorrect old password old password':f':friendlyErrorriendlyError(e.code(e.code););}
 };
-window.openAvatarUrlModal = function() { document.getElementById('avatar-url-input').value=currentUserData?.photoURL||''; document.getElementById('avatar-url-modal').classList.add('open'); };
-window.updateAvatarUrl = async function() {
-  const url=document.getElementById('avatar-url-input').value.trim();
-  if(!url){showToast('Enter valid URL','error');return;}
-  const testImg = new Image();
-  testImg.onload = async () => {
-    try { await updateDoc(doc(db,'users',currentUser.uid),{photoURL:url}); currentUserData={...currentUserData,photoURL:url}; updateUI(); closeModal('avatar-url-modal'); showToast('Picture updated!'); }
-    catch(e){showToast('Failed','error');}
+window}
+};
+window.openAvatar.openAvatarUrlModal = functionUrlModal = function() {() { document.getElementById document.getElementById('('avatar-url-inputavatar-url-input').value').value=current=currentUserData?.photoUserData?.photoURL||URL||'';''; document.getElementById('avatar document.getElementById('avatar-url-modal-url-modal').class').classList.addList.add('open('open');'); };
+window.update };
+window.updateAvatarUrlAvatarUrl = async function() = async function() {
+  {
+  const url=document const url=document.getElementById('avatar-url.getElementById('avatar-url-input').-input').value.trimvalue.trim();
+ ();
+  if(! if(!url){showToasturl){showToast('Enter valid URL('Enter valid URL','error','error');return;}
+ ');return;}
+  const test const testImg = new ImageImg = new Image();
+ ();
+  testImg.onload testImg = async.onload = async () => () => {
+    {
+    try { try { await update await updateDoc(doc(dbDoc(doc(db,'users,'users',current',currentUser.User.uid),uid),{photo{photoURL:URL:url}); currentUserData={url}); currentUserData={...current...currentUserDataUserData,photo,photoURL:url};URL:url}; updateUI updateUI(); close(); closeModal('avatar-urlModal('avatar-url-modal');-modal'); showToast showToast('Picture updated!('Picture updated!');'); }
+ }
+    catch(e){    catch(e){showToastshowToast('Failed('Failed','error');','error');}
+ }
   };
-  testImg.onerror = () => showToast('Invalid image URL','error');
-  testImg.src = url;
+  };
+  test testImg.onImg.onerror = () =>error = showToast('Invalid () => showToast('Invalid image URL image URL','error','error');
+ ');
+  testImg testImg.src = url;
 };
-window.openUserProfileModal = function(user) {
-  if(!user) return;
-  document.getElementById('upm-avatar').src=user.photoURL||avatarUrl(user.displayName||'U',user.gender);
-  document.getElementById('upm-name').textContent=user.displayName||'User';
-  document.getElementById('upm-phone').textContent=user.phone||'Not provided';
-  document.getElementById('upm-email').textContent=user.email||'Not provided';
-  document.getElementById('upm-gender').textContent=user.gender||'Not specified';
-  document.getElementById('user-profile-modal').classList.add('open');
+window.src = url;
+};
+window.openUser.openUserProfileModalProfileModal = function = function(user)(user) {
+  {
+  if(! if(!user)user) return return;
+  document;
+  document.getElementById('.getElementById('upm-avatar').srcupm-avatar=user').src=user.photo.photoURL||URL||avatarUrlavatarUrl(user.display(user.displayName||'UName||'U',user',user.gender.gender);
+  document.getElementById);
+  document.getElementById('up('upm-namem-name').text').textContent=user.displayContent=user.displayName||'UserName||'User';
+ ';
+  document.getElementById(' document.getElementById('upupm-m-phone').textContentphone').textContent=user=user.phone||.phone||''Not provided';
+ Not provided';
+  document.getElementById document.getElementById('up('upm-email').m-email').textContenttextContent=user.email||'Not=user.email|| provided'Not provided';
+  document';
+  document.getElementById('upm.getElementById('upm-gender-gender').textContent=').textContent=user.guser.gender||ender||'Not'Not specified specified';
+  document.getElementById('user-profile';
+  document.getElementById('user-profile-modal').classList.add('-modal').classList.add('openopen');
 };
 
-window.showLogoutConfirm = function() { document.getElementById('logout-confirm-modal').classList.add('open'); };
-window.confirmLogout = async function() {
-  closeModal('logout-confirm-modal');
-  try { if(currentUser) await updateDoc(doc(db,'users',currentUser.uid),{online:false}); await signOut(auth); }
-  catch(e) { showToast('Logout failed','error'); }
+window');
 };
 
-window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
-window.showToast = function(msg,type) { const t=document.getElementById('toast'); t.textContent=msg; t.className=type==='error'?'show error':'show'; setTimeout(()=>t.className='',2500); };
-window.autoResize = function(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,80)+'px'; };
+window.showLog.showLogoutConfirm = functionoutConfirm = function() {() { document.getElementById('logout-confirm document.getElementById('logout-confirm-modal').classList-modal').class.add('List.add('open'); };
+window.confirmopen'); };
+window.confirmLogout = asyncLogout = async function() function() {
+  {
+  closeModal('logout closeModal('logout-confirm-confirm-modal');
+  try-modal {
+   ');
+  try {
+    if ( if (currentUser)currentUser) {
+      await {
+      await updateDoc updateDoc(doc(doc(db,(db, 'users 'users', current', currentUser.uidUser.uid), { online), { online: false });
+     : false });
+      if ( if (window.heartbeatwindow.Interval)heartbeat clearIntervalInterval) clearInterval(window.(window.heartbeatInterval);
+    }
+    awaitheartbeatInterval);
+    }
+    await signOut(auth signOut(auth);
+ );
+  } catch } catch(e)(e) { showToast(' { showToast('LogoutLogout failed',' failed','error');error'); }
+ }
+};
 
-function formatTime(d) {
-  const n=new Date();
-  if(d.toDateString()===n.toDateString()) return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-  const diff=Math.floor((n-d)/86400000);
-  if(diff<7) return d.toLocaleDateString('en-US',{weekday:'short'});
-  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+window.close};
+
+window.closeModal =Modal = function(id function(id) { document.getElementById) { document.getElementById(id).(id).classList.remove('classList.remove('openopen'); };
+window');.showToast };
+window.showToast = function = function(msg,(msg,type)type) { const t=document.getElementById { const t=('document.getElementByIdtoast');('toast'); t.text t.textContent=Content=msg; t.classmsg; t.className=Name=typetype====='='error'?'error'?'show error':'showshow error':'show'; setTimeout'; setTimeout(()=>t.class(()=>t.className='',2500);Name='',2500); };
+window };
+window.autoResize.autoResize = function = function(el)(el) { el { el.style.height.style.height='auto='auto'; el.style.height'; el.style.height=Math=Math.min(el.min(el.scrollHeight,80)+'px.scrollHeight,80)+'px';'; };
+
+ };
+
+function formatTime(dfunction formatTime(d)) {
+  const {
+  const n=new Date n=new Date();
+  if();
+  if(d.to(d.toDateStringDateString()===n.to()===n.toDateString()) return d.toLocaleTimeDateString()) return d.toLocaleTimeString('String('en-US',{hour:'en-US',{hour:'2-digit2-digit',min',minute:'ute:'2-digit2-digit',hour',hour12:true});
+  const12:true});
+  const diff= diff=Math.floorMath.floor((n((n-d)/-d)/8640008640000000);
+  if);
+  if(diff<7(diff<7) return) return d.to d.toLocaleDateString('LocaleDateString('en-USen-US',{',{weekday:'short'});
+  return d.toweekday:'short'});
+  return d.toLocaleDateStringLocaleDateString('('en-Gen-GB',B',{day:'numeric',month:'short'{day:'numeric',month:'short'});
 }
 
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b) b.classList.remove('open');}));
+document.querySelectorAll('.modal-backdrop').});
+}
 
-onAuthStateChanged(auth, (user) => {
+document.querySelectorAll('.modal-backdrop').forEachforEach(b=>(b=>b.addEventListenerb.addEventListener('click',e('click',e=>{if(e.target===b) b.classList.remove('open');=>{if(e.target===b) b.classList.remove('open');}}));
+
+onAuth));
+
+onAuthStateChanged(authStateChanged(auth, (, (user)user) => => {
+  if (!user && currentUser) {
+    if(chatUnsubscribe){chatUnsubscribe();chatUnsubscribe=null;}
+    if(msgUnsubscribe){msgUn {
   if (!user && currentUser) {
     if(chatUnsubscribe){chatUnsubscribe();chatUnsubscribe=null;}
     if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}
@@ -789,10 +1326,22 @@ onAuthStateChanged(auth, (user) => {
     if(typingUnsubscribe){typingUnsubscribe();typingUnsubscribe=null;}
     currentUser=null; currentUserData=null; openChatUser=null;
     allChats=[]; allFriends=[]; unreadCounts={};
+    documentsubscribe();msgUnsubscribe=null;}
+    if(presenceUnsubscribe){presenceUnsubscribe();presenceUnsubscribe=null;}
+    if(typingUnsubscribe){typingUnsubscribe();typingUnsubscribe=null;}
+    currentUser=null; currentUserData=null; openChatUser=null;
+    allChats=[]; allFriends=[]; unreadCounts={.getElementById('conv-screen').classList.remove};
     document.getElementById('conv-screen').classList.remove('open');
-    showAuthScreen();
+   ('open');
+    showAuth showAuthScreenScreen();
   }
 });
-</script>
+();
+  }
+});
+</</script>
+</bodyscript>
 </body>
-</html>
+</>
+</htmlhtml>
+>
