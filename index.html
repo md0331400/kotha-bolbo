@@ -40,272 +40,91 @@
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     html, body { height:100%; width:100%; overflow:hidden; font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); font-size: 15px; }
 
-    /* ═══════ ENHANCED SPLASH SCREEN ═══════ */
+    /* ═══════ SMALLER SPLASH ═══════ */
     #splash {
-      position: fixed; inset:0; z-index:10000;
-      background: radial-gradient(ellipse at center, #0a0e1a 0%, #020617 100%);
+      position: fixed; inset:0; z-index:9999;
+      background: radial-gradient(ellipse at center, #0f172a 0%, #020617 100%);
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap: 24px; transition: opacity 0.8s cubic-bezier(0.23,1,0.32,1), transform 0.7s cubic-bezier(0.23,1,0.32,1);
+      gap: 20px; transition: opacity 0.8s cubic-bezier(0.23,1,0.32,1), transform 0.8s cubic-bezier(0.23,1,0.32,1);
     }
-    #splash.hide { opacity:0; transform:scale(1.1); pointer-events:none; }
-    
-    /* Animated Logo Container */
-    .splash-logo-container {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: logo-container-float 3s ease-in-out infinite;
+    #splash.hide { opacity:0; transform:scale(1.08); pointer-events:none; }
+    .splash-logo-wrap { position:relative; width:100px; height:100px; display:flex; align-items:center; justify-content:center; }
+    .splash-bubble {
+      width: 70px; height: 70px;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      border-radius: 50% 50% 50% 20%;
+      display: flex; align-items:center; justify-content:center;
+      box-shadow: 0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(124,58,237,0.3);
+      animation: bubble-float 2.4s ease-in-out infinite;
+      position: relative; z-index:2;
     }
-    
-    @keyframes logo-container-float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
+    .splash-bubble i {
+      font-size: 28px; color: #fff;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+      margin-left: 3px;
     }
-    
-    /* Outer Rotating Rings */
-    .splash-outer-ring {
-      position: absolute;
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: #00d4ff;
-      border-right-color: rgba(0,212,255,0.4);
-      animation: spin-clockwise 2.5s linear infinite;
+    @keyframes bubble-float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
-    
-    .splash-middle-ring {
-      position: absolute;
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-bottom-color: #7c3aed;
-      border-left-color: rgba(124,58,237,0.4);
-      animation: spin-counter-clockwise 3s linear infinite;
+    .splash-rings {
+      position: absolute; top:50%; left:50%; pointer-events:none;
+      width: 100px; height: 100px; margin-top:-50px; margin-left:-50px;
     }
-    
-    .splash-inner-ring {
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: #00d4ff;
-      border-left-color: rgba(0,212,255,0.3);
-      animation: spin-clockwise 2s linear infinite;
+    .splash-ring {
+      position: absolute; border-radius:50%; border:2px solid transparent;
+      top:50%; left:50%; animation: ring-spin 3s linear infinite;
     }
-    
-    @keyframes spin-clockwise {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .splash-ring:nth-child(1) {
+      width:100px; height:100px; margin-top:-50px; margin-left:-50px;
+      border-top-color:#00d4ff; border-right-color:rgba(0,212,255,0.3);
+      animation-duration:2.2s;
     }
-    
-    @keyframes spin-counter-clockwise {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(-360deg); }
+    .splash-ring:nth-child(2) {
+      width:85px; height:85px; margin-top:-42px; margin-left:-42px;
+      border-bottom-color:#7c3aed; border-left-color:rgba(124,58,237,0.3);
+      animation-duration:2.8s; animation-direction:reverse;
     }
-    
-    /* Main Bubble Logo */
-    .splash-bubble-logo {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
-      border-radius: 45% 55% 40% 60% / 50% 45% 55% 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 40px rgba(0,212,255,0.6), 0 0 80px rgba(124,58,237,0.3);
-      animation: bubble-pulse 2s ease-in-out infinite, morph-shape 6s ease-in-out infinite;
-      position: relative;
-      z-index: 10;
+    .splash-ring:nth-child(3) {
+      width:70px; height:70px; margin-top:-35px; margin-left:-35px;
+      border-top-color:#00d4ff; border-left-color:rgba(124,58,237,0.4);
+      animation-duration:3.6s;
     }
-    
-    @keyframes bubble-pulse {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0,212,255,0.5); }
-      50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(0,212,255,0.8), 0 0 20px rgba(124,58,237,0.5); }
-    }
-    
-    @keyframes morph-shape {
-      0% { border-radius: 45% 55% 40% 60% / 50% 45% 55% 50%; }
-      25% { border-radius: 60% 40% 55% 45% / 55% 50% 50% 45%; }
-      50% { border-radius: 35% 65% 45% 55% / 45% 55% 55% 45%; }
-      75% { border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%; }
-      100% { border-radius: 45% 55% 40% 60% / 50% 45% 55% 50%; }
-    }
-    
-    .splash-bubble-logo i {
-      font-size: 36px;
-      color: #fff;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
-      animation: icon-sway 2s ease-in-out infinite;
-    }
-    
-    @keyframes icon-sway {
-      0%, 100% { transform: rotate(-5deg); }
-      50% { transform: rotate(5deg); }
-    }
-    
-    /* Particle Effects */
+    @keyframes ring-spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
     .splash-particles {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      pointer-events: none;
+      position:absolute; width:120px; height:120px; animation: particles-rotate 10s linear infinite;
+      top:50%; left:50%; margin-top:-60px; margin-left:-60px; pointer-events:none;
     }
-    
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: #00d4ff;
-      border-radius: 50%;
-      opacity: 0;
-      animation: particle-float 3s ease-in-out infinite;
+    .splash-particles::before, .splash-particles::after {
+      content:''; position:absolute; width:5px; height:5px; border-radius:50%;
+      box-shadow:0 0 10px currentColor;
     }
-    
-    @keyframes particle-float {
-      0% {
-        transform: translateY(0) scale(0);
-        opacity: 0;
-      }
-      20% {
-        opacity: 0.8;
-        transform: translateY(-20px) scale(1);
-      }
-      80% {
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(-60px) scale(0);
-        opacity: 0;
-      }
-    }
-    
-    /* Animated Title */
+    .splash-particles::before { top:0; left:50%; margin-left:-2px; background:#00d4ff; color:#00d4ff; }
+    .splash-particles::after { bottom:0; left:50%; margin-left:-2px; background:#7c3aed; color:#7c3aed; }
+    @keyframes particles-rotate { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+
     .splash-title {
       font-family: 'Exo 2', sans-serif;
-      font-size: 2.8rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 40%, #00d4ff 100%);
-      background-size: 200% auto;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: 6px;
-      animation: gradient-shift 3s ease-in-out infinite, title-glow 2s ease-in-out infinite alternate;
-      text-shadow: none;
-    }
-    
-    @keyframes gradient-shift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    @keyframes title-glow {
-      from { filter: drop-shadow(0 0 5px rgba(0,212,255,0.3)); }
-      to { filter: drop-shadow(0 0 25px rgba(0,212,255,0.7)); }
-    }
-    
-    /* Subtitle with Typing Animation */
-    .splash-subtitle {
-      text-align: center;
-      margin-top: 8px;
-    }
-    
-    .splash-tagline {
-      font-size: 0.85rem;
       letter-spacing: 3px;
-      text-transform: uppercase;
-      color: rgba(168, 195, 220, 0.8);
-      font-weight: 500;
-      animation: fade-pulse 2.5s ease-in-out infinite;
+      filter: drop-shadow(0 0 18px rgba(0,212,255,0.6));
+      animation: title-pulse 2.2s ease-in-out infinite alternate;
+      margin-top: 6px;
     }
-    
-    .splash-created {
-      font-size: 0.7rem;
-      color: rgba(168, 195, 220, 0.5);
-      margin-top: 8px;
-      letter-spacing: 1px;
-      animation: fade-pulse 3s ease-in-out infinite;
+    @keyframes title-pulse {
+      from { filter: drop-shadow(0 0 8px rgba(0,212,255,0.5)); }
+      to { filter: drop-shadow(0 0 22px rgba(124,58,237,0.8)); }
     }
-    
-    @keyframes fade-pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
+    .splash-sub {
+      font-size: 0.7rem; color:#b0c4de; letter-spacing:3px; text-transform:uppercase;
+      opacity:0.8; animation: fade-sub 2s ease-in-out infinite alternate;
     }
-    
-    /* Loading Progress Bar */
-    .splash-loader {
-      width: 200px;
-      margin-top: 20px;
-    }
-    
-    .loader-track {
-      width: 100%;
-      height: 3px;
-      background: rgba(0,212,255,0.2);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    
-    .loader-fill {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #00d4ff, #7c3aed);
-      border-radius: 3px;
-      animation: fill-loader 2.5s ease-out forwards;
-    }
-    
-    @keyframes fill-loader {
-      0% { width: 0%; }
-      30% { width: 45%; }
-      60% { width: 75%; }
-      100% { width: 100%; }
-    }
-    
-    /* Ripple Effect */
-    .splash-ripple {
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    
-    .splash-ripple::before,
-    .splash-ripple::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 2px solid rgba(0,212,255,0.4);
-      animation: ripple-expand 2s ease-out infinite;
-    }
-    
-    .splash-ripple::after {
-      animation-delay: 0.8s;
-    }
-    
-    @keyframes ripple-expand {
-      0% {
-        transform: scale(1);
-        opacity: 0.6;
-      }
-      100% {
-        transform: scale(1.5);
-        opacity: 0;
-      }
-    }
+    @keyframes fade-sub { 0%{opacity:0.4;} 100%{opacity:1;} }
 
     /* ═════════════ AUTH/APP ═════════════ */
     .auth-mini-logo {
@@ -445,6 +264,19 @@
     .send-btn:hover { transform:scale(1.08); box-shadow:0 4px 14px rgba(0,212,255,0.4); }
 
     #friends-screen .scroll-area { flex:1; overflow-y:auto; }
+    .friends-refresh-pill {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 999px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(124,58,237,0.12));
+      border: 1px solid rgba(0,212,255,0.35);
+      color: var(--accent); font-size: 0.72rem; font-weight: 600;
+      cursor: pointer; flex-shrink: 0; transition: var(--transition);
+      font-family: inherit; letter-spacing: 0.3px;
+      box-shadow: 0 2px 8px rgba(0,212,255,0.12);
+    }
+    .friends-refresh-pill:hover { background: linear-gradient(135deg, rgba(0,212,255,0.22), rgba(124,58,237,0.22)); box-shadow: 0 4px 14px rgba(0,212,255,0.28); transform: translateY(-1px); }
+    .friends-refresh-pill:active { transform: scale(0.96); }
+    .friends-refresh-pill i { font-size: 11px; }
     .friend-item { display:flex; align-items:center; gap:10px; padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border); transition:var(--transition); }
     .friend-item:hover { background:var(--bg-tertiary); }
     .friend-item img { width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--border); flex-shrink:0; }
@@ -508,7 +340,7 @@
     .user-profile-modal-content .detail { font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; }
     .user-profile-modal-content .detail i { width:16px; color:var(--accent); margin-right:4px; }
 
-    /* GENDER POPUP */
+    /* ═══════ GENDER POPUP ═══════ */
     .gender-trigger {
       width:100%; padding:10px 12px; border-radius:var(--radius-sm);
       background:var(--bg-input); border:1.5px solid var(--border); color:var(--text-primary);
@@ -575,10 +407,16 @@
     .gender-option-label small { font-size:0.7rem; color:var(--text-muted); }
     .gender-option-check { font-size:14px; color:var(--accent); opacity:0; transition:opacity 0.2s; }
     .gender-option.selected .gender-option-check { opacity:1; }
-    .gender-popup-skip { margin-top:16px; text-align:center; font-size:0.75rem; color:var(--text-muted); cursor:pointer; padding:6px; transition:color 0.2s; }
+
+    .gender-popup-skip {
+      margin-top:16px; text-align:center;
+      font-size:0.75rem; color:var(--text-muted);
+      cursor:pointer; padding:6px;
+      transition:color 0.2s;
+    }
     .gender-popup-skip:hover { color:var(--text-secondary); }
 
-    /* PRIVACY POPUP */
+    /* ═══════ PRIVACY POPUP ═══════ */
     .privacy-overlay {
       position:fixed; inset:0; z-index:9000;
       backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
@@ -629,8 +467,7 @@
     .privacy-status-tag.priv { background:rgba(74,90,120,0.3); color:var(--text-muted); }
     .privacy-save-btn { width:100%; padding:11px; border:none; border-radius:10px; background:linear-gradient(135deg,#00d4ff,#0099cc); color:#000; font-family:inherit; font-size:0.88rem; font-weight:700; cursor:pointer; margin-top:8px; transition:var(--transition); }
     .privacy-save-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,212,255,0.35); }
-    
-    /* ABOUT DEVELOPER POPUP */
+    /* ═══════ ABOUT DEVELOPER POPUP ═══════ */
     .about-overlay {
       position:fixed; inset:0; z-index:9000;
       backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
@@ -684,28 +521,19 @@
 </head>
 <body>
 
-<!-- ENHANCED SPLASH SCREEN -->
+<!-- SMALLER SPLASH -->
 <div id="splash">
-  <div class="splash-logo-container">
-    <div class="splash-outer-ring"></div>
-    <div class="splash-middle-ring"></div>
-    <div class="splash-inner-ring"></div>
-    <div class="splash-ripple"></div>
-    <div class="splash-bubble-logo">
+  <div class="splash-logo-wrap">
+    <div class="splash-rings">
+      <div class="splash-ring"></div><div class="splash-ring"></div><div class="splash-ring"></div>
+    </div>
+    <div class="splash-particles"></div>
+    <div class="splash-bubble">
       <i class="fas fa-comment-dots"></i>
     </div>
-    <div class="splash-particles" id="particles-container"></div>
   </div>
   <div class="splash-title">Kotha Bolbo</div>
-  <div class="splash-subtitle">
-    <div class="splash-tagline">Talk. Connect. Anytime.</div>
-    <div class="splash-created">Created by Sayem</div>
-  </div>
-  <div class="splash-loader">
-    <div class="loader-track">
-      <div class="loader-fill"></div>
-    </div>
-  </div>
+  <div class="splash-sub">Created by Sayem</div>
 </div>
 
 <div id="auth-screen"></div>
@@ -734,8 +562,8 @@
     <div class="scroll-area" id="chat-list-container"><div class="empty-state" id="chat-empty"><i class="fas fa-comments"></i><h3>No Chats Yet</h3><p>Go to Friends tab to start chatting!</p></div></div>
   </div>
   <div class="screen" id="friends-screen">
-    <div class="app-header"><div class="header-info"><h2>Friends</h2><span>Find people to chat</span></div><button class="header-icon-btn" onclick="loadFriends()"><i class="fas fa-sync-alt" id="friends-refresh-icon"></i></button></div>
-    <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="friends-search" placeholder="Search by name or phone…" oninput="filterFriends(this.value)" /></div></div>
+    <div class="app-header"><div class="header-info"><h2>Friends</h2><span id="friends-count-text">Find people to chat</span></div></div>
+    <div class="search-bar"><div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="friends-search" placeholder="Search by name or phone…" oninput="filterFriends(this.value)" /><button class="friends-refresh-pill" onclick="loadFriends()" id="friends-refresh-btn" title="Refresh Friends"><i class="fas fa-sync-alt" id="friends-refresh-icon"></i><span>Refresh</span></button></div></div>
     <div class="scroll-area" id="friends-list-container"><div class="empty-state"><i class="fas fa-user-friends"></i><h3>Loading…</h3></div></div>
   </div>
   <div class="screen" id="settings-screen">
@@ -841,36 +669,7 @@
 </div>
 
 <script>
-  // Particle animation for splash
-  function createParticles() {
-    const container = document.getElementById('particles-container');
-    if (!container) return;
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      const size = Math.random() * 4 + 2;
-      particle.style.width = size + 'px';
-      particle.style.height = size + 'px';
-      particle.style.left = Math.random() * 100 + '%';
-      particle.style.animationDelay = Math.random() * 3 + 's';
-      particle.style.animationDuration = Math.random() * 2 + 2 + 's';
-      particle.style.background = `hsl(${Math.random() * 60 + 180}, 100%, 65%)`;
-      container.appendChild(particle);
-    }
-  }
-  
-  // Splash hide after animation
-  setTimeout(() => { 
-    document.getElementById('splash').classList.add('hide'); 
-    setTimeout(() => { 
-      document.getElementById('splash').style.display = 'none'; 
-      initAuth(); 
-    }, 800); 
-  }, 3200);
-  
-  createParticles();
-
-  let genderPopupMode = 'signup';
+  let genderPopupMode = 'signup'; // 'signup' or 'edit'
 
   window.openGenderPopup = function() {
     genderPopupMode = 'signup';
@@ -884,6 +683,7 @@
     genderPopupMode = 'edit';
     const overlay = document.getElementById('gender-overlay');
     overlay.classList.add('open');
+    // Reflect current edit gender value
     const cur = document.getElementById('edit-gender')?.value;
     ['Male','Female','Other'].forEach(g => {
       const el = document.getElementById('go-'+g.toLowerCase());
@@ -900,8 +700,9 @@
     if(editTrigger) editTrigger.classList.remove('active');
   };
 
+  // Gender popup cannot be closed by clicking outside - gender is mandatory
   window.handleGenderOverlayClick = function(e) {
-    // Keep open - gender mandatory
+    // Disabled: user must select a gender
   };
 
   window.selectGender = function(val) {
@@ -927,7 +728,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, orderBy, onSnapshot, updateDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, updateDoc, serverTimestamp, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp as rtdbTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -956,6 +757,8 @@ function avatarUrl(name, gender) {
   if (gender === 'Male') return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=male`;
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
 }
+
+setTimeout(() => { document.getElementById('splash').classList.add('hide'); setTimeout(() => { document.getElementById('splash').style.display='none'; initAuth(); }, 800); }, 3000);
 
 function initAuth() {
   onAuthStateChanged(auth, (user) => {
@@ -999,6 +802,7 @@ function updateUI() {
   document.getElementById('settings-avatar').src = av;
   document.getElementById('settings-name').textContent = currentUserData.displayName||'User';
   document.getElementById('settings-email').textContent = currentUserData.email||'';
+  // Gender badges
   applyGenderDot(document.getElementById('my-header-gender-dot'), currentUserData.gender);
   applyGenderDot(document.getElementById('settings-gender-dot'), currentUserData.gender);
 }
@@ -1028,6 +832,8 @@ function showApp() {
   if (currentUser) setOnlineStatus();
   if (_justLoggedIn) { setTimeout(()=>showToast('Welcome to Kotha Bolbo Messenger! 🎉'), 600); _justLoggedIn=false; }
   loadChats(); loadFriends();
+  // Run auto-cleanup after a short delay
+  setTimeout(deleteOldMessages, 5000);
 }
 
 function listenPresence(uid) {
@@ -1077,6 +883,7 @@ window.handleSignup = async function() {
   if (!gender) { document.getElementById('auth-error').textContent='Please select your gender'; openGenderPopup(); return; }
   if (pass.length<6) { document.getElementById('auth-error').textContent='Password min 6 characters'; return; }
   const btn = document.querySelector('#signup-form .btn-primary'); btn.disabled=true; btn.textContent='Checking…';
+  // Check phone uniqueness if phone is provided
   if (phone) {
     try {
       const phoneQ = query(collection(db,'users'), where('phone','==',phone));
@@ -1112,9 +919,13 @@ async function loadChats() {
   const q = query(collection(db, 'messages'), orderBy('timestamp','desc'));
   chatUnsubscribe = onSnapshot(q, async (snap) => {
     const seen=new Set(), chatMap={}, counts={};
+    const fourteenDaysAgo = new Date(); fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
     snap.forEach(d=>{
       const msg=d.data();
       if (msg.senderId!==currentUser.uid && msg.receiverId!==currentUser.uid) return;
+      // Skip messages older than 14 days from chat list
+      const msgDate = msg.timestamp ? new Date(msg.timestamp.seconds*1000) : new Date();
+      if (msgDate < fourteenDaysAgo) return;
       const oid=msg.senderId===currentUser.uid?msg.receiverId:msg.senderId;
       if (!seen.has(oid)) { seen.add(oid); chatMap[oid]=msg; }
       if (msg.senderId!==currentUser.uid && msg.receiverId===currentUser.uid && !msg.read) counts[oid]=(counts[oid]||0)+1;
@@ -1156,11 +967,47 @@ function renderChatList(chats) {
 window.filterChats = function(q) { renderChatList(allChats.filter(({user})=>(user.displayName||'').toLowerCase().includes(q.toLowerCase()))); };
 
 window.loadFriends = async function() {
-  const icon=document.getElementById('friends-refresh-icon'); icon.classList.add('spinner');
-  try { const snap=await getDocs(collection(db,'users')); allFriends=[]; snap.forEach(d=>{if(d.id!==currentUser?.uid) allFriends.push(d.data());}); renderFriends(allFriends); }
+  const icon=document.getElementById('friends-refresh-icon');
+  const btn=document.getElementById('friends-refresh-btn');
+  icon.classList.add('spinner');
+  if(btn) { btn.disabled=true; btn.style.opacity='0.6'; }
+  try {
+    const snap=await getDocs(collection(db,'users'));
+    allFriends=[];
+    snap.forEach(d=>{if(d.id!==currentUser?.uid) allFriends.push(d.data());});
+    renderFriends(allFriends);
+    const countText=document.getElementById('friends-count-text');
+    if(countText) countText.textContent=allFriends.length>0?`${allFriends.length} people found`:'Find people to chat';
+  }
   catch(e) { showToast('Error loading','error'); }
   icon.classList.remove('spinner');
+  if(btn) { btn.disabled=false; btn.style.opacity='1'; }
 };
+
+// Auto-delete messages older than 14 days
+async function deleteOldMessages() {
+  if (!currentUser) return;
+  try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+    const cutoffTs = Timestamp.fromDate(cutoff);
+    const q = query(collection(db,'messages'), where('timestamp','<',cutoffTs));
+    const snap = await getDocs(q);
+    const dels = [];
+    snap.forEach(d => {
+      const msg = d.data();
+      if (msg.senderId===currentUser.uid || msg.receiverId===currentUser.uid) {
+        dels.push(deleteDoc(doc(db,'messages',d.id)));
+      }
+    });
+    if (dels.length > 0) {
+      await Promise.all(dels);
+      console.log(`[Auto-clean] Deleted ${dels.length} message(s) older than 14 days`);
+    }
+  } catch(e) {
+    console.warn('[Auto-clean] Error:', e);
+  }
+}
 
 function maskEmail(email, isPublic) {
   if (!email) return '';
@@ -1215,6 +1062,7 @@ window.openConversation = function(user) {
   updateConvHeader(); subscribeMessages(); markRead(user.uid); listenPresence(user.uid); listenTyping(user.uid);
 };
 
+// ── Privacy popup ──
 let privacyState = { email: false, phone: false };
 
 window.openPrivacyPopup = function() {
@@ -1240,8 +1088,10 @@ window.togglePrivacy = function(field) {
 function updatePrivacyUI() {
   const email = currentUserData?.email || '';
   const phone = currentUserData?.phone || '';
+  // email row
   const eRow = document.getElementById('priv-email-row');
   const eTag = document.getElementById('priv-email-tag');
+  const eToggle = document.getElementById('priv-email-toggle');
   const ePreview = document.getElementById('priv-email-preview');
   if (privacyState.email) {
     eRow.classList.add('public-on'); eTag.textContent='PUBLIC'; eTag.className='privacy-status-tag pub';
@@ -1250,6 +1100,7 @@ function updatePrivacyUI() {
     eRow.classList.remove('public-on'); eTag.textContent='PRIVATE'; eTag.className='privacy-status-tag priv';
     ePreview.textContent = 'Shown as: ' + maskEmail(email || 'am****em@gmail.com', false);
   }
+  // phone row
   const pRow = document.getElementById('priv-phone-row');
   const pTag = document.getElementById('priv-phone-tag');
   const pPreview = document.getElementById('priv-phone-preview');
@@ -1292,12 +1143,14 @@ window.closeConversation = function() {
   openChatUser=null;
 };
 
+// Track rendered message IDs and last date divider to avoid full re-renders
 let renderedMsgIds = new Set();
 let lastRenderedDate = '';
 
 function subscribeMessages() {
   if(msgUnsubscribe) msgUnsubscribe();
   if(!currentUser||!openChatUser) return;
+  // Reset tracking on new conversation
   renderedMsgIds = new Set();
   lastRenderedDate = '';
   document.getElementById('conv-messages').innerHTML = '';
@@ -1313,11 +1166,17 @@ function subscribeMessages() {
       const isRelevant = (m.senderId===currentUser.uid&&m.receiverId===openChatUser.uid)||(m.senderId===openChatUser.uid&&m.receiverId===currentUser.uid);
       if (!isRelevant) return;
 
+      // Skip messages older than 14 days in the UI
+      const msgDate = m.timestamp ? new Date(m.timestamp.seconds*1000) : new Date();
+      const fourteenDaysAgo = new Date(); fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      if (msgDate < fourteenDaysAgo) return;
+
       if (change.type === 'added' && !renderedMsgIds.has(d.id)) {
         renderedMsgIds.add(d.id);
         appendMessage(m, c);
         addedAny = true;
       } else if (change.type === 'modified' && renderedMsgIds.has(d.id)) {
+        // Update status icon in existing bubble without re-rendering
         updateMessageStatus(m, c);
       }
     });
@@ -1365,6 +1224,14 @@ function updateMessageStatus(m, c) {
   timeSpan.innerHTML = formatTime(ts) + ' ' + sh;
 }
 
+function renderMessages(msgs) {
+  // Legacy fallback - not called in normal flow anymore
+  const c=document.getElementById('conv-messages'); c.innerHTML='';
+  renderedMsgIds = new Set(); lastRenderedDate = '';
+  msgs.forEach(m=>{ renderedMsgIds.add(m.id); appendMessage(m, c); });
+  c.scrollTop=c.scrollHeight;
+}
+
 window.sendMessage = async function() {
   const input=document.getElementById('msg-input'), text=input.value.trim();
   if(!text||!currentUser||!openChatUser) return;
@@ -1399,6 +1266,7 @@ window.openEditProfile = function() {
   }
   document.getElementById('edit-name').value = currentUserData?.displayName||'';
   document.getElementById('edit-phone').value = currentUserData?.phone||'';
+  // Set gender
   const curGender = currentUserData?.gender || '';
   document.getElementById('edit-gender').value = curGender;
   const editGenderDisplay = document.getElementById('edit-gender-display-text');
@@ -1411,12 +1279,14 @@ window.saveProfile = async function() {
   const g=document.getElementById('edit-gender').value;
   if(!n){showToast('Name required','error');return;}
   if(!g){showToast('Please select gender','error');openGenderPopupEdit();return;}
+  // 7-day cooldown check
   const lastEdit = currentUserData?.lastProfileEdit;
   if (lastEdit) {
     const lastEditDate = lastEdit.toDate ? lastEdit.toDate() : new Date(lastEdit);
     const diffDays = (Date.now() - lastEditDate.getTime()) / (1000*60*60*24);
     if (diffDays < 7) { const daysLeft = Math.ceil(7-diffDays); showToast(`You can update again in ${daysLeft} day(s)`, 'error'); return; }
   }
+  // Check phone uniqueness if phone changed
   if (p && p !== currentUserData?.phone) {
     try {
       const phoneQ = query(collection(db,'users'), where('phone','==',p));
