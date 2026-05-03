@@ -255,6 +255,27 @@
     .typing-dot:nth-child(3) { animation-delay:0.4s; }
     @keyframes typing { 0%,100% { transform:scale(0.6); opacity:0.3; } 50% { transform:scale(1); opacity:1; } }
 
+    .auto-delete-notice {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin: 18px 12px 6px;
+      padding: 8px 14px;
+      background: rgba(124,58,237,0.07);
+      border: 1px solid rgba(124,58,237,0.18);
+      border-radius: 999px;
+      font-size: 0.64rem;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: 0.2px;
+      line-height: 1.4;
+      pointer-events: none;
+      user-select: none;
+    }
+    .auto-delete-notice i {
+      font-size: 0.62rem;
+      color: rgba(124,58,237,0.6);
+      flex-shrink: 0;
+    }
+
     .msg-input-area { display:flex; align-items:flex-end; gap:8px; padding:8px 10px; background:var(--bg-secondary); border-top:1px solid var(--border); flex-shrink:0; }
     .msg-input-wrap { flex:1; background:var(--bg-input); border-radius:999px; border:1.5px solid var(--border); display:flex; align-items:center; padding:0 12px; transition:var(--transition); }
     .msg-input-wrap:focus-within { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-glow); }
@@ -600,6 +621,9 @@
 <div class="modal-backdrop" id="logout-confirm-modal"><div class="modal" style="text-align:center;"><div class="confirm-icon warning"><i class="fas fa-sign-out-alt"></i></div><h2 style="margin-bottom:6px;">Logout</h2><p class="confirm-text">Are you sure you want to logout?</p><div class="modal-buttons"><button class="btn-secondary" onclick="closeModal('logout-confirm-modal')">Cancel</button><button class="btn-danger" onclick="confirmLogout()">Logout</button></div></div></div>
 <div id="toast"></div>
 
+<!-- Online Sound -->
+<audio id="online-sound" preload="auto" style="display:none;" src="data:audio/wav;base64,SUQzBAAAAAABAFRYWFgAAAASAAADbWFqb3JfYnJhbmQAbXA0MgBUWFhYAAAAEQAAA21pbm9yX3ZlcnNpb24AMABUWFhYAAAAHAAAA2NvbXBhdGlibGVfYnJhbmRzAGlzb21tcDQyAFRTU0UAAAAPAAADTGF2ZjU3LjgzLjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAByAAC67wAFBwoMDhASFxkbHiAiJCkrLTAyNDY7PT9BREZITU9RU1ZYWl9hY2Vnamxwc3V3eXx+goWHiYuNkJKWmZudn6KkqKutr7Gztrq8v8HDxcjMztHT1dfZ3uDi5efp6/Dy9Pf5+/0AAAAATGF2YzU3LjEwAAAAAAAAAAAAAAAAJAJAAAAAAAAAuu+MlyEtAAAAAAAAAAAAAAAAAAAAAP/7kGQAD/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7kmRAj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU="></audio>
+
 <!-- ABOUT DEVELOPER POPUP -->
 <div class="about-overlay" id="about-overlay" onclick="handleAboutOverlayClick(event)">
   <div class="about-popup" id="about-popup">
@@ -814,6 +838,16 @@ function showAuthScreen() {
   document.getElementById('conv-screen').classList.remove('open');
 }
 
+function playOnlineSound() {
+  try {
+    const audio = document.getElementById('online-sound');
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+  } catch(e) {}
+}
+
 function setOnlineStatus() {
   if (!currentUser) return;
   const onlineRef = ref(rtdb, `status/${currentUser.uid}`);
@@ -821,6 +855,7 @@ function setOnlineStatus() {
     if (snap.val() === true) {
       set(onlineRef, { online: true, lastSeen: rtdbTimestamp() });
       onDisconnect(onlineRef).set({ online: false, lastSeen: rtdbTimestamp() });
+      playOnlineSound();
     }
   });
 }
@@ -1153,7 +1188,14 @@ function subscribeMessages() {
   // Reset tracking on new conversation
   renderedMsgIds = new Set();
   lastRenderedDate = '';
-  document.getElementById('conv-messages').innerHTML = '';
+  const convMsgsEl = document.getElementById('conv-messages');
+  convMsgsEl.innerHTML = '';
+  // Add auto-delete notice at the bottom (will scroll into view at end)
+  const noticeEl = document.createElement('div');
+  noticeEl.className = 'auto-delete-notice';
+  noticeEl.id = 'auto-delete-notice';
+  noticeEl.innerHTML = '<i class="fas fa-clock"></i> Messages in this conversation are automatically deleted after 14 days to protect your privacy.';
+  convMsgsEl.appendChild(noticeEl);
 
   msgUnsubscribe=onSnapshot(query(collection(db,'messages'),orderBy('timestamp','asc')),snap=>{
     const c = document.getElementById('conv-messages');
@@ -1187,6 +1229,9 @@ function subscribeMessages() {
 }
 
 function appendMessage(m, c) {
+  // Keep notice at the very bottom — temporarily remove it
+  const notice = c.querySelector('#auto-delete-notice');
+  if (notice) c.removeChild(notice);
   const ts = m.timestamp ? new Date(m.timestamp.seconds*1000) : new Date();
   const ds = ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   if (ds !== lastRenderedDate) {
@@ -1208,6 +1253,8 @@ function appendMessage(m, c) {
   }
   row.innerHTML = `${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U',openChatUser?.gender)}" />`:''}<div class="bubble ${isSent?'sent':'recv'}">${m.text}<span class="bubble-time">${formatTime(ts)} ${sh}</span></div>`;
   c.appendChild(row);
+  // Re-attach notice at the end
+  if (notice) c.appendChild(notice);
 }
 
 function updateMessageStatus(m, c) {
