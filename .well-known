@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.amisayem.kothabolbo",
-    "sha256_cert_fingerprints": ["04:07:B4:FF:77:E9:CF:A3:23:38:41:70:D1:7D:15:10:79:D7:0D:F2:A8:42:60:A8:1A:D9:3A:E9:8C:01:78:53"]
-  }
-}]
