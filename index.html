@@ -634,6 +634,8 @@
     }
 
   </style>
+  <!-- OneSignal Push Notification SDK -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
 
@@ -1911,6 +1913,37 @@ function formatTime(d) {
   </div>
   <iframe class="inapp-iframe" id="inapp-iframe" src="" allowfullscreen></iframe>
 </div>
+
+<!-- OneSignal Init -->
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "77ef1a77-de38-410a-809f-c7b640031b2b",
+      promptOptions: {
+        slidedown: {
+          prompts: [{
+            type: "push",
+            autoPrompt: true,
+            text: {
+              actionMessage: "Kotha Bolbo থেকে নতুন message এলে notification পেতে Allow করুন!",
+              acceptButton: "Allow",
+              cancelButton: "পরে"
+            },
+            delay: { pageViews: 1, timeDelay: 4 }
+          }]
+        }
+      },
+      welcomeNotification: {
+        title: "Kotha Bolbo",
+        message: "Notifications চালু হয়েছে! এখন message এলে জানতে পারবেন। 🎉"
+      },
+      notifyButton: { enable: false },
+      serviceWorkerPath: "sw.js",
+      serviceWorkerUpdaterPath: "sw.js"
+    });
+  });
+</script>
 
 </body>
 </html>
