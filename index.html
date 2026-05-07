@@ -1545,7 +1545,7 @@ function updateMessageStatus(m, c) {
 }
 
 // ═══════ VOICE MESSAGE SYSTEM (Fixed) ═══════
-let _mediaRecorder = null, _audioChunks = [], _isRecording = false, _recTimerInterval = null, _recSeconds = 0, _recStream = null, _capturedDuration = 0;
+let _mediaRecorder = null, _audioChunks = [], _isRecording = false, _recTimerInterval = null, _recSeconds = 0, _recStream = null, _capturedDuration = 0, _recStartTime = 0;
 
 window.msgInputChanged = function() {
   const text = document.getElementById('msg-input').value.trim();
@@ -1564,29 +1564,56 @@ async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     _recStream = stream;
-    _audioChunks = []; _recSeconds = 0; _capturedDuration = 0;
+    _audioChunks = [];
+    _recSeconds = 0;
+    _capturedDuration = 0;
+    _recStartTime = Date.now(); // wall-clock start time for accurate duration
+
+    // Pick best supported mimeType
     const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
       ? 'audio/webm;codecs=opus'
-      : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
+      : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+      : (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus' : ''));
     const options = mimeType ? { mimeType } : {};
+
     _mediaRecorder = new MediaRecorder(stream, options);
-    _mediaRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) _audioChunks.push(e.data); };
+
+    _mediaRecorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) _audioChunks.push(e.data);
+    };
+
     _mediaRecorder.onstop = async () => {
-      // Stop all tracks to release mic — use captured duration to avoid race
-      if (_recStream) { _recStream.getTracks().forEach(t => t.stop()); _recStream = null; }
-      const finalDuration = _capturedDuration;
-      const blobType = _mediaRecorder.mimeType || 'audio/webm';
+      // Calculate accurate duration from wall clock
+      const wallDuration = Math.round((Date.now() - _recStartTime) / 1000);
+      const finalDuration = Math.max(_capturedDuration, wallDuration, 1);
+      const blobType = (_mediaRecorder.mimeType && _mediaRecorder.mimeType !== '') ? _mediaRecorder.mimeType : 'audio/webm';
       const blob = new Blob(_audioChunks, { type: blobType });
+
+      // Release mic AFTER blob is created
+      if (_recStream) {
+        _recStream.getTracks().forEach(t => t.stop());
+        _recStream = null;
+      }
+
       await uploadVoiceMessage(blob, finalDuration);
     };
-    _mediaRecorder.start(100);
+
+    _mediaRecorder.onerror = (e) => {
+      console.error('[Recorder] Error:', e);
+      showToast('Recording error', 'error');
+      if (_recStream) { _recStream.getTracks().forEach(t => t.stop()); _recStream = null; }
+    };
+
+    _mediaRecorder.start(250); // collect chunks every 250ms
     _isRecording = true;
+
     const btn = document.getElementById('voice-btn');
     const icon = document.getElementById('voice-btn-icon');
     const timer = document.getElementById('rec-timer');
     btn.classList.add('recording');
     icon.className = 'fas fa-stop';
     timer.style.display = 'block';
+
     _recTimerInterval = setInterval(() => {
       _recSeconds++;
       const m = Math.floor(_recSeconds / 60);
@@ -1594,7 +1621,9 @@ async function startRecording() {
       timer.textContent = m + ':' + (s < 10 ? '0' : '') + s;
       if (_recSeconds >= 60) stopRecording();
     }, 1000);
+
   } catch(e) {
+    console.error('[Recorder] getUserMedia failed:', e);
     showToast('Microphone access denied', 'error');
   }
 }
@@ -1602,8 +1631,9 @@ async function startRecording() {
 function stopRecording() {
   if (!_mediaRecorder || !_isRecording) return;
   clearInterval(_recTimerInterval);
-  _capturedDuration = _recSeconds; // capture before async onstop fires
+  _capturedDuration = _recSeconds; // snapshot timer value
   _isRecording = false;
+
   const btn = document.getElementById('voice-btn');
   const icon = document.getElementById('voice-btn-icon');
   const timer = document.getElementById('rec-timer');
@@ -1611,7 +1641,16 @@ function stopRecording() {
   icon.className = 'fas fa-microphone';
   timer.style.display = 'none';
   timer.textContent = '0:00';
-  _mediaRecorder.stop();
+
+  // Request final chunk before stopping
+  try {
+    if (_mediaRecorder.state === 'recording') {
+      _mediaRecorder.requestData();
+    }
+    _mediaRecorder.stop();
+  } catch(e) {
+    console.error('[Recorder] stop error:', e);
+  }
 }
 
 // Call this when conversation closes to clean up any active recording
@@ -1633,9 +1672,15 @@ function cancelRecordingIfActive() {
 }
 
 async function uploadVoiceMessage(blob, duration) {
-  if (!currentUser || !openChatUser) return;
-  // Minimum ~0.5s recording (reduced threshold from 500 bytes to allow short clips)
-  if (!blob || blob.size < 100) { showToast('Recording too short', 'error'); return; }
+  if (!currentUser || !openChatUser) {
+    console.warn('[Voice] Aborted: no user or chat open');
+    return;
+  }
+  if (!blob || blob.size < 100) {
+    showToast('Recording too short', 'error');
+    return;
+  }
+  console.log('[Voice] Uploading blob:', blob.size, 'bytes, type:', blob.type, 'duration:', duration);
   showToast('Sending voice...');
   try {
     const ext = (blob.type && blob.type.includes('ogg')) ? 'ogg' : 'webm';
@@ -1643,18 +1688,23 @@ async function uploadVoiceMessage(blob, duration) {
     const sRef = storageRef(storage, path);
     await uploadBytes(sRef, blob);
     const url = await getDownloadURL(sRef);
+    console.log('[Voice] Uploaded OK, url:', url);
     const msgData = {
       senderId: currentUser.uid, receiverId: openChatUser.uid,
-      text: '', voiceUrl: url, voicePath: path, voiceDuration: Math.max(duration, 1),
+      text: '', voiceUrl: url, voicePath: path,
+      voiceDuration: Math.max(duration, 1),
       type: 'voice', timestamp: serverTimestamp(),
       delivered: false, read: false, seen: false
     };
-    if (_replyingTo) { msgData.replyTo = { id: _replyingTo.id, text: _replyingTo.text, senderName: _replyingTo.senderName }; cancelReply(); }
-    await addDoc(collection(db,'messages'), msgData);
-    sendPushNotification('🎤 Voice message').catch(()=>{});
+    if (_replyingTo) {
+      msgData.replyTo = { id: _replyingTo.id, text: _replyingTo.text, senderName: _replyingTo.senderName };
+      cancelReply();
+    }
+    await addDoc(collection(db, 'messages'), msgData);
+    sendPushNotification('🎤 Voice message').catch(() => {});
   } catch(e) {
-    console.error(e);
-    showToast('Failed to send voice', 'error');
+    console.error('[Voice] Upload failed:', e.code, e.message, e);
+    showToast('Failed to send voice: ' + (e.code || e.message || 'unknown'), 'error');
   }
 }
 
