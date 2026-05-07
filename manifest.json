@@ -1,38 +1,24 @@
 {
   "name": "Kotha Bolbo",
-  "short_name": "Kotha Bolbo",
-  "description": "Kotha Bolbo – Talk, stay connected. Created by Sayem.",
-  "start_url": "/index.html",
+  "short_name": "KothaBolbo",
+  "start_url": "/",  // ← CHANGE THIS (was /index.html)
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0e1a",
   "theme_color": "#00d4ff",
-  "lang": "en",
   "icons": [
     {
-      "src": "icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "icons/icon-192x192.png",
+      "src": "/icons/icon-192x192.png",  // ← Add / at start
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512x512.png",
+      "src": "/icons/icon-512x512.png",  // ← Add / at start
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     }
   ]
 }
