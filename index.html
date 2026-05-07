@@ -1683,15 +1683,31 @@ async function uploadVoiceMessage(blob, duration) {
   console.log('[Voice] Uploading blob:', blob.size, 'bytes, type:', blob.type, 'duration:', duration);
   showToast('Sending voice...');
   try {
+    // ── Cloudinary upload (Firebase Storage এর বদলে) ──
+    const CLOUD_NAME = 'dzzpzzpgj';
+    const UPLOAD_PRESET = 'ami_sayem';
+    const formData = new FormData();
     const ext = (blob.type && blob.type.includes('ogg')) ? 'ogg' : 'webm';
-    const path = 'voice/' + currentUser.uid + '_' + Date.now() + '.' + ext;
-    const sRef = storageRef(storage, path);
-    await uploadBytes(sRef, blob);
-    const url = await getDownloadURL(sRef);
-    console.log('[Voice] Uploaded OK, url:', url);
+    formData.append('file', blob, 'voice_' + Date.now() + '.' + ext);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('folder', 'voice_messages');
+    formData.append('resource_type', 'video'); // audio files use 'video' in Cloudinary
+
+    const res = await fetch(
+      'https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/video/upload',
+      { method: 'POST', body: formData }
+    );
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error?.message || 'Cloudinary upload failed: ' + res.status);
+    }
+    const data = await res.json();
+    const url = data.secure_url;
+    console.log('[Voice] Cloudinary upload OK, url:', url);
+
     const msgData = {
       senderId: currentUser.uid, receiverId: openChatUser.uid,
-      text: '', voiceUrl: url, voicePath: path,
+      text: '', voiceUrl: url, voicePath: data.public_id,
       voiceDuration: Math.max(duration, 1),
       type: 'voice', timestamp: serverTimestamp(),
       delivered: false, read: false, seen: false
@@ -1703,8 +1719,8 @@ async function uploadVoiceMessage(blob, duration) {
     await addDoc(collection(db, 'messages'), msgData);
     sendPushNotification('🎤 Voice message').catch(() => {});
   } catch(e) {
-    console.error('[Voice] Upload failed:', e.code, e.message, e);
-    showToast('Failed to send voice: ' + (e.code || e.message || 'unknown'), 'error');
+    console.error('[Voice] Upload failed:', e.message, e);
+    showToast('Failed to send voice: ' + (e.message || 'unknown'), 'error');
   }
 }
 
