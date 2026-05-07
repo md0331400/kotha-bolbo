@@ -307,6 +307,20 @@
     .msg-input-wrap textarea::placeholder { color:var(--text-muted); }
     .send-btn { width:40px; height:40px; border-radius:50%; border:none; background:linear-gradient(135deg,#00d4ff,#0099cc); color:#000; font-size:16px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:var(--transition); }
     .send-btn:hover { transform:scale(1.08); box-shadow:0 4px 14px rgba(0,212,255,0.4); }
+    .voice-btn { width:40px; height:40px; border-radius:50%; border:none; background:var(--bg-tertiary); color:var(--text-secondary); font-size:16px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:var(--transition); border:1.5px solid var(--border); }
+    .voice-btn:hover { background:var(--bg-input); color:var(--accent); }
+    .voice-btn.recording { background:var(--danger); color:#fff; border-color:var(--danger); animation:rec-pulse 1s infinite; }
+    @keyframes rec-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,0.4);} 50%{box-shadow:0 0 0 8px rgba(255,77,109,0);} }
+    .voice-bubble { display:flex; align-items:center; gap:8px; min-width:160px; }
+    .voice-play-btn { width:32px; height:32px; border-radius:50%; border:none; background:rgba(0,212,255,0.2); color:var(--accent); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; transition:var(--transition); }
+    .voice-play-btn:hover { background:rgba(0,212,255,0.35); }
+    .bubble.sent .voice-play-btn { background:rgba(0,0,0,0.2); color:#000; }
+    .voice-waveform { flex:1; height:28px; display:flex; align-items:center; gap:2px; }
+    .voice-waveform span { display:inline-block; width:3px; border-radius:2px; background:currentColor; opacity:0.5; }
+    .bubble.sent .voice-waveform span { background:#000; }
+    .bubble.recv .voice-waveform span { background:var(--accent); }
+    .voice-duration { font-size:0.65rem; opacity:0.7; white-space:nowrap; }
+    .recording-timer { font-size:0.75rem; color:var(--danger); font-weight:600; display:none; padding:0 4px; }
 
     #friends-screen .scroll-area { flex:1; overflow-y:auto; }
     .friends-refresh-pill {
@@ -686,8 +700,10 @@
     <div id="reply-preview-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
   </div>
   <div class="msg-input-area">
-    <div class="msg-input-wrap"><textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);" onkeydown="msgKeyDown(event)"></textarea></div>
-    <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    <div class="msg-input-wrap"><textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);msgInputChanged();" onkeydown="msgKeyDown(event)"></textarea></div>
+    <span class="recording-timer" id="rec-timer">0:00</span>
+    <button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecord()"><i class="fas fa-microphone" id="voice-btn-icon"></i></button>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()" style="display:none;"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
 
@@ -956,6 +972,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, updateDoc, serverTimestamp, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp as rtdbTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBa2bIHkBNK_oajNeFxgKpz4VrIx1aR5Fo",
@@ -971,6 +988,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const rtdb = getDatabase(app);
+const storage = getStorage(app);
 
 let currentUser = null, currentUserData = null, openChatUser = null;
 let msgUnsubscribe = null, chatUnsubscribe = null, presenceUnsubscribe = null, typingUnsubscribe = null;
@@ -1260,6 +1278,10 @@ async function deleteOldMessages() {
       const msg = d.data();
       if (msg.senderId===currentUser.uid || msg.receiverId===currentUser.uid) {
         dels.push(deleteDoc(doc(db,'messages',d.id)));
+        // Voice message হলে Storage থেকেও delete করো
+        if (msg.voicePath) {
+          try { dels.push(deleteObject(storageRef(storage, msg.voicePath))); } catch(e) {}
+        }
       }
     });
     if (dels.length > 0) {
@@ -1480,7 +1502,20 @@ function appendMessage(m, c) {
   if (m.replyTo) {
     replyHtml = `<div style="background:rgba(0,0,0,0.15);border-left:3px solid rgba(0,212,255,0.6);border-radius:6px;padding:4px 8px;margin-bottom:4px;font-size:0.7rem;opacity:0.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${m.replyTo.senderName ? '<span style="color:var(--accent);font-weight:600;font-size:0.65rem;">' + m.replyTo.senderName + '</span><br>' : ''}${m.replyTo.text}</div>`;
   }
-  row.innerHTML = `${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U',openChatUser?.gender)}" />`:''}<div class="bubble ${isSent?'sent':'recv'}">${replyHtml}${m.text}<span class="bubble-time">${formatTime(ts)} ${sh}</span></div>`;
+  let bubbleContent = '';
+  if (m.type === 'voice' && m.voiceUrl) {
+    const dur = m.voiceDuration || 0;
+    const mm = Math.floor(dur/60), ss = dur%60;
+    const durStr = mm + ':' + (ss<10?'0':'') + ss;
+    bubbleContent = '<div class="voice-bubble">' +
+      '<button class="voice-play-btn" onclick="playVoice(this,'' + m.voiceUrl + '')" data-playing="false"><i class="fas fa-play"></i></button>' +
+      '<div class="voice-waveform">' + makeWaveform() + '</div>' +
+      '<span class="voice-duration">' + durStr + '</span>' +
+      '</div>';
+  } else {
+    bubbleContent = m.text;
+  }
+  row.innerHTML = `${!isSent?`<img class="msg-avatar" src="${openChatUser?.photoURL||avatarUrl(openChatUser?.displayName||'U',openChatUser?.gender)}" />`:''}<div class="bubble ${isSent?'sent':'recv'}">${replyHtml}${bubbleContent}<span class="bubble-time">${formatTime(ts)} ${sh}</span></div>`;
   c.appendChild(row);
   // Add swipe-to-reply
   const senderName = isSent ? (currentUserData?.displayName || 'You') : (openChatUser?.displayName || 'User');
@@ -1500,6 +1535,124 @@ function updateMessageStatus(m, c) {
   else sh = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
   timeSpan.innerHTML = formatTime(ts) + ' ' + sh;
 }
+
+// ═══════ VOICE MESSAGE SYSTEM ═══════
+let _mediaRecorder = null, _audioChunks = [], _isRecording = false, _recTimerInterval = null, _recSeconds = 0;
+
+window.msgInputChanged = function() {
+  const text = document.getElementById('msg-input').value.trim();
+  const voiceBtn = document.getElementById('voice-btn');
+  const sendBtn = document.getElementById('send-btn');
+  if (text) { voiceBtn.style.display='none'; sendBtn.style.display='flex'; }
+  else { voiceBtn.style.display='flex'; sendBtn.style.display='none'; }
+};
+
+window.toggleVoiceRecord = async function() {
+  if (_isRecording) { stopRecording(); }
+  else { await startRecording(); }
+};
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    _audioChunks = []; _recSeconds = 0;
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+    _mediaRecorder = new MediaRecorder(stream, { mimeType });
+    _mediaRecorder.ondataavailable = e => { if(e.data.size>0) _audioChunks.push(e.data); };
+    _mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t=>t.stop());
+      const blob = new Blob(_audioChunks, { type: _mediaRecorder.mimeType });
+      await uploadVoiceMessage(blob, _recSeconds);
+    };
+    _mediaRecorder.start(100);
+    _isRecording = true;
+    const btn = document.getElementById('voice-btn');
+    const icon = document.getElementById('voice-btn-icon');
+    const timer = document.getElementById('rec-timer');
+    btn.classList.add('recording');
+    icon.className = 'fas fa-stop';
+    timer.style.display = 'block';
+    _recTimerInterval = setInterval(() => {
+      _recSeconds++;
+      const m = Math.floor(_recSeconds/60);
+      const s = _recSeconds%60;
+      timer.textContent = m+':'+(s<10?'0':'')+s;
+      if (_recSeconds >= 60) stopRecording();
+    }, 1000);
+  } catch(e) {
+    showToast('Microphone access denied', 'error');
+  }
+}
+
+function stopRecording() {
+  if (!_mediaRecorder) return;
+  clearInterval(_recTimerInterval);
+  _isRecording = false;
+  const btn = document.getElementById('voice-btn');
+  const icon = document.getElementById('voice-btn-icon');
+  const timer = document.getElementById('rec-timer');
+  btn.classList.remove('recording');
+  icon.className = 'fas fa-microphone';
+  timer.style.display = 'none';
+  timer.textContent = '0:00';
+  _mediaRecorder.stop();
+}
+
+async function uploadVoiceMessage(blob, duration) {
+  if (!currentUser || !openChatUser) return;
+  if (blob.size < 500) { showToast('Too short', 'error'); return; }
+  showToast('Sending voice...');
+  try {
+    const path = 'voice/' + currentUser.uid + '_' + Date.now() + '.webm';
+    const sRef = storageRef(storage, path);
+    await uploadBytes(sRef, blob);
+    const url = await getDownloadURL(sRef);
+    const msgData = {
+      senderId: currentUser.uid, receiverId: openChatUser.uid,
+      text: '', voiceUrl: url, voicePath: path, voiceDuration: duration,
+      type: 'voice', timestamp: serverTimestamp(),
+      delivered: false, read: false, seen: false
+    };
+    if (_replyingTo) { msgData.replyTo = { id: _replyingTo.id, text: _replyingTo.text, senderName: _replyingTo.senderName }; cancelReply(); }
+    await addDoc(collection(db,'messages'), msgData);
+    sendPushNotification('🎤 Voice message').catch(()=>{});
+  } catch(e) {
+    console.error(e);
+    showToast('Failed to send voice', 'error');
+  }
+}
+
+function makeWaveform() {
+  const heights = [4,7,12,18,22,16,10,14,20,24,18,12,8,14,20,16,10,6,12,18];
+  return heights.map(h => '<span style="height:' + h + 'px;"></span>').join('');
+}
+
+window.playVoice = function(btn, url) {
+  const existingAudio = document.querySelector('audio.voice-playing');
+  if (existingAudio && existingAudio.dataset.url !== url) {
+    existingAudio.pause();
+    const oldBtn = document.querySelector('[data-playing="true"]');
+    if (oldBtn) { oldBtn.innerHTML = '<i class="fas fa-play"></i>'; oldBtn.dataset.playing = 'false'; }
+  }
+  let audio = document.querySelector('audio[data-url="' + url + '"]');
+  if (!audio) {
+    audio = new Audio(url);
+    audio.dataset.url = url;
+    audio.className = 'voice-playing';
+    audio.onended = () => { btn.innerHTML = '<i class="fas fa-play"></i>'; btn.dataset.playing = 'false'; audio.className = ''; };
+  }
+  if (audio.paused) {
+    audio.play();
+    btn.innerHTML = '<i class="fas fa-pause"></i>';
+    btn.dataset.playing = 'true';
+    audio.className = 'voice-playing';
+  } else {
+    audio.pause();
+    btn.innerHTML = '<i class="fas fa-play"></i>';
+    btn.dataset.playing = 'false';
+    audio.className = '';
+  }
+};
 
 window.sendMessage = async function() {
   const input=document.getElementById('msg-input'), text=input.value.trim();
