@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.amisayem.kothabolbo",
-        "sha256_cert_fingerprints": ["B7:E2:92:28:81:00:A9:C2:8C:9E:FD:51:E8:18:0A:05:3E:DF:46:DF:48:BB:60:B1:93:66:A5:F7:DC:9F:8E:0F"]
+        "sha256_cert_fingerprints": ["A5:C5:BF:1B:52:3C:FB:0A:4F:B7:77:E2:E6:09:14:A8:0B:DD:68:81:90:9E:8B:2E:21:0D:06:0B:D7:62:3B:BE"]
       }
     }]
