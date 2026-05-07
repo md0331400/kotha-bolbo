@@ -1428,6 +1428,7 @@ async function markRead(sid) { if(!currentUser||!sid) return; const q=query(coll
 window.closeConversation = function() {
   if (openChatUser && currentUser) setMyTyping(false);
   cancelReply();
+  cancelRecordingIfActive(); // Stop mic if recording is active
   document.getElementById('conv-screen').classList.remove('open');
   if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}
   if(presenceUnsubscribe){presenceUnsubscribe();presenceUnsubscribe=null;}
@@ -1543,8 +1544,8 @@ function updateMessageStatus(m, c) {
   timeSpan.innerHTML = formatTime(ts) + ' ' + sh;
 }
 
-// ═══════ VOICE MESSAGE SYSTEM ═══════
-let _mediaRecorder = null, _audioChunks = [], _isRecording = false, _recTimerInterval = null, _recSeconds = 0;
+// ═══════ VOICE MESSAGE SYSTEM (Fixed) ═══════
+let _mediaRecorder = null, _audioChunks = [], _isRecording = false, _recTimerInterval = null, _recSeconds = 0, _recStream = null, _capturedDuration = 0;
 
 window.msgInputChanged = function() {
   const text = document.getElementById('msg-input').value.trim();
@@ -1562,14 +1563,21 @@ window.toggleVoiceRecord = async function() {
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    _audioChunks = []; _recSeconds = 0;
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-    _mediaRecorder = new MediaRecorder(stream, { mimeType });
-    _mediaRecorder.ondataavailable = e => { if(e.data.size>0) _audioChunks.push(e.data); };
+    _recStream = stream;
+    _audioChunks = []; _recSeconds = 0; _capturedDuration = 0;
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
+    const options = mimeType ? { mimeType } : {};
+    _mediaRecorder = new MediaRecorder(stream, options);
+    _mediaRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) _audioChunks.push(e.data); };
     _mediaRecorder.onstop = async () => {
-      stream.getTracks().forEach(t=>t.stop());
-      const blob = new Blob(_audioChunks, { type: _mediaRecorder.mimeType });
-      await uploadVoiceMessage(blob, _recSeconds);
+      // Stop all tracks to release mic — use captured duration to avoid race
+      if (_recStream) { _recStream.getTracks().forEach(t => t.stop()); _recStream = null; }
+      const finalDuration = _capturedDuration;
+      const blobType = _mediaRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(_audioChunks, { type: blobType });
+      await uploadVoiceMessage(blob, finalDuration);
     };
     _mediaRecorder.start(100);
     _isRecording = true;
@@ -1581,9 +1589,9 @@ async function startRecording() {
     timer.style.display = 'block';
     _recTimerInterval = setInterval(() => {
       _recSeconds++;
-      const m = Math.floor(_recSeconds/60);
-      const s = _recSeconds%60;
-      timer.textContent = m+':'+(s<10?'0':'')+s;
+      const m = Math.floor(_recSeconds / 60);
+      const s = _recSeconds % 60;
+      timer.textContent = m + ':' + (s < 10 ? '0' : '') + s;
       if (_recSeconds >= 60) stopRecording();
     }, 1000);
   } catch(e) {
@@ -1592,8 +1600,9 @@ async function startRecording() {
 }
 
 function stopRecording() {
-  if (!_mediaRecorder) return;
+  if (!_mediaRecorder || !_isRecording) return;
   clearInterval(_recTimerInterval);
+  _capturedDuration = _recSeconds; // capture before async onstop fires
   _isRecording = false;
   const btn = document.getElementById('voice-btn');
   const icon = document.getElementById('voice-btn-icon');
@@ -1605,18 +1614,38 @@ function stopRecording() {
   _mediaRecorder.stop();
 }
 
+// Call this when conversation closes to clean up any active recording
+function cancelRecordingIfActive() {
+  if (_isRecording || _recStream) {
+    clearInterval(_recTimerInterval);
+    _isRecording = false;
+    if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+      try { _mediaRecorder.stop(); } catch(e) {}
+    }
+    if (_recStream) { _recStream.getTracks().forEach(t => t.stop()); _recStream = null; }
+    const btn = document.getElementById('voice-btn');
+    const icon = document.getElementById('voice-btn-icon');
+    const timer = document.getElementById('rec-timer');
+    if (btn) btn.classList.remove('recording');
+    if (icon) icon.className = 'fas fa-microphone';
+    if (timer) { timer.style.display = 'none'; timer.textContent = '0:00'; }
+  }
+}
+
 async function uploadVoiceMessage(blob, duration) {
   if (!currentUser || !openChatUser) return;
-  if (blob.size < 500) { showToast('Too short', 'error'); return; }
+  // Minimum ~0.5s recording (reduced threshold from 500 bytes to allow short clips)
+  if (!blob || blob.size < 100) { showToast('Recording too short', 'error'); return; }
   showToast('Sending voice...');
   try {
-    const path = 'voice/' + currentUser.uid + '_' + Date.now() + '.webm';
+    const ext = (blob.type && blob.type.includes('ogg')) ? 'ogg' : 'webm';
+    const path = 'voice/' + currentUser.uid + '_' + Date.now() + '.' + ext;
     const sRef = storageRef(storage, path);
     await uploadBytes(sRef, blob);
     const url = await getDownloadURL(sRef);
     const msgData = {
       senderId: currentUser.uid, receiverId: openChatUser.uid,
-      text: '', voiceUrl: url, voicePath: path, voiceDuration: duration,
+      text: '', voiceUrl: url, voicePath: path, voiceDuration: Math.max(duration, 1),
       type: 'voice', timestamp: serverTimestamp(),
       delivered: false, read: false, seen: false
     };
@@ -1634,26 +1663,43 @@ function makeWaveform() {
   return heights.map(h => '<span style="height:' + h + 'px;"></span>').join('');
 }
 
+// Fixed: Use WeakMap-style url→audio tracking; reset onended per button click to avoid stale references
 const _audioMap = {};
 window.playVoice = function(btn, url) {
-  // Stop any other playing audio
+  // Stop any other playing audio first
   Object.entries(_audioMap).forEach(([u, a]) => {
     if (u !== url && !a.paused) {
       a.pause();
-      const otherBtn = document.querySelector('.voice-play-btn[data-url="' + u + '"]');
+      // Find the currently-visible button for this url
+      const otherBtn = document.querySelector('.voice-play-btn[data-url="' + CSS.escape(u) + '"]');
       if (otherBtn) { otherBtn.innerHTML = '<i class="fas fa-play"></i>'; otherBtn.dataset.playing = 'false'; }
     }
   });
-  if (!_audioMap[url]) {
+
+  // Create or reuse Audio object; reset if ended/errored
+  if (!_audioMap[url] || _audioMap[url].ended || _audioMap[url].error) {
     _audioMap[url] = new Audio(url);
-    _audioMap[url].onended = () => {
-      btn.innerHTML = '<i class="fas fa-play"></i>';
-      btn.dataset.playing = 'false';
-    };
   }
   const audio = _audioMap[url];
+
+  // Always reassign onended to the current btn reference (fixes stale closure bug)
+  audio.onended = () => {
+    btn.innerHTML = '<i class="fas fa-play"></i>';
+    btn.dataset.playing = 'false';
+  };
+  audio.onerror = () => {
+    btn.innerHTML = '<i class="fas fa-play"></i>';
+    btn.dataset.playing = 'false';
+    showToast('Cannot play audio', 'error');
+    delete _audioMap[url]; // remove bad cache entry so next click retries
+  };
+
   if (audio.paused) {
-    audio.play().catch(()=>showToast('Cannot play audio','error'));
+    audio.play().catch(() => {
+      btn.innerHTML = '<i class="fas fa-play"></i>';
+      btn.dataset.playing = 'false';
+      showToast('Cannot play audio', 'error');
+    });
     btn.innerHTML = '<i class="fas fa-pause"></i>';
     btn.dataset.playing = 'true';
   } else {
@@ -2086,6 +2132,47 @@ function formatTime(d) {
   </div>
   <iframe class="inapp-iframe" id="inapp-iframe" src="" allowfullscreen></iframe>
 </div>
+
+<!-- ═══════ SERVICE WORKER REGISTRATION ═══════ -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(function(registration) {
+          console.log('[SW] Registered, scope:', registration.scope);
+
+          // New update available হলে detect করো
+          registration.onupdatefound = function() {
+            const installingWorker = registration.installing;
+            if (!installingWorker) return;
+            installingWorker.onstatechange = function() {
+              if (installingWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  // নতুন version পাওয়া গেছে
+                  console.log('[SW] New content available. Refresh to update.');
+                } else {
+                  // প্রথমবার install — offline cache তৈরি হয়েছে
+                  console.log('[SW] Content cached for offline use.');
+                }
+              }
+            };
+          };
+        })
+        .catch(function(err) {
+          console.warn('[SW] Registration failed:', err);
+        });
+
+      // যদি SW controller বদলে যায় (skip waiting after update), page reload করো
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    });
+  }
+</script>
 
 </body>
 </html>
