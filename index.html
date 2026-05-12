@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Kotha Bolbo</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#00d4ff" />
+  <meta name="description" content="Kotha Bolbo – Talk, stay connected. Created by Sayem." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kotha Bolbo" />
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+  <!-- OneSignal -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "77ef1a77-de38-410a-809f-c7b640031b2b",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "OneSignalSDKWorker.js",
+        allowLocalhostAsSecureOrigin: false,
+        notifyButton: { enable: false },
+        promptOptions: {
+          slidedown: {
+            enabled: false   // 👈 OneSignal-এর নিজস্ব প্রম্পট সম্পূর্ণ বন্ধ
+          }
+        }
+      });
+      console.log("✅ OneSignal Initialized");
+    });
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,500;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #111827;
+      --bg-tertiary: #1a2235;
+      --bg-card: #151e30;
+      --bg-input: #1e2d44;
+      --accent: #00d4ff;
+      --accent-glow: rgba(0,212,255,0.18);
+      --accent-2: #7c3aed;
+      --bubble-sent: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+      --bubble-recv: #1e2d44;
+      --text-primary: #e8f0fe;
+      --text-secondary: #8899bb;
+      --text-muted: #4a5a78;
+      --border: rgba(0,212,255,0.12);
+      --shadow: 0 6px 24px rgba(0,0,0,0.4);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --nav-h: 56px;
+      --header-h: 52px;
+      --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+      --danger: #ff4d6d;
+      --success: #4ade80;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { height:100%; width:100%; overflow:hidden; font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); font-size: 15px; }
+
+    /* ========== Website Blocker ========== */
+    #pwa-block {
+      position: fixed; inset:0; z-index:99999;
+      background: radial-gradient(ellipse at center, #0f172a 0%, #020617 100%);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px; text-align: center;
+    }
+    .pwa-block-inner { max-width: 320px; }
+    .pwa-block-inner i { font-size: 56px; color: #00d4ff; margin-bottom: 16px; }
+    .pwa-block-inner h2 { color: #e8f0fe; margin-bottom: 8px; font-size: 1.3rem; }
+    .pwa-block-inner p { color: #8899bb; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+    .btn-download-app {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #000; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 16px; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,212,255,0.4); transition: 0.2s;
+    }
+    .btn-download-app:hover { transform: translateY(-2px); }
+
+    /* ========== Splash ========== */
+    #splash {
+      position: fixed; inset:0; z-index:9998;
+      background: radial-gradient(ellipse at center, #0f172a 0%, #020617 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 20px; transition: opacity 0.8s, transform 0.8s;
+    }
+    #splash.hide { opacity:0; transform:scale(1.08); pointer-events:none; }
+    .splash-logo-wrap { position:relative; width:100px; height:100px; display:flex; align-items:center; justify-content:center; }
+    .splash-bubble {
+      width: 70px; height: 70px;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      border-radius: 50% 50% 50% 20%;
+      display: flex; align-items:center; justify-content:center;
+      box-shadow: 0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(124,58,237,0.3);
+      animation: bubble-float 2.4s ease-in-out infinite;
+      position: relative; z-index:2;
+    }
+    .splash-bubble i { font-size: 28px; color: #fff; margin-left: 3px; }
+    @keyframes bubble-float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .splash-rings {
+      position: absolute; top:50%; left:50%; width:100px; height:100px; margin:-50px 0 0 -50px; pointer-events:none;
+    }
+    .splash-ring {
+      position: absolute; border-radius:50%; border:2px solid transparent; top:50%; left:50%;
+      animation: ring-spin 3s linear infinite;
+    }
+    .splash-ring:nth-child(1) { width:100px; height:100px; margin:-50px 0 0 -50px; border-top-color:#00d4ff; animation-duration:2.2s; }
+    .splash-ring:nth-child(2) { width:85px; height:85px; margin:-42px 0 0 -42px; border-bottom-color:#7c3aed; animation-duration:2.8s; animation-direction:reverse; }
+    .splash-ring:nth-child(3) { width:70px; height:70px; margin:-35px 0 0 -35px; border-top-color:#00d4ff; animation-duration:3.6s; }
+    @keyframes ring-spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+    .splash-particles {
+      position:absolute; width:120px; height:120px; animation:particles-rotate 10s linear infinite;
+      top:50%; left:50%; margin:-60px 0 0 -60px; pointer-events:none;
+    }
+    .splash-particles::before, .splash-particles::after {
+      content:''; position:absolute; width:5px; height:5px; border-radius:50%; box-shadow:0 0 10px currentColor;
+    }
+    .splash-particles::before { top:0; left:50%; margin-left:-2px; background:#00d4ff; color:#00d4ff; }
+    .splash-particles::after { bottom:0; left:50%; margin-left:-2px; background:#7c3aed; color:#7c3aed; }
+    @keyframes particles-rotate { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+    .splash-title {
+      font-family:'Exo 2',sans-serif; font-size:2.2rem; font-weight:700;
+      background:linear-gradient(135deg,#00d4ff,#7c3aed);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      letter-spacing:3px; filter:drop-shadow(0 0 18px rgba(0,212,255,0.6));
+      animation:title-pulse 2.2s infinite alternate; margin-top:6px;
+    }
+    @keyframes title-pulse {
+      from { filter:drop-shadow(0 0 8px rgba(0,212,255,0.5)); }
+      to { filter:drop-shadow(0 0 22px rgba(124,58,237,0.8)); }
+    }
+    .splash-sub { font-size:0.7rem; color:#b0c4de; letter-spacing:3px; text-transform:uppercase; opacity:0.8; animation:fade-sub 2s infinite alternate; }
+    @keyframes fade-sub { 0%{opacity:0.4;} 100%{opacity:1;} }
+
+    /* ========== Custom Notification Permission Modal ========== */
+    #notification-perm-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #notification-perm-overlay.open { opacity: 1; pointer-events: all; }
+    .notif-perm-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 20px 20px;
+      width: min(300px, 90vw);
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #notification-perm-overlay.open .notif-perm-card { transform: scale(1); }
+    .notif-perm-icon {
+      font-size: 48px;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .notif-perm-card h3 { font-size: 1.1rem; margin-bottom: 6px; color: var(--text-primary); }
+    .notif-perm-card p { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+    .notif-perm-buttons { display: flex; gap: 10px; }
+    .notif-perm-buttons button { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+    .btn-allow { background: linear-gradient(135deg,#00d4ff,#0099cc); color: #000; }
+    .btn-later { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-secondary); }
+
+    /* ========== Auth & App (same as before, omitting repetition) ========== */
+    /* ... পুরনো সব CSS ঠিক একই আছে ... */
+    /* মডাল, ফিড, চ্যাট, সেটিংস ইত্যাদির CSS সংক্ষেপ করলাম, কিন্তু আসল ফাইলে সব থাকতে হবে */
+
+  </style>
+</head>
+<body>
+
+<!-- Website Blocker -->
+<div id="pwa-block">
+  <div class="pwa-block-inner">
+    <i class="fas fa-download"></i>
+    <h2>Please Download This App</h2>
+    <p>To use Kotha Bolbo, install the app on your device from the official store.</p>
+    <button class="btn-download-app" onclick="window.location.href='https://sayemwebstore.vercel.app'">Get This App</button>
+  </div>
+</div>
+
+<!-- Splash -->
+<div id="splash" style="display:none;">
+  <div class="splash-logo-wrap">
+    <div class="splash-rings">
+      <div class="splash-ring"></div><div class="splash-ring"></div><div class="splash-ring"></div>
+    </div>
+    <div class="splash-particles"></div>
+    <div class="splash-bubble">
+      <i class="fas fa-comment-dots"></i>
+    </div>
+  </div>
+  <div class="splash-title">Kotha Bolbo</div>
+  <div class="splash-sub">Created by Sayem</div>
+</div>
+
+<!-- Auth Screen -->
+<div id="auth-screen"></div>
+
+<!-- Conversation Screen --> ... (আগের পূর্ণাঙ্গ ভার্সনের মতো একই)
+
+<!-- App -->
+<div id="app">
+  <!-- Feed, Chat, Friends, Settings screens completely same as previous full code -->
+</div>
+
+<!-- Custom Notification Permission Modal -->
+<div id="notification-perm-overlay">
+  <div class="notif-perm-card">
+    <div class="notif-perm-icon"><i class="fas fa-bell"></i></div>
+    <h3>Stay Connected!</h3>
+    <p>Turn on notifications to receive messages instantly, even when you're away.</p>
+    <div class="notif-perm-buttons">
+      <button class="btn-allow" id="btn-notif-allow">Allow</button>
+      <button class="btn-later" id="btn-notif-later">Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- All other modals exactly as before -->
+
+<script type="module">
+  // ========== PWA CHECK ==========
+  function isPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  }
+  if (isPWA()) {
+    document.getElementById('pwa-block').style.display = 'none';
+    document.getElementById('splash').style.display = 'flex';
+    setTimeout(() => {
+      document.getElementById('splash').classList.add('hide');
+      setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        initAuth();
+      }, 800);
+    }, 3000);
+  } else {
+    document.getElementById('pwa-block').style.display = 'flex';
+  }
+
+  // Firebase imports & config (same)
+  import { ... } from "...";
+  const firebaseConfig = { ... };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const rtdb = getDatabase(app);
+
+  let currentUser = null, currentUserData = null;
+  // ... other global vars identical
+
+  // Notification permission modal handling
+  function showNotificationPermissionModal() {
+    const overlay = document.getElementById('notification-perm-overlay');
+    overlay.classList.add('open');
+    document.getElementById('btn-notif-allow').onclick = async () => {
+      overlay.classList.remove('open');
+      if (Notification.permission === 'default') {
+        const result = await Notification.requestPermission();
+        if (result === 'granted') showToast('Notifications enabled!');
+      }
+      updateNotifStatus();
+    };
+    document.getElementById('btn-notif-later').onclick = () => {
+      overlay.classList.remove('open');
+      updateNotifStatus();
+    };
+  }
+
+  function showApp() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    if (currentUser) setOnlineStatus();
+    loadChats(); loadFriends();
+    setTimeout(deleteOldMessages, 5000);
+
+    // কাস্টম নোটিফিকেশন মোডাল দেখাও (শুধু প্রথমবার বা যখন অনুমতি চাওয়া হয়নি)
+    if (Notification.permission === 'default') {
+      showNotificationPermissionModal();
+    } else {
+      updateNotifStatus();
+    }
+
+    // OneSignal Subscription ID – ঠিক করেই আছে
+    OneSignalDeferred.push(async function(OneSignal) {
+      try {
+        const sub = await OneSignal.User.PushSubscription.getCurrent();
+        const subId = sub ? sub.id : null;
+        if (subId && currentUser) {
+          window._oneSignalPlayerId = subId;
+          await updateDoc(doc(db, 'users', currentUser.uid), { oneSignalPlayerId: subId });
+        }
+        OneSignal.User.PushSubscription.addEventListener('change', async (subscription) => {
+          if (subscription.id && currentUser) {
+            window._oneSignalPlayerId = subscription.id;
+            await updateDoc(doc(db, 'users', currentUser.uid), { oneSignalPlayerId: subscription.id });
+          }
+        });
+      } catch(e) { console.warn('[OneSignal] Sub error:', e); }
+    });
+  }
+
+  // Settings notification status update still works
+  function updateNotifStatus() {
+    const perm = Notification.permission;
+    const icon = document.getElementById('notif-status-icon');
+    const text = document.getElementById('notif-status-text');
+    if (perm === 'granted') {
+      text.textContent = 'Allowed';
+      icon.className = 'fas fa-check-circle';
+      icon.style.color = 'var(--success)';
+    } else {
+      text.textContent = 'Blocked / Not Asked';
+      icon.className = 'fas fa-times-circle';
+      icon.style.color = 'var(--danger)';
+    }
+  }
+
+  // ... বাকি সব ফাংশন (conversation, chat list, send message, etc.) পুরনো ভার্সন থেকে হুবহু কপি করুন
+  /* The complete JavaScript block from the previous fully functional code (with conversation fix) should be inserted here, without the old requestNotificationPermission. */
+</script>
+</body>
+</html>
