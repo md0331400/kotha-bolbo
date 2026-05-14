@@ -2641,10 +2641,7 @@ function renderMessage(data) {
 
   wrap.addEventListener('touchmove', e => {
     const dx = e.touches[0].clientX - startX;
-    if (Math.abs(dx) > 30 && !isSent) {
-      wrap.classList.add('swiping');
-      swiping = true;
-    } else if (Math.abs(dx) > 30 && isSent) {
+    if (Math.abs(dx) > 30) {
       wrap.classList.add('swiping');
       swiping = true;
     }
@@ -2732,7 +2729,7 @@ async function sendPushNotification(receiverId, text) {
     if (receiverId === currentUser.uid) return;
 
     const senderName = currentUserData?.displayName || 'Someone';
-    const apiUrl = `${VERCEL_API_URL}/api/send-notification`;
+    const apiUrl = `${VERCEL_API_URL.replace(/\/$/, '')}/api/send-notification`;
 
     await fetch(apiUrl, {
       method: 'POST',
@@ -2864,7 +2861,7 @@ window.contextDelete = async function() {
 function startReply(data) {
   replyToMessageId = data.id;
   replyToText = data.text;
-  replyToName = data.senderId === currentUser.uid ? 'You' : (currentUserData?.displayName || 'User');
+  replyToName = data.senderId === currentUser.uid ? (currentUserData?.displayName || 'You') : (data.senderName || 'User');
   document.getElementById('reply-bar-name').textContent = replyToName;
   document.getElementById('reply-bar-text').textContent = data.text || '';
   document.getElementById('reply-bar').classList.add('show');
@@ -3142,7 +3139,7 @@ window.doLogout = async function() {
   updateOnlineStatus(false);
   cleanupListeners();
   await signOut(auth);
-  showToast('Logout sফল!', 'success');
+  showToast('Logout সফল!', 'success');
 };
 
 window.toggleTheme = function() {
@@ -3288,7 +3285,7 @@ function escHtml(str) {
 
 function maskPhone(phone) {
   if (!phone || phone.length < 6) return phone;
-  return phone.slice(0,3) + '*'.repeat(phone.length-6) + phone.slice(-2);
+  return phone.slice(0,3) + '*'.repeat(phone.length-6) + phone.slice(-3);
 }
 
 function maskEmail(email) {
