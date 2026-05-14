@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do You Love Me?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        button {
+            padding: 12px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .btn-yes {
+            background-color: #ff4757;
+            color: white;
+        }
+
+        .btn-yes:hover {
+            background-color: #ff6b81;
+            transform: scale(1.05);
+        }
+
+        .btn-no {
+            background-color: #747d8c;
+            color: white;
+        }
+
+        .btn-no:hover {
+            background-color: #57606f;
+        }
+
+        /* গে পেজের স্টাইল */
+        .gay-page {
+            display: none;
+        }
+
+        .gay-page h1 {
+            color: #e84393;
+        }
+
+        .description {
+            text-align: left;
+            background: #ffeaa7;
+            padding: 15px;
+            border-radius: 10px;
+            color: #2d3436;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="mainPage">
+        <h1>Are you love me? ❤️</h1>
+        <div class="btn-container">
+            <button class="btn-yes" onclick="selectYes()">Yes</button>
+            <button class="btn-no" onclick="selectNo()">No</button>
+        </div>
+    </div>
+
+    <div class="card gay-page" id="gayPage">
+        <h1>তুমি Gay! 🌈</h1>
+        <p style="font-weight: bold; color: #666;">তুমি যেহেতু আমাকে ভালোবাসো না, তার মানে তুমি নির্ঘাত একজন Gay!</p>
+        
+        <div class="description">
+            <strong>Gay এর বিবরণ:</strong><br>
+            সমকামী বা 'Gay' বলতে সাধারণত এমন পুরুষদের বোঝায় যারা অন্য পুরুষদের প্রতি আবেগগত, রোমান্টিক বা যৌনভাবে আকর্ষণ বোধ করে। এটি মানুষের স্বাভাবিক যৌন অভিমুখিতার (Sexual Orientation) একটি অংশ। তবে এখানে এই বাটনে ক্লিক করার মাধ্যমে প্রমাণিত হলো যে তুমি মেয়েদের ছেড়ে ছেলেদের প্রতি বেশি আগ্রহী! 😜
+        </div>
+    </div>
+
+    <script>
+        // Yes বাটনে ক্লিক করলে লিংকে নিয়ে যাবে
+        function selectYes() {
+            window.location.href = "https://casajoys.com/lg4tlr8k";
+        }
+
+        // No বাটনে ক্লিক করলে Gay পেজ দেখাবে
+        function selectNo() {
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('gayPage').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
