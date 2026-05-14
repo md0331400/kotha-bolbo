@@ -1,0 +1,13 @@
+{
+  "name": "kotha-bolbo",
+  "version": "1.0.0",
+  "description": "Kotha Bolbo - Premium real-time messenger by Sayem",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
