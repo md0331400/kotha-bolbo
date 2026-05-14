@@ -91,3 +91,43 @@ module.exports = async (req, res) => {
     let json = await response.json().catch(() => ({}));
 
     // Fallback if newer endpoint says no recipients / errors
+    const noRecipients =
+      response.ok && (json.recipients === 0 || (Array.isArray(json.errors) && json.errors.some(e => /no subscribed/i.test(String(e)))));
+    if (!response.ok || noRecipients) {
+      const fallback = await fetch('https://onesignal.com/api/v1/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          Authorization: `Basic ${REST_KEY}`
+        },
+        body: JSON.stringify({
+          ...basePayload,
+          include_external_user_ids: [String(receiverId)],
+          channel_for_external_user_ids: 'push'
+        })
+      });
+      const fJson = await fallback.json().catch(() => ({}));
+      response = fallback;
+      json = fJson;
+    }
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: 'OneSignal error',
+        details: json,
+        hint: 'Check that ONESIGNAL_APP_ID/REST_API_KEY are correct and the receiver has allowed notifications.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      id: json.id || null,
+      recipients: json.recipients ?? null,
+      raw: json
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: 'Server error', message: err.message });
+  }
+};
