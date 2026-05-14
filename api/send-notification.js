@@ -1,37 +1,66 @@
-// api/send-notification.js
+/**
+ * Vercel Serverless Function: api/send-notification.js
+ * --------------------------------------------------------
+ * Securely sends a push notification through the OneSignal REST API.
+ *
+ * 🔐 SECURITY: The OneSignal REST API key is read from a Vercel
+ * Environment Variable. NEVER hard-code it. NEVER expose to frontend.
+ *
+ * Required Vercel Environment Variables:
+ *   ONESIGNAL_APP_ID       =  YOUR_ONESIGNAL_APP_ID
+ *   ONESIGNAL_REST_API_KEY =  YOUR_ONESIGNAL_REST_API_KEY
+ *
+ * (Optional) ALLOWED_ORIGIN = https://your-vercel-domain.vercel.app
+ *
+ * Request body (JSON):
+ * {
+ *   "receiverId":  "<firebase-uid-of-receiver>",
+ *   "senderId":    "<firebase-uid-of-sender>",
+ *   "senderName":  "Sayem",
+ *   "message":     "Hello there",
+ *   "chatId":      "<chatId>"
+ * }
+ */
 
-export default async function handler(req, res){
+module.exports = async (req, res) => {
+  // CORS
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-if(req.method!=="POST"){
-return res.status(405).json({error:"Method not allowed"});
-}
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-try{
+  try {
+    const body =
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
 
-const {message,sender}=req.body;
+    const { receiverId, senderId, senderName, message, chatId } = body;
 
-const response = await fetch(
-"https://onesignal.com/api/v1/notifications",
-{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-Authorization:`Basic ${process.env.ONESIGNAL_REST_API_KEY}`
-},
-body:JSON.stringify({
-app_id:process.env.ONESIGNAL_APP_ID,
-included_segments:["Subscribed Users"],
-headings:{en:"New Message"},
-contents:{en:`${sender}: ${message}`},
-url:"/"
-})
-});
+    if (!receiverId || !senderId || !message) {
+      return res
+        .status(400)
+        .json({ error: 'Missing required fields' });
+    }
 
-const data=await response.json();
+    // Skip self notifications
+    if (receiverId === senderId) {
+      return res.status(200).json({ skipped: true });
+    }
 
-res.status(200).json(data);
+    const APP_ID = process.env.ONESIGNAL_APP_ID;
+    const REST_KEY = process.env.ONESIGNAL_REST_API_KEY;
 
-}catch(err){
-res.status(500).json({error:err.message});
-}
-}
+    if (!APP_ID || !REST_KEY) {
+      return res
+        .status(500)
+        .json({ error: 'OneSignal env vars not configured' });
+    }
+
+    // Sanitize text length
+    const safeName = String(senderName || 'New message').slice(0, 60);
+    const safeMsg = String(message).slice(0, 200);
+
