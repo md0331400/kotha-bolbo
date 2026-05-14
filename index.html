@@ -1,31 +1,916 @@
-<!doctype html>
+<!-- index.html -->
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#0a0e1a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Kotha Bolbo" />
-    <meta name="description" content="Kotha Bolbo - Premium Real-time Chat Application" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    <title>Kotha Bolbo</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body, #root { height: 100%; width: 100%; overflow: hidden; }
-      body { background: #0a0e1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-      .splash-loader { position: fixed; inset: 0; background: #0a0e1a; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-      .splash-logo { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, #00d4ff, #7c3aed); animation: splashPulse 1.5s ease-in-out infinite; }
-      @keyframes splashPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
-    </style>
-  </head>
-  <body>
-    <div id="root">
-      <div class="splash-loader">
-        <div class="splash-logo"></div>
-      </div>
-    </div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8"/>
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+/>
+
+<title>Kotha Bolbo</title>
+
+<link rel="manifest" href="./manifest.json"/>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Exo+2:wght@600;700&display=swap"
+rel="stylesheet"
+/>
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
+
+<style>
+:root{
+--bg:#090b12;
+--card:rgba(255,255,255,.07);
+--glass:rgba(255,255,255,.08);
+--cyan:#00d4ff;
+--purple:#7c3aed;
+--txt:#fff;
+--muted:#b5b5b5;
+--danger:#ff4b5c;
+--safe:env(safe-area-inset-bottom);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
+}
+
+body{
+font-family:Inter,sans-serif;
+background:linear-gradient(180deg,#070b14,#0d1020);
+color:#fff;
+overflow:hidden;
+height:100vh;
+}
+
+.hidden{display:none!important}
+
+#splash{
+position:fixed;
+inset:0;
+background:#05070d;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+z-index:99999;
+}
+
+.ring{
+position:absolute;
+width:160px;
+height:160px;
+border:2px solid rgba(0,212,255,.3);
+border-radius:50%;
+animation:spin 5s linear infinite;
+}
+
+.r2{
+width:220px;
+height:220px;
+animation-direction:reverse;
+border-color:rgba(124,58,237,.25);
+}
+
+@keyframes spin{
+100%{transform:rotate(360deg)}
+}
+
+.logo{
+font-size:56px;
+color:var(--cyan);
+z-index:2;
+animation:float 2s infinite ease-in-out;
+}
+
+@keyframes float{
+50%{transform:translateY(-8px)}
+}
+
+.title{
+font-family:"Exo 2";
+font-size:34px;
+font-weight:700;
+background:linear-gradient(90deg,var(--cyan),var(--purple));
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+margin-top:20px;
+}
+
+.sub{
+color:#b8b8b8;
+margin-top:8px;
+}
+
+#app{
+height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+.topbar{
+height:65px;
+padding:0 18px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+backdrop-filter:blur(20px);
+background:rgba(0,0,0,.2);
+border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.brand{
+font-family:"Exo 2";
+font-size:22px;
+}
+
+.page{
+flex:1;
+overflow:auto;
+padding-bottom:95px;
+}
+
+.bottom-nav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:82px;
+padding-bottom:var(--safe);
+background:rgba(5,8,16,.75);
+backdrop-filter:blur(20px);
+display:flex;
+border-top:1px solid rgba(255,255,255,.08);
+z-index:999;
+}
+
+.nav-btn{
+flex:1;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+gap:6px;
+color:#bbb;
+font-size:13px;
+}
+
+.nav-btn.active{
+color:var(--cyan);
+}
+
+.card{
+margin:12px;
+background:var(--card);
+border:1px solid rgba(255,255,255,.08);
+backdrop-filter:blur(20px);
+border-radius:20px;
+padding:14px;
+}
+
+input,select{
+width:100%;
+height:52px;
+border:none;
+outline:none;
+padding:0 14px;
+border-radius:14px;
+background:rgba(255,255,255,.08);
+color:#fff;
+margin-bottom:12px;
+}
+
+button{
+border:none;
+background:linear-gradient(90deg,var(--cyan),var(--purple));
+color:#fff;
+height:52px;
+padding:0 20px;
+border-radius:14px;
+font-weight:700;
+width:100%;
+}
+
+.auth-wrap{
+display:flex;
+height:100vh;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.auth-box{
+width:100%;
+max-width:420px;
+}
+
+.chat-item{
+display:flex;
+gap:12px;
+padding:12px;
+align-items:center;
+border-bottom:1px solid rgba(255,255,255,.05);
+}
+
+.avatar{
+width:54px;
+height:54px;
+border-radius:50%;
+object-fit:cover;
+}
+
+.chat-meta{
+flex:1;
+overflow:hidden;
+}
+
+.chat-meta h4{
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+.preview{
+font-size:13px;
+color:#aaa;
+margin-top:4px;
+}
+
+.badge{
+min-width:22px;
+height:22px;
+border-radius:50%;
+background:var(--cyan);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:12px;
+}
+
+#chatView{
+position:fixed;
+inset:0;
+background:#090b12;
+z-index:1000;
+display:none;
+flex-direction:column;
+}
+
+.chat-header{
+height:65px;
+display:flex;
+align-items:center;
+padding:0 15px;
+gap:14px;
+border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.messages{
+flex:1;
+overflow:auto;
+padding:14px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.msg{
+max-width:78%;
+padding:12px;
+border-radius:18px;
+position:relative;
+word-wrap:break-word;
+}
+
+.me{
+align-self:flex-end;
+background:linear-gradient(135deg,var(--cyan),var(--purple));
+}
+
+.them{
+align-self:flex-start;
+background:rgba(255,255,255,.08);
+}
+
+.meta{
+font-size:11px;
+opacity:.8;
+margin-top:6px;
+display:flex;
+justify-content:flex-end;
+gap:5px;
+}
+
+.composer{
+padding:10px;
+display:flex;
+gap:10px;
+border-top:1px solid rgba(255,255,255,.06);
+}
+
+.composer input{
+margin:0;
+}
+
+.send-btn{
+width:58px;
+border-radius:16px;
+}
+
+.toast{
+position:fixed;
+bottom:105px;
+left:50%;
+transform:translateX(-50%);
+background:rgba(0,0,0,.8);
+padding:12px 18px;
+border-radius:999px;
+z-index:999999;
+opacity:0;
+transition:.3s;
+}
+
+.toast.show{
+opacity:1;
+}
+
+.online-dot{
+width:10px;
+height:10px;
+background:#00ff7b;
+border-radius:50%;
+}
+
+.typing{
+font-size:12px;
+color:#9adfff;
+padding-left:15px;
+padding-bottom:8px;
+}
+
+.gender{
+width:10px;
+height:10px;
+border-radius:50%;
+}
+
+.male{background:#3b82f6}
+.female{background:#ec4899}
+.other{background:#7c3aed}
+</style>
+</head>
+
+<body>
+
+<div id="splash">
+<div class="ring"></div>
+<div class="ring r2"></div>
+<div class="logo"><i class="fa-solid fa-comments"></i></div>
+<div class="title">Kotha Bolbo</div>
+<div class="sub">Created by Sayem</div>
+</div>
+
+<div id="auth" class="auth-wrap hidden">
+<div class="auth-box card">
+
+<h2 style="margin-bottom:18px">Login</h2>
+
+<input id="email" type="email" placeholder="Email"/>
+<input id="password" type="password" placeholder="Password"/>
+
+<button id="loginBtn">Login</button>
+
+<hr style="margin:18px 0;border-color:#222"/>
+
+<h3 style="margin-bottom:14px">Create Account</h3>
+
+<input id="sName" placeholder="Name"/>
+<input id="sEmail" type="email" placeholder="Email"/>
+<input id="sPhone" placeholder="Phone"/>
+<select id="sGender">
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+<option value="Other">Other</option>
+</select>
+<input id="sPhoto" placeholder="Photo URL (optional)"/>
+<input id="sPassword" type="password" placeholder="Password"/>
+
+<button id="signupBtn">Signup</button>
+
+</div>
+</div>
+
+<div id="app" class="hidden">
+
+<div class="topbar">
+<div class="brand">Kotha Bolbo</div>
+<div>
+<i class="fa-solid fa-bell" id="notifyBtn"></i>
+</div>
+</div>
+
+<div class="page" id="chatList"></div>
+
+<div class="page hidden" id="friendsPage"></div>
+
+<div class="page hidden" id="settingsPage"></div>
+
+<div class="bottom-nav">
+<div class="nav-btn active" data-page="chatList">
+<i class="fa-solid fa-comment"></i>
+<span>Chats</span>
+</div>
+
+<div class="nav-btn" data-page="friendsPage">
+<i class="fa-solid fa-user-group"></i>
+<span>Friends</span>
+</div>
+
+<div class="nav-btn" data-page="settingsPage">
+<i class="fa-solid fa-gear"></i>
+<span>Settings</span>
+</div>
+</div>
+</div>
+
+<div id="chatView">
+<div class="chat-header">
+<i class="fa-solid fa-arrow-left" id="backChat"></i>
+<img id="chatAvatar" class="avatar"/>
+<div>
+<div id="chatName"></div>
+<div id="chatStatus" style="font-size:12px;color:#aaa"></div>
+</div>
+</div>
+
+<div class="messages" id="messages"></div>
+
+<div class="typing" id="typingText"></div>
+
+<div class="composer">
+<input id="messageInput" placeholder="Type message..."/>
+<button class="send-btn" id="sendBtn">
+<i class="fa-solid fa-paper-plane"></i>
+</button>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import {
+initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getAuth,
+signInWithEmailAndPassword,
+createUserWithEmailAndPassword,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+getFirestore,
+doc,
+setDoc,
+getDoc,
+collection,
+query,
+where,
+getDocs,
+onSnapshot,
+addDoc,
+serverTimestamp,
+updateDoc,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+getDatabase,
+ref,
+set,
+onValue,
+onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* =========================
+REPLACE BELOW VALUES
+========================= */
+
+const firebaseConfig = {
+apiKey: "YOUR_FIREBASE_API_KEY",
+authDomain: "YOUR_FIREBASE_PROJECT_ID.firebaseapp.com",
+projectId: "YOUR_FIREBASE_PROJECT_ID",
+storageBucket: "YOUR_FIREBASE_PROJECT_ID.appspot.com",
+messagingSenderId: "YOUR_SENDER_ID",
+appId: "YOUR_APP_ID",
+databaseURL:"YOUR_DATABASE_URL"
+};
+
+const ONESIGNAL_APP_ID="YOUR_ONESIGNAL_APP_ID";
+
+/* ========================= */
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const rtdb = getDatabase(app);
+
+let me=null;
+let currentChatUser=null;
+let unsubscribeMessages=null;
+
+const qs=s=>document.querySelector(s);
+
+function toast(t){
+const el=qs("#toast");
+el.textContent=t;
+el.classList.add("show");
+setTimeout(()=>el.classList.remove("show"),2500);
+}
+
+setTimeout(()=>{
+qs("#splash").style.display="none";
+qs("#auth").classList.remove("hidden");
+},3000);
+
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(async function(OneSignal) {
+await OneSignal.init({
+appId: ONESIGNAL_APP_ID,
+notifyButton:{enable:false},
+allowLocalhostAsSecureOrigin:true
+});
+});
+
+qs("#notifyBtn").onclick=async()=>{
+const permission=await OneSignal.Notifications.requestPermission();
+toast(permission?"Notification enabled":"Permission denied");
+};
+
+qs("#signupBtn").onclick=async()=>{
+try{
+const name=qs("#sName").value.trim();
+const email=qs("#sEmail").value.trim();
+const phone=qs("#sPhone").value.trim();
+const gender=qs("#sGender").value;
+const password=qs("#sPassword").value.trim();
+
+if(!name||!email||!phone||!password) return toast("সব তথ্য দিন");
+
+const phoneQ=query(collection(db,"users"),where("phone","==",phone));
+const phoneSnap=await getDocs(phoneQ);
+
+if(!phoneSnap.empty) return toast("Phone already used");
+
+const cred=await createUserWithEmailAndPassword(auth,email,password);
+
+const avatar=qs("#sPhoto").value.trim()||
+`https://api.dicebear.com/8.x/thumbs/svg?seed=${name}`;
+
+await setDoc(doc(db,"users",cred.user.uid),{
+uid:cred.user.uid,
+displayName:name,
+email,
+phone,
+gender,
+photoURL:avatar,
+createdAt:Date.now(),
+emailPublic:true,
+phonePublic:false,
+lastProfileEdit:Date.now()
+});
+
+toast("Account created");
+}catch(e){
+toast(e.message);
+}
+};
+
+qs("#loginBtn").onclick=async()=>{
+try{
+await signInWithEmailAndPassword(
+auth,
+qs("#email").value.trim(),
+qs("#password").value.trim()
+);
+}catch(e){
+toast("Login failed");
+}
+};
+
+onAuthStateChanged(auth,async(user)=>{
+if(user){
+me=user;
+
+qs("#auth").classList.add("hidden");
+qs("#app").classList.remove("hidden");
+
+setupPresence();
+loadChats();
+loadFriends();
+loadSettings();
+
+}else{
+qs("#auth").classList.remove("hidden");
+qs("#app").classList.add("hidden");
+}
+});
+
+function setupPresence(){
+const statusRef=ref(rtdb,"status/"+me.uid);
+
+set(statusRef,{
+online:true,
+lastSeen:Date.now()
+});
+
+onDisconnect(statusRef).set({
+online:false,
+lastSeen:Date.now()
+});
+}
+
+function chatId(a,b){
+return [a,b].sort().join("_");
+}
+
+async function loadFriends(){
+const page=qs("#friendsPage");
+
+onSnapshot(collection(db,"users"),snap=>{
+page.innerHTML="";
+
+snap.forEach(docu=>{
+const u=docu.data();
+if(u.uid===me.uid) return;
+
+const div=document.createElement("div");
+div.className="chat-item";
+
+const gender=u.gender==="Male"?"male":
+u.gender==="Female"?"female":"other";
+
+div.innerHTML=`
+<img class="avatar" src="${u.photoURL}">
+<div class="chat-meta">
+<h4>${u.displayName}</h4>
+<div class="preview">${u.phone.slice(0,5)}*****</div>
+</div>
+<div class="gender ${gender}"></div>
+`;
+
+div.onclick=()=>openChat(u);
+
+page.appendChild(div);
+});
+});
+}
+
+function loadChats(){
+const page=qs("#chatList");
+
+onSnapshot(collection(db,"conversations"),async snap=>{
+page.innerHTML="";
+
+for(const d of snap.docs){
+const c=d.data();
+
+if(!c.participants.includes(me.uid)) continue;
+
+const other=c.participants.find(x=>x!==me.uid);
+
+const userDoc=await getDoc(doc(db,"users",other));
+const u=userDoc.data();
+
+const div=document.createElement("div");
+div.className="chat-item";
+
+div.innerHTML=`
+<img class="avatar" src="${u.photoURL}">
+<div class="chat-meta">
+<h4>${u.displayName}</h4>
+<div class="preview">${c.lastMessage||""}</div>
+</div>
+`;
+
+div.onclick=()=>openChat(u);
+
+page.prepend(div);
+}
+});
+}
+
+async function openChat(user){
+currentChatUser=user;
+
+qs("#chatView").style.display="flex";
+qs("#chatAvatar").src=user.photoURL;
+qs("#chatName").textContent=user.displayName;
+
+listenTyping();
+loadMessages();
+
+const statusR=ref(rtdb,"status/"+user.uid);
+
+onValue(statusR,s=>{
+const d=s.val();
+if(!d) return;
+qs("#chatStatus").textContent=d.online?"Online":"Offline";
+});
+}
+
+qs("#backChat").onclick=()=>{
+qs("#chatView").style.display="none";
+if(unsubscribeMessages) unsubscribeMessages();
+};
+
+function loadMessages(){
+const box=qs("#messages");
+box.innerHTML="";
+
+const q=query(
+collection(db,"messages"),
+orderBy("timestamp","asc")
+);
+
+unsubscribeMessages=onSnapshot(q,snap=>{
+box.innerHTML="";
+
+snap.forEach(d=>{
+const m=d.data();
+
+const valid=
+(m.senderId===me.uid&&m.receiverId===currentChatUser.uid)||
+(m.receiverId===me.uid&&m.senderId===currentChatUser.uid);
+
+if(!valid) return;
+
+const div=document.createElement("div");
+div.className=`msg ${m.senderId===me.uid?"me":"them"}`;
+
+div.innerHTML=`
+<div>${escapeHTML(m.text)}</div>
+<div class="meta">
+${new Date(m.timestamp?.seconds*1000||Date.now()).toLocaleTimeString([],{
+hour:'2-digit',
+minute:'2-digit'
+})}
+${m.senderId===me.uid?"✓✓":""}
+</div>
+`;
+
+box.appendChild(div);
+
+if(m.receiverId===me.uid&&!m.seen){
+updateDoc(doc(db,"messages",d.id),{seen:true});
+}
+});
+
+box.scrollTop=box.scrollHeight;
+});
+}
+
+function escapeHTML(str){
+const div=document.createElement("div");
+div.textContent=str;
+return div.innerHTML;
+}
+
+qs("#sendBtn").onclick=sendMessage;
+
+async function sendMessage(){
+const input=qs("#messageInput");
+const text=input.value.trim();
+
+if(!text||!currentChatUser) return;
+
+input.value="";
+
+const msg={
+senderId:me.uid,
+receiverId:currentChatUser.uid,
+text,
+timestamp:serverTimestamp(),
+delivered:true,
+seen:false,
+edited:false,
+replyTo:null
+};
+
+await addDoc(collection(db,"messages"),msg);
+
+await setDoc(doc(db,"conversations",
+chatId(me.uid,currentChatUser.uid)
+),{
+participants:[me.uid,currentChatUser.uid],
+lastMessage:text,
+lastSenderId:me.uid,
+lastTimestamp:Date.now()
+});
+
+sendPush(currentChatUser.uid,text);
+
+}
+
+async function sendPush(uid,text){
+
+const receiver=await getDoc(doc(db,"users",uid));
+
+await fetch("/api/send-notification",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+userId:uid,
+message:text,
+sender:me.email
+})
+});
+}
+
+function listenTyping(){
+const typingRef=ref(
+rtdb,
+"typing/"+chatId(me.uid,currentChatUser.uid)
+);
+
+onValue(typingRef,s=>{
+const d=s.val();
+if(!d) return;
+
+qs("#typingText").textContent=
+d.typing===currentChatUser.uid?"Typing...":"";
+});
+}
+
+let typingTimeout;
+
+qs("#messageInput").addEventListener("input",()=>{
+
+const r=ref(
+rtdb,
+"typing/"+chatId(me.uid,currentChatUser.uid)
+);
+
+set(r,{
+typing:me.uid,
+timestamp:Date.now()
+});
+
+clearTimeout(typingTimeout);
+
+typingTimeout=setTimeout(()=>{
+set(r,{typing:""});
+},2000);
+
+});
+
+function loadSettings(){
+qs("#settingsPage").innerHTML=`
+<div class="card">
+<h3 style="margin-bottom:14px">Settings</h3>
+
+<button id="logoutBtn">Logout</button>
+
+<div style="margin-top:20px;color:#aaa">
+Kotha Bolbo v1.0<br><br>
+Created by Sayem
+</div>
+</div>
+`;
+
+qs("#logoutBtn").onclick=()=>signOut(auth);
+}
+
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+btn.onclick=()=>{
+document.querySelectorAll(".nav-btn")
+.forEach(x=>x.classList.remove("active"));
+
+btn.classList.add("active");
+
+document.querySelectorAll(".page")
+.forEach(p=>p.classList.add("hidden"));
+
+qs("#"+btn.dataset.page).classList.remove("hidden");
+};
+});
+
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("./sw.js");
+}
+</script>
+</body>
 </html>
