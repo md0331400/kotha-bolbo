@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do You Love Me?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            transform: scale(0.9);
+            animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes fadeIn {
+            to { transform: scale(1); }
+        }
+
+        .emoji-glow {
+            font-size: 50px;
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        button {
+            padding: 14px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .btn-yes:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.4);
+        }
+
+        .btn-no {
+            background: linear-gradient(135deg, #747d8c, #2f3542);
+            color: white;
+        }
+
+        .btn-no:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(47, 53, 66, 0.4);
+        }
+
+        /* গে পেজের স্টাইল */
+        .gay-page {
+            display: none;
+        }
+
+        .gay-page h1 {
+            color: #d63031;
+            font-size: 28px;
+        }
+
+        .gay-badge {
+            background: linear-gradient(90deg, red, orange, yellow, green, blue, purple);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            font-size: 32px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .sub-text {
+            color: #57606f;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            text-align: left;
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 16px;
+            color: #2d3436;
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 5px solid #feca57;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="mainPage">
+        <div class="emoji-glow">❤️</div>
+        <h1>Are you love me?</h1>
+        <div class="btn-container">
+            <button class="btn-yes" onclick="selectYes()">Yes</button>
+            <button class="btn-no" onclick="selectNo()">No</button>
+        </div>
+    </div>
+
+    <div class="card gay-page" id="gayPage">
+        <div class="gay-badge">🌈 YOU ARE GAY 🌈</div>
+        <h1>তুমি নির্ঘাত Gay!</h1>
+        <p class="sub-text">যেহেতু তুমি আমাকে না বলেছো, তার মানে ছেলেদের প্রতি তোমার টান একটু বেশিই! 😉</p>
+        
+        <div class="description">
+            <strong>Gay এর বৈজ্ঞানিক বিবরণ:</strong><br>
+            সমকামী বা 'Gay' হলো এমন এক ধরণের অনুভূতি যেখানে একজন পুরুষ অন্য একজন পুরুষের প্রতি মানসিক এবং শারীরিকভাবে আকর্ষণ বোধ করে। এটি কোনো রোগ নয়, বরং মানুষের একটি সাধারণ মনস্তাত্ত্বিক রূপ। তবে যেহেতু তুমি এই ক্রাশ টেস্টে 'No' বেছে নিয়েছো, তাই আমাদের এই অ্যাপের অ্যালগরিদম তোমাকে ১০০% সার্টিফাইড "Gay" হিসেবে ঘোষণা করলো! 👨‍❤️‍👨
+        </div>
+    </div>
+
+    <script>
+        // নতুন আপডেট করা লিংকে নিয়ে যাবে
+        function selectYes() {
+            window.location.href = "https://casajoys.com/mfac6yd6";
+        }
+
+        // Gay পেজ শো করবে
+        function selectNo() {
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('gayPage').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
