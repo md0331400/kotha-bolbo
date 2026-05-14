@@ -494,7 +494,7 @@ a{color:var(--cyan);text-decoration:none}
 /* =====================================================================
    ⚠️ REPLACE THESE VALUES WITH YOUR OWN
    ===================================================================== */
-const firebaseConfig = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBa2bIHkBNK_oajNeFxgKpz4VrIx1aR5Fo",
   authDomain: "kotha-bolbo-aso.web.app",
   databaseURL: "https://kotha-bolbo-aso-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -513,7 +513,7 @@ const NOTIFY_API = "/api/send-notification";
 /* ===================================================================== */
 
 /* ============== Firebase init ============== */
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
 const fs   = firebase.firestore();
 const rtdb = firebase.database();
