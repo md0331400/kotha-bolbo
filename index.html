@@ -1037,16 +1037,14 @@
   };
 </script>
 
-<script type="module">
-function isPWA() { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone; }
-if (!isPWA()) { document.getElementById('pwa-block').style.display = 'flex'; document.getElementById('splash').style.display = 'none'; throw new Error('Not PWA'); } else { document.getElementById('pwa-block').style.display = 'none'; }
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, updateDoc, serverTimestamp, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp as rtdbTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-
+<script>
+// ========== Firebase Init ==========
 const firebaseConfig = {
   apiKey: "AIzaSyBa2bIHkBNK_oajNeFxgKpz4VrIx1aR5Fo",
   authDomain: "kotha-bolbo-aso.firebaseapp.com",
@@ -1057,21 +1055,36 @@ const firebaseConfig = {
   databaseURL: "https://kotha-bolbo-aso-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const rtdb = getDatabase(app);
-const storage = getStorage(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const rtdb = firebase.database();
+db.settings({ ignoreUndefinedProperties: true });
 
-let currentUser = null, currentUserData = null, openChatUser = null;
-let msgUnsubscribe = null, chatUnsubscribe = null, presenceUnsubscribe = null, typingUnsubscribe = null;
+// ========== Global State ==========
+let currentUser = null;
+let currentUserData = null;
+let openChatUser = null;
+let msgUnsubscribe = null, msgUnsubscribe2 = null, chatUnsubscribe = null;
+let presenceUnsubscribe = null, typingUnsubscribe = null;
 let typingTimeout = null, typingDebounce = null;
 let allFriends = [], allChats = [], unreadCounts = {};
 let presenceListeners = {};
+let _replyingTo = null;
+let renderedMsgIds = new Set();
+let lastRenderedDate = '';
+let _msgBuffer = {};
+let _initialLoadDone = false;
+let privacyState = { email: false, phone: false };
+let genderPopupMode = 'signup';
+let _justLoggedIn = false;
+let _ctxMsgId = null, _ctxMsgText = '', _ctxIsSent = false, _editingMsgId = null;
+let _isLightTheme = false;
 
 const AUTO_DELETE_HOURS = 24;
 const AUTO_DELETE_MS = AUTO_DELETE_HOURS * 60 * 60 * 1000;
 
+// ========== Utilities ==========
 function avatarUrl(name, gender) {
   const seed = encodeURIComponent(name || 'User');
   if (gender === 'Female') return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&gender=female`;
@@ -1079,358 +1092,16 @@ function avatarUrl(name, gender) {
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
 }
 
-setTimeout(() => { document.getElementById('splash').classList.add('hide'); setTimeout(() => { document.getElementById('splash').style.display='none'; initAuth(); }, 800); }, 3000);
-
-function initAuth() {
-  onAuthStateChanged(auth, (user) => {
-    if (user) { currentUser = user; fetchMyData(); }
-    else { currentUserData = null; currentUser = null; showAuthScreen(); }
-  });
-}
-
-async function fetchMyData() {
-  try {
-    const snap = await getDoc(doc(db, 'users', currentUser.uid));
-    if (snap.exists()) { currentUserData = snap.data(); }
-    else { currentUserData = { displayName: currentUser.email?.split('@')[0]||'User', email: currentUser.email, photoURL: avatarUrl('User',''), gender: '' }; }
-  } catch(e) { currentUserData = { displayName: 'User', email: currentUser.email, photoURL: avatarUrl('User',''), gender: '' }; }
-  updateUI(); showApp();
-}
-
-function genderDotHTML(gender) {
-  if (!gender) return '';
-  const cfg = { 'Male': { cls:'male', icon:'fa-mars' }, 'Female': { cls:'female', icon:'fa-venus' }, 'Other': { cls:'other', icon:'fa-genderless' } };
-  const c = cfg[gender]; if (!c) return '';
-  return `<div class="gender-dot ${c.cls}"><i class="fas ${c.icon}"></i></div>`;
-}
-
-function applyGenderDot(dotEl, gender) {
-  if (!dotEl) return;
-  if (!gender) { dotEl.style.display='none'; return; }
-  const cfg = { 'Male': { cls:'male', icon:'fa-mars' }, 'Female': { cls:'female', icon:'fa-venus' }, 'Other': { cls:'other', icon:'fa-genderless' } };
-  const c = cfg[gender];
-  if (!c) { dotEl.style.display='none'; return; }
-  dotEl.className = `gender-dot ${c.cls}`;
-  dotEl.innerHTML = `<i class="fas ${c.icon}"></i>`;
-  dotEl.style.display = 'flex';
-}
-
-function updateUI() {
-  if (!currentUserData) return;
-  const av = currentUserData.photoURL || avatarUrl(currentUserData.displayName||'U', '');
-  document.getElementById('my-avatar').src = av;
-  document.getElementById('my-name-header').textContent = currentUserData.displayName||'User';
-  document.getElementById('settings-avatar').src = av;
-  document.getElementById('settings-name').textContent = currentUserData.displayName||'User';
-  document.getElementById('settings-email').textContent = currentUserData.email||'';
-  applyGenderDot(document.getElementById('my-header-gender-dot'), currentUserData.gender);
-  applyGenderDot(document.getElementById('settings-gender-dot'), currentUserData.gender);
-}
-
-function showAuthScreen() {
-  document.getElementById('auth-screen').innerHTML = `<div class="auth-logo"><div class="auth-mini-logo"><i class="fas fa-comment-dots"></i></div><h1>Kotha Bolbo</h1><p>Talk, stay connected</p></div><div class="auth-card"><div class="auth-tabs"><button class="auth-tab active" onclick="switchAuthTab('login')">Login</button><button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button></div><div id="login-form"><div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" /></div><div class="form-group"><label>Password</label><div style="position:relative;"><input type="password" id="login-pass" placeholder="••••••••" style="padding-right:38px;" /><button type="button" onclick="togglePassVis('login-pass','login-pass-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:0;"><i class="fas fa-eye" id="login-pass-eye"></i></button></div></div><button type="button" class="forgot-link" onclick="openForgotPopup()">Forget your password?</button><button class="btn-primary" onclick="handleLogin()">Login</button></div><div id="signup-form" style="display:none;"><div class="form-group"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="signup-phone" placeholder="+880..." /></div><div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com" /></div><div class="form-group"><label>Gender</label><div class="gender-trigger" id="gender-trigger" onclick="openGenderPopup()"><span id="gender-display-text">Select Gender</span><i class="fas fa-chevron-down"></i></div><input type="hidden" id="signup-gender" value="" /></div><div class="form-group"><label>Password</label><div style="position:relative;"><input type="password" id="signup-pass" placeholder="Min 6 characters" style="padding-right:38px;" /><button type="button" onclick="togglePassVis('signup-pass','signup-pass-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:0;"><i class="fas fa-eye" id="signup-pass-eye"></i></button></div></div><div class="form-group"><label>Confirm Password</label><div style="position:relative;"><input type="password" id="signup-confirm-pass" placeholder="Re-enter password" style="padding-right:38px;" /><button type="button" onclick="togglePassVis('signup-confirm-pass','signup-cpass-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:0;"><i class="fas fa-eye" id="signup-cpass-eye"></i></button></div></div><button class="btn-primary" onclick="handleSignup()">Create Account</button></div><div class="auth-error" id="auth-error"></div></div>`;
-  document.getElementById('auth-screen').style.display='flex';
-  document.getElementById('app').classList.remove('visible');
-  document.getElementById('conv-screen').classList.remove('open');
-}
-
-function playOnlineSound() {
-  try {
-    const audio = document.getElementById('online-sound');
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    }
-  } catch(e) {}
-}
-
-function setOnlineStatus() {
-  if (!currentUser) return;
-  const onlineRef = ref(rtdb, `status/${currentUser.uid}`);
-  set(onlineRef, { online: true, lastSeen: rtdbTimestamp() }).catch(()=>{});
-  onDisconnect(onlineRef).set({ online: false, lastSeen: rtdbTimestamp() });
-  onValue(ref(rtdb, '.info/connected'), (snap) => {
-    if (snap.val() === true) {
-      set(onlineRef, { online: true, lastSeen: rtdbTimestamp() }).catch(()=>{});
-      onDisconnect(onlineRef).set({ online: false, lastSeen: rtdbTimestamp() });
-      playOnlineSound();
-    }
-  });
-}
-
-function updateNotifStatus() {
-  const perm = Notification.permission;
-  const icon = document.getElementById('notif-status-icon');
-  const text = document.getElementById('notif-status-text');
-  if (perm === 'granted') { text.textContent = 'Allowed'; icon.className = 'fas fa-check-circle'; icon.style.color = 'var(--success)'; }
-  else { text.textContent = 'Blocked / Not Asked'; icon.className = 'fas fa-times-circle'; icon.style.color = 'var(--danger)'; }
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    document.getElementById('bg-status-text').textContent = 'Active (Service Worker running)';
-  } else { document.getElementById('bg-status-text').textContent = 'Not active'; }
-}
-
-async function requestNotificationPermission() {
-  if (Notification.permission === 'default') { await Notification.requestPermission(); }
-  updateNotifStatus();
-}
-
-let _justLoggedIn = false;
-function showApp() {
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app').classList.add('visible');
-  if (currentUser) setOnlineStatus();
-  if (_justLoggedIn) { setTimeout(()=>showToast('Welcome to Kotha Bolbo Messenger! 🎉'), 600); _justLoggedIn=false; }
-  loadChats(); loadFriends();
-  setTimeout(deleteOldMessages, 5000);
-  
-  OneSignalDeferred.push(async function(OneSignal) {
-    try {
-      const sub = await OneSignal.User.PushSubscription.getCurrent();
-      const subId = sub ? sub.id : null;
-      if (subId && currentUser) {
-        window._oneSignalPlayerId = subId;
-        await updateDoc(doc(db, 'users', currentUser.uid), { oneSignalPlayerId: subId });
-      }
-      OneSignal.User.PushSubscription.addEventListener('change', async (subscription) => {
-        if (subscription.id && currentUser) {
-          window._oneSignalPlayerId = subscription.id;
-          await updateDoc(doc(db, 'users', currentUser.uid), { oneSignalPlayerId: subscription.id });
-        }
-      });
-    } catch(e) { console.warn('[OneSignal] Sub error:', e); }
-  });
-
-  if (Notification.permission === 'default') {
-    setTimeout(() => document.getElementById('notification-perm-overlay').classList.add('open'), 600);
+function formatTime(d) {
+  if (!d) return '';
+  const date = d.toDate ? d.toDate() : new Date(d);
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
   }
-  document.getElementById('btn-notif-allow').onclick = async () => {
-    document.getElementById('notification-perm-overlay').classList.remove('open');
-    const result = await Notification.requestPermission();
-    if (result === 'granted') showToast('Notifications enabled!');
-    updateNotifStatus();
-    setTimeout(() => document.getElementById('bg-perm-overlay').classList.add('open'), 500);
-  };
-  document.getElementById('btn-notif-later').onclick = () => {
-    document.getElementById('notification-perm-overlay').classList.remove('open');
-    updateNotifStatus();
-    setTimeout(() => document.getElementById('bg-perm-overlay').classList.add('open'), 500);
-  };
-}
-
-function listenPresence(uid) {
-  if (presenceUnsubscribe) presenceUnsubscribe();
-  presenceUnsubscribe = onValue(ref(rtdb, `status/${uid}`), (snap) => {
-    const data = snap.val();
-    if (data && openChatUser) { openChatUser.online = data.online === true; updateConvHeader(); }
-  });
-}
-
-function listenAllPresence() {
-  const activeUids = new Set(allChats.map(({ user }) => user.uid));
-  Object.keys(presenceListeners).forEach(uid => {
-    if (!activeUids.has(uid)) {
-      presenceListeners[uid]();
-      delete presenceListeners[uid];
-    }
-  });
-  allChats.forEach(({ user }) => {
-    if (!presenceListeners[user.uid]) {
-      presenceListeners[user.uid] = onValue(ref(rtdb, `status/${user.uid}`), (snap) => {
-        const data = snap.val();
-        const online = data?.online === true;
-        allChats.forEach(chat => {
-          if (chat.user.uid === user.uid) chat.user.online = online;
-        });
-        renderChatList(allChats);
-      });
-    }
-  });
-}
-
-async function setMyTyping(v) {
-  if (!currentUser || !openChatUser) return;
-  await set(ref(rtdb, `typing/${currentUser.uid}_${openChatUser.uid}`), { typing: v, timestamp: rtdbTimestamp() });
-}
-
-function listenTyping(uid) {
-  if (typingUnsubscribe) typingUnsubscribe();
-  typingUnsubscribe = onValue(ref(rtdb, `typing/${uid}_${currentUser.uid}`), (snap) => {
-    const data = snap.val(), tr = document.getElementById('typing-row');
-    if (data && data.typing === true) {
-      tr.classList.add('visible');
-      const c = document.getElementById('conv-messages');
-      if (c && c.scrollHeight - c.scrollTop - c.clientHeight < 80) {
-        setTimeout(() => c.scrollTop = c.scrollHeight, 50);
-      }
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => { tr.classList.remove('visible'); }, 3000);
-    } else { tr.classList.remove('visible'); }
-  });
-}
-
-window.switchAuthTab = function(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
-  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
-  document.getElementById('signup-form').style.display = tab==='signup'?'block':'none';
-  document.getElementById('auth-error').textContent = '';
-};
-
-window.handleLogin = async function() {
-  const email = document.getElementById('login-email').value.trim(), pass = document.getElementById('login-pass').value;
-  if (!email||!pass) { document.getElementById('auth-error').textContent='Please fill all fields'; return; }
-  const btn = document.querySelector('#login-form .btn-primary'); btn.disabled=true; btn.textContent='Logging in…';
-  try { _justLoggedIn=true; await signInWithEmailAndPassword(auth, email, pass); }
-  catch(e) { _justLoggedIn=false; document.getElementById('auth-error').textContent = friendlyError(e.code); btn.disabled=false; btn.textContent='Login'; }
-};
-
-window.handleSignup = async function() {
-  const name = document.getElementById('signup-name').value.trim(), phone = document.getElementById('signup-phone').value.trim();
-  const email = document.getElementById('signup-email').value.trim(), gender = document.getElementById('signup-gender').value, pass = document.getElementById('signup-pass').value;
-  const confirmPass = document.getElementById('signup-confirm-pass').value;
-  if (!name||!email||!pass) { document.getElementById('auth-error').textContent='Please fill required fields'; return; }
-  if (!gender) { document.getElementById('auth-error').textContent='Please select your gender'; openGenderPopup(); return; }
-  if (pass.length<6) { document.getElementById('auth-error').textContent='Password min 6 characters'; return; }
-  if (pass !== confirmPass) { document.getElementById('auth-error').textContent='Passwords do not match'; return; }
-  const btn = document.querySelector('#signup-form .btn-primary'); btn.disabled=true; btn.textContent='Checking…';
-  try {
-    const emailQ = query(collection(db,'users'), where('email','==',email));
-    const emailSnap = await getDocs(emailQ);
-    if (!emailSnap.empty) { document.getElementById('auth-error').textContent='This email is already registered'; btn.disabled=false; btn.textContent='Create Account'; return; }
-  } catch(e) {}
-  if (phone) {
-    try {
-      const phoneQ = query(collection(db,'users'), where('phone','==',phone));
-      const phoneSnap = await getDocs(phoneQ);
-      if (!phoneSnap.empty) { document.getElementById('auth-error').textContent='This phone number is already registered'; btn.disabled=false; btn.textContent='Create Account'; return; }
-    } catch(e) {}
-  }
-  btn.textContent='Creating…';
-  try {
-    _justLoggedIn=true;
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await setDoc(doc(db, 'users', cred.user.uid), { uid:cred.user.uid, displayName:name, phone:phone||'', email:email, gender:gender||'', photoURL:avatarUrl(name,gender), createdAt:serverTimestamp(), online:true });
-  } catch(e) { _justLoggedIn=false; document.getElementById('auth-error').textContent = friendlyError(e.code); btn.disabled=false; btn.textContent='Create Account'; }
-};
-
-function friendlyError(code) {
-  const m = { 'auth/user-not-found':'No account found','auth/wrong-password':'Incorrect password','auth/email-already-in-use':'Email already in use','auth/invalid-email':'Invalid email','auth/weak-password':'Password too weak','auth/too-many-requests':'Too many attempts.' };
-  return m[code] || 'Something went wrong.';
-}
-
-window.switchTab = function(tab) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(tab+'-screen').classList.add('active');
-  document.getElementById('nav-'+tab).classList.add('active');
-  if (tab === 'friends') loadFriends();
-  if (tab === 'settings') { updateUI(); updateNotifStatus(); }
-};
-
-async function loadChats() {
-  if (!currentUser) return;
-  if (chatUnsubscribe) chatUnsubscribe();
-
-  const q = query(collection(db, 'conversations'), where('participants', 'array-contains', currentUser.uid));
-
-  chatUnsubscribe = onSnapshot(q, async (snap) => {
-    const cu = [];
-    for (const d of snap.docs) {
-      const conv = d.data();
-      const otherUid = conv.participants.find(id => id !== currentUser.uid);
-      if (!otherUid) continue;
-
-      try {
-        const u = await getDoc(doc(db, 'users', otherUid));
-        if (u.exists()) {
-          const userData = u.data();
-          try {
-            const oSnap = await new Promise(r => onValue(ref(rtdb, `status/${otherUid}`), s => r(s.val()), { onlyOnce: true }));
-            userData.online = oSnap?.online || false;
-          } catch(e) { userData.online = false; }
-
-          const unreadQ = query(collection(db, 'messages'), where('senderId', '==', otherUid), where('receiverId', '==', currentUser.uid), where('read', '==', false));
-          const unreadSnap = await getDocs(unreadQ);
-          unreadCounts[otherUid] = unreadSnap.size;
-
-          cu.push({ user: userData, lastMsg: conv });
-        }
-      } catch(e) {}
-    }
-
-    cu.sort((a, b) => {
-      const uA = unreadCounts[a.user.uid] || 0;
-      const uB = unreadCounts[b.user.uid] || 0;
-      if (uA && !uB) return -1;
-      if (uB && !uA) return 1;
-      return (b.lastMsg.lastTimestamp?.seconds || 0) - (a.lastMsg.lastTimestamp?.seconds || 0);
-    });
-
-    allChats = cu;
-    renderChatList(cu);
-    updateBadge();
-    listenAllPresence();
-  });
-}
-
-function updateBadge() { const t=Object.values(unreadCounts).reduce((a,b)=>a+b,0); const b=document.getElementById('chat-badge'); if(t>0) { b.style.display='flex'; b.textContent=t>99?'99+':t; } else b.style.display='none'; }
-
-function renderChatList(chats) {
-  const c=document.getElementById('chat-list-container'), e=document.getElementById('chat-empty');
-  c.querySelectorAll('.chat-list-item').forEach(x=>x.remove());
-  if (!chats.length) { e.style.display='flex'; return; }
-  e.style.display='none';
-  chats.forEach(({user,lastMsg})=>{
-    const div=document.createElement('div'), ur=unreadCounts[user.uid]||0;
-    div.className='chat-list-item'+(ur>0?' unread':'');
-    div.onclick=()=>openConversation(user);
-    const ts=lastMsg.lastTimestamp?new Date(lastMsg.lastTimestamp.seconds*1000):new Date();
-    const previewText = lastMsg.lastMessage || '';
-    div.innerHTML=`<div class="chat-avatar"><img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" /><div class="status-dot ${user.online?'':'offline'}"></div>${genderDotHTML(user.gender)}</div><div class="chat-info"><div class="chat-info-top"><span class="chat-name">${user.displayName||'User'}</span><span class="chat-time">${formatTime(ts)}</span></div><div class="chat-preview">${lastMsg.lastSenderId===currentUser.uid?'You: ':''}${previewText}</div></div>${ur>0?`<span class="unread-badge">${ur}</span>`:''}`;
-    c.appendChild(div);
-  });
-}
-
-window.filterChats = function(q) { renderChatList(allChats.filter(({user})=>(user.displayName||'').toLowerCase().includes(q.toLowerCase()))); };
-
-window.loadFriends = async function() {
-  const icon=document.getElementById('friends-refresh-icon');
-  const btn=document.getElementById('friends-refresh-btn');
-  icon.classList.add('spinner');
-  if(btn) { btn.disabled=true; btn.style.opacity='0.6'; }
-  try {
-    const snap=await getDocs(collection(db,'users'));
-    allFriends=[];
-    snap.forEach(d=>{if(d.id!==currentUser?.uid) allFriends.push(d.data());});
-    renderFriends(allFriends);
-    const countText=document.getElementById('friends-count-text');
-    if(countText) countText.textContent=allFriends.length>0?`${allFriends.length} people found`:'Find people to chat';
-  }
-  catch(e) { showToast('Error loading','error'); }
-  icon.classList.remove('spinner');
-  if(btn) { btn.disabled=false; btn.style.opacity='1'; }
-};
-
-async function deleteOldMessages() {
-  if (!currentUser) return;
-  try {
-    const cutoff = new Date(Date.now() - AUTO_DELETE_MS);
-    const cutoffTs = Timestamp.fromDate(cutoff);
-    const q = query(collection(db,'messages'), where('timestamp','<',cutoffTs));
-    const snap = await getDocs(q);
-    const dels = [];
-    snap.forEach(d => {
-      const msg = d.data();
-      if (msg.senderId===currentUser.uid || msg.receiverId===currentUser.uid) {
-        dels.push(deleteDoc(doc(db,'messages',d.id)));
-      }
-    });
-    if (dels.length > 0) {
-      await Promise.all(dels);
-      console.log(`[Auto-clean] Deleted ${dels.length} message(s) older than ${AUTO_DELETE_HOURS} hours`);
-    }
-  } catch(e) {
-    console.warn('[Auto-clean] Error:', e);
-  }
+  const diff = Math.floor((now - date) / 86400000);
+  if (diff < 7) return date.toLocaleDateString('en-US', { weekday: 'short' });
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 function maskEmail(email, isPublic) {
@@ -1438,63 +1109,924 @@ function maskEmail(email, isPublic) {
   if (isPublic) return email;
   const [local, domain] = email.split('@');
   if (!domain) return email;
-  const masked = local.length <= 4
-    ? local[0] + '****' + local[local.length-1]
-    : local.substring(0,2) + '****' + local.substring(local.length-2);
-  return masked + '@' + domain;
+  return local.substring(0, 2) + '****' + '@' + domain;
 }
 
 function maskPhone(phone, isPublic) {
   if (!phone) return '';
   if (isPublic) return phone;
   if (phone.length <= 5) return phone;
-  return phone.substring(0,3) + '******' + phone.substring(phone.length-2);
+  return phone.substring(0, 3) + '******' + phone.substring(phone.length - 2);
 }
 
+function friendlyError(code) {
+  const m = {
+    'auth/user-not-found': 'No account found',
+    'auth/wrong-password': 'Incorrect password',
+    'auth/email-already-in-use': 'Email already in use',
+    'auth/invalid-email': 'Invalid email',
+    'auth/weak-password': 'Password too weak',
+    'auth/too-many-requests': 'Too many attempts'
+  };
+  return m[code] || 'Something went wrong';
+}
+
+function genderDotHTML(gender) {
+  if (!gender) return '';
+  const cfg = { 'Male': { cls: 'male', icon: 'fa-mars' }, 'Female': { cls: 'female', icon: 'fa-venus' }, 'Other': { cls: 'other', icon: 'fa-genderless' } };
+  const c = cfg[gender];
+  if (!c) return '';
+  return `<div class="gender-dot ${c.cls}"><i class="fa-solid ${c.icon}"></i></div>`;
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = type === 'error' ? 'show error' : 'show';
+  setTimeout(() => t.className = '', 2500);
+}
+
+// ========== Splash ==========
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hide');
+  setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+  }, 800);
+}, 3000);
+
+// ========== Auth ==========
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    await fetchMyData();
+    showApp();
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    showAuthScreen();
+  }
+});
+
+async function fetchMyData() {
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).get();
+    if (snap.exists) {
+      currentUserData = snap.data();
+    } else {
+      currentUserData = {
+        uid: currentUser.uid,
+        displayName: currentUser.email?.split('@')[0] || 'User',
+        email: currentUser.email,
+        photoURL: avatarUrl('User', ''),
+        gender: '',
+        phone: '',
+        emailPublic: false,
+        phonePublic: false
+      };
+      await db.collection('users').doc(currentUser.uid).set(currentUserData);
+    }
+  } catch (e) {
+    currentUserData = {
+      uid: currentUser.uid,
+      displayName: 'User',
+      email: currentUser.email || '',
+      photoURL: avatarUrl('User', ''),
+      gender: '',
+      phone: ''
+    };
+  }
+  updateMyUI();
+}
+
+function updateMyUI() {
+  if (!currentUserData) return;
+  const av = currentUserData.photoURL || avatarUrl(currentUserData.displayName || 'U', '');
+  const myAvatar = document.getElementById('my-avatar');
+  const myNameHeader = document.getElementById('my-name-header');
+  const settingsAvatar = document.getElementById('settings-avatar');
+  const settingsName = document.getElementById('settings-name');
+  const settingsEmail = document.getElementById('settings-email');
+  if (myAvatar) myAvatar.src = av;
+  if (myNameHeader) myNameHeader.textContent = currentUserData.displayName || 'User';
+  if (settingsAvatar) settingsAvatar.src = av;
+  if (settingsName) settingsName.textContent = currentUserData.displayName || 'User';
+  if (settingsEmail) settingsEmail.textContent = currentUserData.email || '';
+}
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('conv-screen').classList.remove('open');
+  
+  document.getElementById('auth-screen').innerHTML = `
+    <div class="auth-logo">
+      <div class="auth-mini-logo"><i class="fa-solid fa-comment-dots"></i></div>
+      <h1>Kotha Bolbo</h1>
+      <p>Talk, stay connected</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+      <div id="login-form">
+        <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" /></div>
+        <button type="button" class="forgot-link" onclick="openForgotPopup()">Forget your password?</button>
+        <button class="btn-primary" onclick="handleLogin()">Login</button>
+      </div>
+      <div id="signup-form" style="display:none;">
+        <div class="form-group"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name" /></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="signup-phone" placeholder="+880..." /></div>
+        <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com" /></div>
+        <div class="form-group"><label>Gender</label>
+          <div class="gender-trigger" onclick="openGenderPopup('signup')">
+            <span id="gender-display-text">Select Gender</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <input type="hidden" id="signup-gender" value="" />
+        </div>
+        <div class="form-group"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters" /></div>
+        <div class="form-group"><label>Confirm Password</label><input type="password" id="signup-confirm-pass" placeholder="Re-enter password" /></div>
+        <button class="btn-primary" onclick="handleSignup()">Create Account</button>
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+    </div>`;
+}
+
+window.switchAuthTab = function(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'));
+  });
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('auth-error').textContent = '';
+};
+
+window.handleLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) {
+    document.getElementById('auth-error').textContent = 'Please fill all fields';
+    return;
+  }
+  try {
+    _justLoggedIn = true;
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch (e) {
+    _justLoggedIn = false;
+    document.getElementById('auth-error').textContent = friendlyError(e.code);
+  }
+};
+
+window.handleSignup = async function() {
+  const name = document.getElementById('signup-name').value.trim();
+  const phone = document.getElementById('signup-phone').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const gender = document.getElementById('signup-gender').value;
+  const pass = document.getElementById('signup-pass').value;
+  const confirmPass = document.getElementById('signup-confirm-pass').value;
+  
+  if (!name || !email || !pass) {
+    document.getElementById('auth-error').textContent = 'Please fill required fields';
+    return;
+  }
+  if (!gender) {
+    document.getElementById('auth-error').textContent = 'Please select your gender';
+    openGenderPopup('signup');
+    return;
+  }
+  if (pass.length < 6) {
+    document.getElementById('auth-error').textContent = 'Password min 6 characters';
+    return;
+  }
+  if (pass !== confirmPass) {
+    document.getElementById('auth-error').textContent = 'Passwords do not match';
+    return;
+  }
+  
+  try {
+    const emailSnap = await db.collection('users').where('email', '==', email).get();
+    if (!emailSnap.empty) {
+      document.getElementById('auth-error').textContent = 'This email is already registered';
+      return;
+    }
+  } catch (e) {}
+  
+  if (phone) {
+    try {
+      const phoneSnap = await db.collection('users').where('phone', '==', phone).get();
+      if (!phoneSnap.empty) {
+        document.getElementById('auth-error').textContent = 'This phone number is already registered';
+        return;
+      }
+    } catch (e) {}
+  }
+  
+  try {
+    _justLoggedIn = true;
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await db.collection('users').doc(cred.user.uid).set({
+      uid: cred.user.uid,
+      displayName: name,
+      phone: phone || '',
+      email: email,
+      gender: gender || '',
+      photoURL: avatarUrl(name, gender),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      emailPublic: false,
+      phonePublic: false
+    });
+  } catch (e) {
+    _justLoggedIn = false;
+    document.getElementById('auth-error').textContent = friendlyError(e.code);
+  }
+};
+
+// ========== App ==========
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  
+  if (_justLoggedIn) {
+    setTimeout(() => showToast('Welcome to Kotha Bolbo! 🎉'), 600);
+    _justLoggedIn = false;
+  }
+  
+  setOnlineStatus();
+  loadChats();
+  loadFriends();
+  updateNotifStatus();
+  setTimeout(deleteOldMessages, 5000);
+}
+
+function setOnlineStatus() {
+  if (!currentUser) return;
+  const onlineRef = rtdb.ref('status/' + currentUser.uid);
+  onlineRef.set({ online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+  onlineRef.onDisconnect().set({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+}
+
+function updateNotifStatus() {
+  const text = document.getElementById('notif-status-text');
+  const icon = document.getElementById('notif-status-icon');
+  if (!text || !icon) return;
+  if (Notification.permission === 'granted') {
+    text.textContent = 'Allowed';
+    icon.className = 'fa-solid fa-check-circle';
+    icon.style.color = 'var(--green)';
+  } else {
+    text.textContent = 'Blocked / Not Asked';
+    icon.className = 'fa-solid fa-times-circle';
+    icon.style.color = 'var(--red)';
+  }
+}
+
+// ========== Tabs ==========
+window.switchTab = function(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const screen = document.getElementById(tab + '-screen');
+  const nav = document.getElementById('nav-' + tab);
+  if (screen) screen.classList.add('active');
+  if (nav) nav.classList.add('active');
+  if (tab === 'friends') loadFriends();
+  if (tab === 'settings') { updateMyUI(); updateNotifStatus(); }
+};
+
+// ========== Friends ==========
+window.loadFriends = async function() {
+  const icon = document.getElementById('friends-refresh-icon');
+  const btn = document.getElementById('friends-refresh-btn');
+  if (icon) icon.classList.add('spinner');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+  
+  try {
+    const snap = await db.collection('users').get();
+    allFriends = [];
+    snap.forEach(d => {
+      if (d.id !== currentUser?.uid) allFriends.push(d.data());
+    });
+    renderFriends(allFriends);
+    const countText = document.getElementById('friends-count-text');
+    if (countText) countText.textContent = allFriends.length > 0 ? `${allFriends.length} people found` : 'Find people to chat';
+  } catch (e) {
+    showToast('Error loading', 'error');
+  }
+  
+  if (icon) icon.classList.remove('spinner');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+};
+
 function renderFriends(friends) {
-  const c=document.getElementById('friends-list-container'); c.innerHTML='';
-  if (!friends.length) { c.innerHTML='<div class="empty-state"><i class="fas fa-user-slash"></i><h3>No Users Found</h3></div>'; return; }
-  friends.forEach(user=>{
-    const div=document.createElement('div'); div.className='friend-item';
+  const c = document.getElementById('friends-list-container');
+  if (!c) return;
+  c.innerHTML = '';
+  if (!friends.length) {
+    c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-user-slash"></i><h3>No Users Found</h3></div>';
+    return;
+  }
+  friends.forEach(user => {
     const emailPublic = user.emailPublic === true;
     const phonePublic = user.phonePublic === true;
     const emailDisplay = maskEmail(user.email, emailPublic);
     const phoneDisplay = maskPhone(user.phone, phonePublic);
-    const infoLines = [];
-    if (phoneDisplay) infoLines.push(`<small class="friend-email"><i class="fas fa-phone" style="font-size:0.6rem;margin-right:3px;"></i>${phoneDisplay}</small>`);
-    if (emailDisplay) infoLines.push(`<small class="friend-email"><i class="fas fa-envelope" style="font-size:0.6rem;margin-right:3px;"></i>${emailDisplay}</small>`);
-    div.innerHTML = `<div class="chat-avatar" style="width:42px;height:42px;flex-shrink:0;"><img src="${user.photoURL||avatarUrl(user.displayName||'U',user.gender)}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" />${genderDotHTML(user.gender)}</div><div class="friend-info"><div class="friend-name">${user.displayName||'User'}</div>${infoLines.join('')}</div><div class="friend-chat-btn"><i class="fas fa-comment"></i></div>`;
-    div.querySelector('.friend-chat-btn').onclick=e=>{e.stopPropagation();openConversation(user);};
-    div.onclick=()=>openConversation(user);
+    const div = document.createElement('div');
+    div.className = 'friend-item';
+    div.innerHTML = `
+      <div class="chat-avatar" style="width:42px;height:42px;flex-shrink:0;">
+        <img src="${user.photoURL || avatarUrl(user.displayName||'U', user.gender)}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" />
+        ${genderDotHTML(user.gender)}
+      </div>
+      <div class="friend-info">
+        <div class="friend-name">${user.displayName||'User'}</div>
+        ${phoneDisplay ? `<small class="friend-email"><i class="fa-solid fa-phone" style="font-size:0.6rem;margin-right:3px;"></i>${phoneDisplay}</small>` : ''}
+        ${emailDisplay ? `<small class="friend-email"><i class="fa-solid fa-envelope" style="font-size:0.6rem;margin-right:3px;"></i>${emailDisplay}</small>` : ''}
+      </div>
+      <div class="friend-chat-btn"><i class="fa-solid fa-comment"></i></div>`;
+    div.querySelector('.friend-chat-btn').onclick = (e) => { e.stopPropagation(); openConversation(user); };
+    div.onclick = () => openConversation(user);
     c.appendChild(div);
   });
 }
 
-window.filterFriends = function(q) { const ql=q.toLowerCase().trim(); if(!ql) { renderFriends(allFriends); return; } renderFriends(allFriends.filter(u=>(u.displayName||'').toLowerCase().includes(ql)||(u.phone||'').toLowerCase().includes(ql))); };
+window.filterFriends = function(q) {
+  const ql = q.toLowerCase().trim();
+  if (!ql) { renderFriends(allFriends); return; }
+  renderFriends(allFriends.filter(u =>
+    (u.displayName || '').toLowerCase().includes(ql) ||
+    (u.phone || '').toLowerCase().includes(ql)
+  ));
+};
 
+// ========== Chats ==========
+async function loadChats() {
+  if (!currentUser) return;
+  if (chatUnsubscribe) chatUnsubscribe();
+  
+  chatUnsubscribe = db.collection('conversations')
+    .where('participants', 'array-contains', currentUser.uid)
+    .onSnapshot(async (snap) => {
+      const cu = [];
+      for (const d of snap.docs) {
+        const conv = d.data();
+        const otherUid = conv.participants.find(id => id !== currentUser.uid);
+        if (!otherUid) continue;
+        try {
+          const u = await db.collection('users').doc(otherUid).get();
+          if (u.exists) {
+            const userData = u.data();
+            const oSnap = await rtdb.ref('status/' + otherUid).once('value');
+            userData.online = oSnap.val()?.online || false;
+            
+            const unreadSnap = await db.collection('messages')
+              .where('senderId', '==', otherUid)
+              .where('receiverId', '==', currentUser.uid)
+              .where('read', '==', false)
+              .get();
+            unreadCounts[otherUid] = unreadSnap.size;
+            cu.push({ user: userData, lastMsg: conv });
+          }
+        } catch (e) {}
+      }
+      
+      cu.sort((a, b) => {
+        const uA = unreadCounts[a.user.uid] || 0;
+        const uB = unreadCounts[b.user.uid] || 0;
+        if (uA && !uB) return -1;
+        if (uB && !uA) return 1;
+        return (b.lastMsg.lastTimestamp?.seconds || 0) - (a.lastMsg.lastTimestamp?.seconds || 0);
+      });
+      
+      allChats = cu;
+      renderChatList(cu);
+      updateBadge();
+    });
+}
+
+function updateBadge() {
+  const t = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+  const b = document.getElementById('chat-badge');
+  if (!b) return;
+  if (t > 0) {
+    b.style.display = 'flex';
+    b.textContent = t > 99 ? '99+' : t;
+  } else {
+    b.style.display = 'none';
+  }
+}
+
+function renderChatList(chats) {
+  const c = document.getElementById('chat-list-container');
+  const e = document.getElementById('chat-empty');
+  if (!c || !e) return;
+  
+  c.querySelectorAll('.chat-list-item').forEach(x => x.remove());
+  if (!chats.length) { e.style.display = 'flex'; return; }
+  e.style.display = 'none';
+  
+  chats.forEach(({ user, lastMsg }) => {
+    const ur = unreadCounts[user.uid] || 0;
+    const div = document.createElement('div');
+    div.className = 'chat-list-item' + (ur > 0 ? ' unread' : '');
+    div.onclick = () => openConversation(user);
+    const ts = lastMsg.lastTimestamp ? new Date(lastMsg.lastTimestamp.seconds * 1000) : new Date();
+    const previewText = lastMsg.lastMessage || '';
+    div.innerHTML = `
+      <div class="chat-avatar">
+        <img src="${user.photoURL || avatarUrl(user.displayName||'U', user.gender)}" />
+        <div class="status-dot ${user.online ? '' : 'offline'}"></div>
+        ${genderDotHTML(user.gender)}
+      </div>
+      <div class="chat-info">
+        <div class="chat-info-top">
+          <span class="chat-name">${user.displayName||'User'}</span>
+          <span class="chat-time">${formatTime(ts)}</span>
+        </div>
+        <div class="chat-preview">${lastMsg.lastSenderId === currentUser.uid ? 'You: ' : ''}${previewText}</div>
+      </div>
+      ${ur > 0 ? `<span class="unread-badge">${ur}</span>` : ''}`;
+    c.appendChild(div);
+  });
+}
+
+window.filterChats = function(q) {
+  renderChatList(allChats.filter(({ user }) =>
+    (user.displayName || '').toLowerCase().includes(q.toLowerCase())
+  ));
+};
+
+// ========== Conversation ==========
 window.openConversation = function(user) {
   closeConversation();
   openChatUser = user;
-  document.getElementById('conv-name').textContent = user.displayName||'User';
-  const av = user.photoURL || avatarUrl(user.displayName||'U', user.gender);
+  
+  document.getElementById('conv-name').textContent = user.displayName || 'User';
+  const av = user.photoURL || avatarUrl(user.displayName || 'U', user.gender);
   document.getElementById('conv-avatar').src = av;
   document.getElementById('conv-typing-avatar').src = av;
+  
   const convMsgsEl = document.getElementById('conv-messages');
   convMsgsEl.innerHTML = '';
   const noticeEl = document.createElement('div');
   noticeEl.className = 'auto-delete-notice';
   noticeEl.id = 'auto-delete-notice';
-  noticeEl.innerHTML = `<i class="fas fa-clock"></i> Messages in this conversation are automatically deleted after ${AUTO_DELETE_HOURS} hours to protect your privacy.`;
+  noticeEl.innerHTML = `<i class="fa-solid fa-clock"></i> Messages auto-delete after ${AUTO_DELETE_HOURS} hours`;
   convMsgsEl.appendChild(noticeEl);
+  
   document.getElementById('typing-row').classList.remove('visible');
   document.getElementById('conv-screen').classList.add('open');
   history.pushState({ conversation: true }, '');
-  applyGenderDot(document.getElementById('conv-gender-dot'), user.gender);
-  updateConvHeader(); subscribeMessages(); markRead(user.uid); listenPresence(user.uid); listenTyping(user.uid);
+  
+  updateConvHeader();
+  subscribeMessages();
+  markRead(user.uid);
+  listenPresence(user.uid);
+  listenTyping(user.uid);
 };
 
-let privacyState = { email: false, phone: false };
+window.closeConversation = function() {
+  if (openChatUser && currentUser) setMyTyping(false);
+  cancelReply();
+  document.getElementById('conv-screen').classList.remove('open');
+  if (msgUnsubscribe) { msgUnsubscribe(); msgUnsubscribe = null; }
+  if (msgUnsubscribe2) { msgUnsubscribe2(); msgUnsubscribe2 = null; }
+  if (presenceUnsubscribe) { presenceUnsubscribe(); presenceUnsubscribe = null; }
+  if (typingUnsubscribe) { typingUnsubscribe(); typingUnsubscribe = null; }
+  clearTimeout(typingTimeout);
+  clearTimeout(typingDebounce);
+  openChatUser = null;
+};
 
+function updateConvHeader() {
+  if (!openChatUser) return;
+  const s = document.getElementById('conv-status-text');
+  const d = document.getElementById('conv-status-dot');
+  if (!s || !d) return;
+  if (openChatUser.online) {
+    d.className = 'status-dot';
+    s.innerHTML = '<span class="online-indicator"></span>Online';
+  } else {
+    d.className = 'status-dot offline';
+    s.textContent = 'Offline';
+  }
+}
+
+function listenPresence(uid) {
+  if (presenceUnsubscribe) presenceUnsubscribe();
+  presenceUnsubscribe = rtdb.ref('status/' + uid).on('value', (snap) => {
+    const data = snap.val();
+    if (data && openChatUser) {
+      openChatUser.online = data.online === true;
+      updateConvHeader();
+    }
+  });
+}
+
+function listenTyping(uid) {
+  if (typingUnsubscribe) typingUnsubscribe();
+  typingUnsubscribe = rtdb.ref('typing/' + uid + '_' + currentUser.uid).on('value', (snap) => {
+    const data = snap.val();
+    const tr = document.getElementById('typing-row');
+    if (data && data.typing === true) {
+      tr.classList.add('visible');
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => tr.classList.remove('visible'), 3000);
+    } else {
+      tr.classList.remove('visible');
+    }
+  });
+}
+
+async function setMyTyping(v) {
+  if (!currentUser || !openChatUser) return;
+  await rtdb.ref('typing/' + currentUser.uid + '_' + openChatUser.uid).set({
+    typing: v,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+async function markRead(sid) {
+  if (!currentUser || !sid) return;
+  const snap = await db.collection('messages')
+    .where('senderId', '==', sid)
+    .where('receiverId', '==', currentUser.uid)
+    .where('read', '==', false)
+    .get();
+  const batch = db.batch();
+  snap.forEach(d => batch.update(d.ref, { read: true, seen: true }));
+  await batch.commit();
+}
+
+// ========== Messages ==========
+function subscribeMessages() {
+  if (msgUnsubscribe) { msgUnsubscribe(); msgUnsubscribe = null; }
+  if (msgUnsubscribe2) { msgUnsubscribe2(); msgUnsubscribe2 = null; }
+  if (!currentUser || !openChatUser) return;
+  
+  renderedMsgIds = new Set();
+  lastRenderedDate = '';
+  _msgBuffer = {};
+  _initialLoadDone = false;
+  
+  const c = document.getElementById('conv-messages');
+  
+  const q1 = db.collection('messages')
+    .where('senderId', '==', currentUser.uid)
+    .where('receiverId', '==', openChatUser.uid)
+    .orderBy('timestamp', 'asc');
+    
+  const q2 = db.collection('messages')
+    .where('senderId', '==', openChatUser.uid)
+    .where('receiverId', '==', currentUser.uid)
+    .orderBy('timestamp', 'asc');
+  
+  let q1Done = false, q2Done = false;
+  
+  msgUnsubscribe = q1.onSnapshot((snap) => {
+    handleSnapshot(snap, c, 'q1', () => { q1Done = true; checkInit(); });
+  });
+  
+  msgUnsubscribe2 = q2.onSnapshot((snap) => {
+    handleSnapshot(snap, c, 'q2', () => { q2Done = true; checkInit(); });
+  });
+  
+  function checkInit() {
+    if (q1Done && q2Done && !_initialLoadDone) {
+      flushMsgBuffer(c);
+    }
+  }
+}
+
+function handleSnapshot(snap, c, source, onDone) {
+  if (!_initialLoadDone) {
+    snap.docs.forEach(d => {
+      const m = { ...d.data(), id: d.id };
+      if (renderedMsgIds.has(d.id)) return;
+      const cutoffDate = new Date(Date.now() - AUTO_DELETE_MS);
+      const msgDate = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
+      if (msgDate >= cutoffDate) {
+        renderedMsgIds.add(d.id);
+        _msgBuffer[d.id] = m;
+      }
+    });
+    onDone();
+  } else {
+    let addedAny = false;
+    const atBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 80;
+    snap.docChanges().forEach(change => {
+      if (change.type === 'added' && !renderedMsgIds.has(change.doc.id)) {
+        const m = { ...change.doc.data(), id: change.doc.id };
+        renderedMsgIds.add(change.doc.id);
+        appendMessage(m, c);
+        addedAny = true;
+      } else if (change.type === 'modified' && renderedMsgIds.has(change.doc.id)) {
+        updateMessageStatus({ ...change.doc.data(), id: change.doc.id }, c);
+      }
+    });
+    if (addedAny && atBottom) {
+      requestAnimationFrame(() => c.scrollTop = c.scrollHeight);
+    }
+    if (openChatUser) markRead(openChatUser.uid);
+  }
+}
+
+function flushMsgBuffer(c) {
+  const sorted = Object.values(_msgBuffer).sort((a, b) => {
+    return (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0);
+  });
+  sorted.forEach(m => appendMessage(m, c));
+  _msgBuffer = {};
+  _initialLoadDone = true;
+  requestAnimationFrame(() => c.scrollTop = c.scrollHeight);
+}
+
+function appendMessage(m, c) {
+  const ts = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
+  const ds = ts.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (ds !== lastRenderedDate) {
+    const div = document.createElement('div');
+    div.className = 'date-divider';
+    div.textContent = ds;
+    c.appendChild(div);
+    lastRenderedDate = ds;
+  }
+  
+  const isSent = m.senderId === currentUser.uid;
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (isSent ? 'sent' : 'recv');
+  row.dataset.msgId = m.id;
+  
+  let sh = '';
+  if (isSent) {
+    if (m.seen) sh = '<span class="msg-status seen"><i class="fa-solid fa-check-double"></i></span>';
+    else if (m.delivered) sh = '<span class="msg-status delivered"><i class="fa-solid fa-check-double"></i></span>';
+    else sh = '<span class="msg-status sent-status"><i class="fa-solid fa-check"></i></span>';
+  }
+  
+  let replyHtml = '';
+  if (m.replyTo) {
+    replyHtml = `<div style="background:rgba(0,0,0,0.15);border-left:3px solid rgba(0,212,255,0.6);border-radius:6px;padding:4px 8px;margin-bottom:4px;font-size:0.7rem;opacity:0.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.replyTo.senderName ? '<span style="color:var(--accent);font-weight:600;font-size:0.65rem;">' + m.replyTo.senderName + '</span><br>' : ''}${m.replyTo.text}</div>`;
+  }
+  
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (isSent ? 'sent' : 'recv');
+  if (replyHtml) bubble.insertAdjacentHTML('beforeend', replyHtml);
+  bubble.appendChild(document.createTextNode(m.text || ''));
+  if (m.edited) {
+    const editedSpan = document.createElement('span');
+    editedSpan.className = 'edited-tag';
+    editedSpan.textContent = '(edited)';
+    bubble.appendChild(editedSpan);
+  }
+  bubble.insertAdjacentHTML('beforeend', `<span class="bubble-time">${formatTime(ts)} ${sh}</span>`);
+  
+  if (!isSent) {
+    const avImg = document.createElement('img');
+    avImg.className = 'msg-avatar';
+    avImg.src = openChatUser?.photoURL || avatarUrl(openChatUser?.displayName || 'U', openChatUser?.gender);
+    row.appendChild(avImg);
+  }
+  row.appendChild(bubble);
+  c.appendChild(row);
+  
+  // Long press for context menu
+  addLongPress(row, m.id, m.text, isSent);
+  // Swipe to reply
+  addSwipeReply(row, m.id, m.text, isSent ? 'You' : (openChatUser?.displayName || 'User'));
+}
+
+function updateMessageStatus(m, c) {
+  if (m.senderId !== currentUser.uid) return;
+  const row = c.querySelector(`[data-msg-id="${m.id}"]`);
+  if (!row) return;
+  const timeSpan = row.querySelector('.bubble-time');
+  if (!timeSpan) return;
+  const ts = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
+  let sh = '';
+  if (m.seen) sh = '<span class="msg-status seen"><i class="fa-solid fa-check-double"></i></span>';
+  else if (m.delivered) sh = '<span class="msg-status delivered"><i class="fa-solid fa-check-double"></i></span>';
+  else sh = '<span class="msg-status sent-status"><i class="fa-solid fa-check"></i></span>';
+  timeSpan.innerHTML = formatTime(ts) + ' ' + sh;
+}
+
+// ========== Send Message ==========
+window.sendMessage = async function() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text || !currentUser || !openChatUser) return;
+  input.value = '';
+  autoResize(input);
+  setMyTyping(false);
+  
+  const msgData = {
+    senderId: currentUser.uid,
+    receiverId: openChatUser.uid,
+    text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    delivered: false,
+    read: false,
+    seen: false
+  };
+  
+  if (_replyingTo) {
+    msgData.replyTo = {
+      id: _replyingTo.id,
+      text: _replyingTo.text,
+      senderName: _replyingTo.senderName
+    };
+    cancelReply();
+  }
+  
+  try {
+    await db.collection('messages').add(msgData);
+    
+    const cid = [currentUser.uid, openChatUser.uid].sort().join('_');
+    await db.collection('conversations').doc(cid).set({
+      participants: [currentUser.uid, openChatUser.uid],
+      lastTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      lastMessage: text,
+      lastSenderId: currentUser.uid
+    }, { merge: true });
+    
+    // Send push notification
+    try {
+      const receiverSnap = await db.collection('users').doc(openChatUser.uid).get();
+      const receiverPlayerId = receiverSnap.data()?.oneSignalPlayerId;
+      if (receiverPlayerId) {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            receiverPlayerId,
+            senderName: currentUserData?.displayName || 'Someone',
+            messageText: text
+          })
+        });
+      }
+    } catch (e) {}
+    
+  } catch (e) {
+    showToast('Send failed', 'error');
+  }
+};
+
+window.msgKeyDown = function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+};
+
+document.getElementById('msg-input')?.addEventListener('input', () => {
+  if (!openChatUser) return;
+  setMyTyping(true);
+  clearTimeout(typingDebounce);
+  typingDebounce = setTimeout(() => setMyTyping(false), 2000);
+});
+
+// ========== Reply ==========
+window.cancelReply = function() {
+  _replyingTo = null;
+  document.getElementById('reply-preview-bar').style.display = 'none';
+  document.getElementById('reply-preview-text').textContent = '';
+};
+
+function setReplyTo(msgId, text, senderName) {
+  _replyingTo = { id: msgId, text, senderName };
+  const bar = document.getElementById('reply-preview-bar');
+  const preview = document.getElementById('reply-preview-text');
+  preview.textContent = (senderName ? senderName + ': ' : '') + text;
+  bar.style.display = 'block';
+  document.getElementById('msg-input').focus();
+}
+
+// ========== Swipe & Long Press ==========
+function addSwipeReply(row, msgId, text, senderName) {
+  let startX = 0, startY = 0, swiped = false;
+  row.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    swiped = false;
+  }, { passive: true });
+  row.addEventListener('touchmove', (e) => {
+    const dx = e.touches[0].clientX - startX;
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dx > 40 && dy < 30 && !swiped) {
+      row.style.transform = `translateX(${Math.min(dx * 0.4, 28)}px)`;
+    }
+  }, { passive: true });
+  row.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - startX;
+    row.style.transform = 'translateX(0)';
+    if (dx > 55) {
+      swiped = true;
+      setReplyTo(msgId, text, senderName);
+    }
+  });
+}
+
+let _longPressTimer = null;
+function addLongPress(row, msgId, text, isSent) {
+  const startMenu = () => {
+    _ctxMsgId = msgId;
+    _ctxMsgText = text;
+    _ctxIsSent = isSent;
+    if (navigator.vibrate) navigator.vibrate(40);
+    
+    const editBtn = document.getElementById('msg-ctx-edit-btn');
+    editBtn.style.display = isSent ? 'flex' : 'none';
+    
+    const preview = document.getElementById('msg-ctx-preview');
+    preview.textContent = text ? (text.length > 50 ? text.substring(0, 50) + '…' : text) : 'Message';
+    
+    document.getElementById('msg-ctx-backdrop').classList.add('open');
+    document.getElementById('msg-ctx-sheet').classList.add('open');
+  };
+  
+  row.addEventListener('touchstart', (e) => {
+    _longPressTimer = setTimeout(startMenu, 520);
+  }, { passive: true });
+  row.addEventListener('touchend', () => clearTimeout(_longPressTimer));
+  row.addEventListener('touchmove', () => clearTimeout(_longPressTimer));
+  row.addEventListener('contextmenu', (e) => { e.preventDefault(); startMenu(); });
+}
+
+// ========== Context Menu ==========
+window.closeMsgContextMenu = function() {
+  document.getElementById('msg-ctx-backdrop').classList.remove('open');
+  document.getElementById('msg-ctx-sheet').classList.remove('open');
+};
+
+window.openEditMsg = function() {
+  if (!_ctxMsgId || !_ctxIsSent) return;
+  _editingMsgId = _ctxMsgId;
+  closeMsgContextMenu();
+  const newText = prompt('Edit message:', _ctxMsgText);
+  if (newText && newText.trim() && newText !== _ctxMsgText) {
+    db.collection('messages').doc(_editingMsgId).update({ text: newText.trim(), edited: true })
+      .then(() => showToast('Message updated'))
+      .catch(() => showToast('Failed to update', 'error'));
+  }
+  _editingMsgId = null;
+};
+
+window.deleteMsgFromCtx = function() {
+  if (!_ctxMsgId) return;
+  const msgId = _ctxMsgId;
+  closeMsgContextMenu();
+  if (confirm('Delete this message?')) {
+    db.collection('messages').doc(msgId).delete()
+      .then(() => showToast('Message deleted'))
+      .catch(() => showToast('Failed to delete', 'error'));
+  }
+};
+
+// ========== Auto Delete ==========
+async function deleteOldMessages() {
+  if (!currentUser) return;
+  try {
+    const cutoff = new Date(Date.now() - AUTO_DELETE_MS);
+    const snap = await db.collection('messages')
+      .where('timestamp', '<', cutoff)
+      .get();
+    const batch = db.batch();
+    snap.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  } catch (e) {}
+}
+
+// ========== Gender Popup ==========
+window.openGenderPopup = function(mode = 'signup') {
+  genderPopupMode = mode;
+  document.getElementById('gender-overlay').classList.add('open');
+};
+
+window.closeGenderPopup = function() {
+  document.getElementById('gender-overlay').classList.remove('open');
+};
+
+window.handleGenderOverlayClick = function(e) {
+  if (e.target === document.getElementById('gender-overlay')) closeGenderPopup();
+};
+
+window.selectGender = function(val) {
+  if (genderPopupMode === 'signup') {
+    document.getElementById('signup-gender').value = val;
+    document.getElementById('gender-display-text').textContent = val;
+  } else {
+    document.getElementById('edit-gender').value = val;
+    document.getElementById('edit-gender-display-text').textContent = val;
+  }
+  ['Male', 'Female', 'Other'].forEach(g => {
+    const el = document.getElementById('go-' + g.toLowerCase());
+    if (el) el.classList.toggle('selected', g === val);
+  });
+  setTimeout(closeGenderPopup, 350);
+};
+
+// ========== Privacy Popup ==========
 window.openPrivacyPopup = function() {
   privacyState.email = currentUserData?.emailPublic === true;
   privacyState.phone = currentUserData?.phonePublic === true;
@@ -1518,413 +2050,54 @@ window.togglePrivacy = function(field) {
 function updatePrivacyUI() {
   const email = currentUserData?.email || '';
   const phone = currentUserData?.phone || '';
+  
   const eRow = document.getElementById('priv-email-row');
   const eTag = document.getElementById('priv-email-tag');
   const ePreview = document.getElementById('priv-email-preview');
   if (privacyState.email) {
-    eRow.classList.add('public-on'); eTag.textContent='PUBLIC'; eTag.className='privacy-status-tag pub';
-    ePreview.textContent = 'Shown as: ' + (email || 'your@email.com');
+    eRow.classList.add('public-on');
+    eTag.textContent = 'PUBLIC'; eTag.className = 'privacy-status-tag pub';
+    ePreview.textContent = 'Shown as: ' + email;
   } else {
-    eRow.classList.remove('public-on'); eTag.textContent='PRIVATE'; eTag.className='privacy-status-tag priv';
-    ePreview.textContent = 'Shown as: ' + maskEmail(email || 'am****em@gmail.com', false);
+    eRow.classList.remove('public-on');
+    eTag.textContent = 'PRIVATE'; eTag.className = 'privacy-status-tag priv';
+    ePreview.textContent = 'Shown as: ' + maskEmail(email || 'am****em@gmail.com');
   }
+  
   const pRow = document.getElementById('priv-phone-row');
   const pTag = document.getElementById('priv-phone-tag');
   const pPreview = document.getElementById('priv-phone-preview');
   if (privacyState.phone) {
-    pRow.classList.add('public-on'); pTag.textContent='PUBLIC'; pTag.className='privacy-status-tag pub';
-    pPreview.textContent = 'Shown as: ' + (phone || 'your number');
+    pRow.classList.add('public-on');
+    pTag.textContent = 'PUBLIC'; pTag.className = 'privacy-status-tag pub';
+    pPreview.textContent = 'Shown as: ' + phone;
   } else {
-    pRow.classList.remove('public-on'); pTag.textContent='PRIVATE'; pTag.className='privacy-status-tag priv';
-    pPreview.textContent = 'Shown as: ' + maskPhone(phone || '019******66', false);
+    pRow.classList.remove('public-on');
+    pTag.textContent = 'PRIVATE'; pTag.className = 'privacy-status-tag priv';
+    pPreview.textContent = 'Shown as: ' + maskPhone(phone || '019******66');
   }
 }
 
 window.savePrivacySettings = async function() {
   try {
-    await updateDoc(doc(db,'users',currentUser.uid), { emailPublic: privacyState.email, phonePublic: privacyState.phone });
-    currentUserData = {...currentUserData, emailPublic: privacyState.email, phonePublic: privacyState.phone};
+    await db.collection('users').doc(currentUser.uid).update({
+      emailPublic: privacyState.email,
+      phonePublic: privacyState.phone
+    });
+    currentUserData.emailPublic = privacyState.email;
+    currentUserData.phonePublic = privacyState.phone;
     closePrivacyPopup();
     showToast('Privacy settings saved!');
-  } catch(e) { showToast('Failed to save','error'); }
+  } catch (e) {
+    showToast('Failed to save', 'error');
+  }
 };
 
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b) b.classList.remove('open');}));
-
-function updateConvHeader() {
-  if (!openChatUser) return;
-  const s=document.getElementById('conv-status-text'), d=document.getElementById('conv-status-dot');
-  if (openChatUser.online) { d.className='status-dot'; s.innerHTML='<span class="online-indicator"></span>Online'; }
-  else { d.className='status-dot offline'; s.textContent='Offline'; }
-}
-
-async function markRead(sid) { if(!currentUser||!sid) return; const q=query(collection(db,'messages'),where('senderId','==',sid),where('receiverId','==',currentUser.uid),where('read','==',false)); const snap=await getDocs(q); snap.forEach(async d=>{await updateDoc(doc(db,'messages',d.id),{read:true,seen:true});}); }
-
-window.closeConversation = function() {
-  if (openChatUser && currentUser) setMyTyping(false);
-  cancelReply();
-  document.getElementById('conv-screen').classList.remove('open');
-  if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}
-  if(msgUnsubscribe2){msgUnsubscribe2();msgUnsubscribe2=null;}
-  if(presenceUnsubscribe){presenceUnsubscribe();presenceUnsubscribe=null;}
-  if(typingUnsubscribe){typingUnsubscribe();typingUnsubscribe=null;}
-  clearTimeout(typingTimeout); clearTimeout(typingDebounce);
-  openChatUser=null;
-};
-
-let renderedMsgIds = new Set();
-let lastRenderedDate = '';
-let msgUnsubscribe2 = null;
-let _msgBuffer = {};
-let _initialLoadDone = false;
-
-function handleMsgChange(change, c) {
-  const d = change.doc;
-  const m = { ...d.data(), id: d.id };
-  const cutoffDate = new Date(Date.now() - AUTO_DELETE_MS);
-  const msgDate = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
-  if (msgDate < cutoffDate) return false;
-  if (change.type === 'added' && !renderedMsgIds.has(d.id)) {
-    renderedMsgIds.add(d.id);
-    if (!_initialLoadDone) {
-      _msgBuffer[d.id] = m;
-      return false;
-    }
-    appendMessage(m, c);
-    return true;
-  } else if (change.type === 'modified' && renderedMsgIds.has(d.id)) {
-    updateMessageStatus(m, c);
-    const row = c.querySelector(`[data-msg-id="${d.id}"]`);
-    if (row && m.text) {
-      const bubble = row.querySelector('.bubble');
-      if (bubble) {
-        let textNode = null;
-        for (const child of bubble.childNodes) {
-          if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-            textNode = child; break;
-          }
-        }
-        if (textNode) textNode.textContent = m.text;
-        let editedTag = bubble.querySelector('.edited-tag');
-        if (m.edited && !editedTag) {
-          const timeSpan = bubble.querySelector('.bubble-time');
-          if (timeSpan) {
-            editedTag = document.createElement('span');
-            editedTag.className = 'edited-tag';
-            editedTag.textContent = '(edited)';
-            timeSpan.insertAdjacentElement('beforebegin', editedTag);
-          }
-        }
-      }
-    }
-  } else if (change.type === 'removed') {
-    renderedMsgIds.delete(d.id);
-    delete _msgBuffer[d.id];
-    const row = c.querySelector(`[data-msg-id="${d.id}"]`);
-    if (row) row.remove();
-  }
-  return false;
-}
-
-function flushMsgBuffer(c) {
-  const sorted = Object.values(_msgBuffer).sort((a, b) => {
-    const ta = a.timestamp?.seconds || 0;
-    const tb = b.timestamp?.seconds || 0;
-    return ta - tb;
-  });
-  sorted.forEach(m => appendMessage(m, c));
-  _msgBuffer = {};
-  _initialLoadDone = true;
-  requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
-  if (openChatUser) markRead(openChatUser.uid);
-}
-
-function subscribeMessages() {
-  if (msgUnsubscribe) { msgUnsubscribe(); msgUnsubscribe = null; }
-  if (msgUnsubscribe2) { msgUnsubscribe2(); msgUnsubscribe2 = null; }
-  if (!currentUser || !openChatUser) return;
-
-  renderedMsgIds = new Set();
-  lastRenderedDate = '';
-  _msgBuffer = {};
-  _initialLoadDone = false;
-
-  const c = document.getElementById('conv-messages');
-
-  const q1 = query(
-    collection(db, 'messages'),
-    where('senderId', '==', currentUser.uid),
-    where('receiverId', '==', openChatUser.uid),
-    orderBy('timestamp', 'asc')
-  );
-  const q2 = query(
-    collection(db, 'messages'),
-    where('senderId', '==', openChatUser.uid),
-    where('receiverId', '==', currentUser.uid),
-    orderBy('timestamp', 'asc')
-  );
-
-  let q1Done = false, q2Done = false;
-
-  function checkInitialLoadComplete() {
-    if (q1Done && q2Done && !_initialLoadDone) {
-      flushMsgBuffer(c);
-    }
-  }
-
-  msgUnsubscribe = onSnapshot(q1, (snap) => {
-    if (!_initialLoadDone) {
-      snap.docs.forEach(d => {
-        const m = { ...d.data(), id: d.id };
-        const cutoffDate = new Date(Date.now() - AUTO_DELETE_MS);
-        const msgDate = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
-        if (msgDate >= cutoffDate && !renderedMsgIds.has(d.id)) {
-          renderedMsgIds.add(d.id);
-          _msgBuffer[d.id] = m;
-        }
-      });
-      q1Done = true;
-      checkInitialLoadComplete();
-    } else {
-      let addedAny = false;
-      const atBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 80;
-      snap.docChanges().forEach(change => {
-        if (change.type === 'added' && renderedMsgIds.has(change.doc.id)) return;
-        if (handleMsgChange(change, c)) addedAny = true;
-      });
-      if (addedAny) {
-        const lastChange = snap.docChanges().find(ch => ch.type === 'added');
-        const lastMsg = lastChange ? { ...lastChange.doc.data(), id: lastChange.doc.id } : null;
-        const isMine = lastMsg?.senderId === currentUser.uid;
-        if (isMine || atBottom) requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
-      }
-      if (openChatUser) markRead(openChatUser.uid);
-    }
-  }, (err) => console.warn('[q1 error]', err));
-
-  msgUnsubscribe2 = onSnapshot(q2, (snap) => {
-    if (!_initialLoadDone) {
-      snap.docs.forEach(d => {
-        const m = { ...d.data(), id: d.id };
-        const cutoffDate = new Date(Date.now() - AUTO_DELETE_MS);
-        const msgDate = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
-        if (msgDate >= cutoffDate && !renderedMsgIds.has(d.id)) {
-          renderedMsgIds.add(d.id);
-          _msgBuffer[d.id] = m;
-        }
-      });
-      q2Done = true;
-      checkInitialLoadComplete();
-    } else {
-      let addedAny = false;
-      const atBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 80;
-      snap.docChanges().forEach(change => {
-        if (change.type === 'added' && renderedMsgIds.has(change.doc.id)) return;
-        if (handleMsgChange(change, c)) addedAny = true;
-      });
-      if (addedAny && atBottom) requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
-      if (openChatUser) markRead(openChatUser.uid);
-    }
-  }, (err) => console.warn('[q2 error]', err));
-}
-
-function appendMessage(m, c) {
-  const ts = m.timestamp ? new Date(m.timestamp.seconds*1000) : new Date();
-  const ds = ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-  if (ds !== lastRenderedDate) {
-    const div = document.createElement('div');
-    div.className = 'date-divider';
-    div.textContent = ds;
-    c.appendChild(div);
-    lastRenderedDate = ds;
-  }
-  const isSent = m.senderId === currentUser.uid;
-  const row = document.createElement('div');
-  row.className = 'msg-row ' + (isSent ? 'sent' : 'recv');
-  row.dataset.msgId = m.id;
-  let sh = '';
-  if (isSent) {
-    if (m.seen) sh = '<span class="msg-status seen"><i class="fas fa-check-double"></i></span>';
-    else if (m.delivered) sh = '<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>';
-    else sh = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
-  }
-  let replyHtml = '';
-  if (m.replyTo) {
-    replyHtml = `<div style="background:rgba(0,0,0,0.15);border-left:3px solid rgba(0,212,255,0.6);border-radius:6px;padding:4px 8px;margin-bottom:4px;font-size:0.7rem;opacity:0.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${m.replyTo.senderName ? '<span style="color:var(--accent);font-weight:600;font-size:0.65rem;">' + m.replyTo.senderName + '</span><br>' : ''}${m.replyTo.text}</div>`;
-  }
-  
-  const bubbleEl = document.createElement('div');
-  bubbleEl.className = `bubble ${isSent?'sent':'recv'}`;
-  if (replyHtml) bubbleEl.insertAdjacentHTML('beforeend', replyHtml);
-  const textNode = document.createTextNode(m.text || '');
-  bubbleEl.appendChild(textNode);
-  if (m.edited) {
-    const editedSpan = document.createElement('span');
-    editedSpan.className = 'edited-tag';
-    editedSpan.textContent = '(edited)';
-    bubbleEl.appendChild(editedSpan);
-  }
-  bubbleEl.insertAdjacentHTML('beforeend', `<span class="bubble-time">${formatTime(ts)} ${sh}</span>`);
-  if (!isSent) {
-    const msgAvatarImg = document.createElement('img');
-    msgAvatarImg.className = 'msg-avatar';
-    msgAvatarImg.src = openChatUser?.photoURL || avatarUrl(openChatUser?.displayName||'U', openChatUser?.gender);
-    row.appendChild(msgAvatarImg);
-  }
-  row.appendChild(bubbleEl);
-  c.appendChild(row);
-  
-  const senderName = isSent ? (currentUserData?.displayName || 'You') : (openChatUser?.displayName || 'User');
-  addSwipeReply(row, m.id, m.text, senderName);
-  addLongPress(row, m.id, isSent, m.text);
-}
-
-function updateMessageStatus(m, c) {
-  if (m.senderId !== currentUser.uid) return;
-  const row = c.querySelector(`[data-msg-id="${m.id}"]`);
-  if (!row) return;
-  const timeSpan = row.querySelector('.bubble-time');
-  if (!timeSpan) return;
-  const ts = m.timestamp ? new Date(m.timestamp.seconds*1000) : new Date();
-  let sh = '';
-  if (m.seen) sh = '<span class="msg-status seen"><i class="fas fa-check-double"></i></span>';
-  else if (m.delivered) sh = '<span class="msg-status delivered"><i class="fas fa-check-double"></i></span>';
-  else sh = '<span class="msg-status sent-status"><i class="fas fa-check"></i></span>';
-  timeSpan.innerHTML = formatTime(ts) + ' ' + sh;
-}
-
-function getCombinedId(uid1, uid2) { return [uid1, uid2].sort().join('_'); }
-async function updateConversationDoc(senderId, receiverId, text) {
-  const cid = getCombinedId(senderId, receiverId);
-  await setDoc(doc(db, 'conversations', cid), { participants: [senderId, receiverId], lastTimestamp: serverTimestamp(), lastMessage: text, lastSenderId: senderId }, { merge: true });
-}
-
-window.sendMessage = async function() {
-  const input=document.getElementById('msg-input'), text=input.value.trim();
-  if(!text||!currentUser||!openChatUser) return;
-  input.value=''; autoResize(input); setMyTyping(false);
-  const c = document.getElementById('conv-messages');
-  requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
-  const msgData = {senderId:currentUser.uid,receiverId:openChatUser.uid,text,timestamp:serverTimestamp(),delivered:false,read:false,seen:false};
-  if (_replyingTo) { msgData.replyTo = { id: _replyingTo.id, text: _replyingTo.text, senderName: _replyingTo.senderName }; cancelReply(); }
-  try {
-    await addDoc(collection(db,'messages'), msgData);
-    await updateConversationDoc(currentUser.uid, openChatUser.uid, text);
-    sendPushNotification(text).catch(()=>{});
-  }
-  catch(e) { showToast('Send failed','error'); }
-};
-
-async function sendPushNotification(messageText) {
-  try {
-    const receiverSnap = await getDoc(doc(db, 'users', openChatUser.uid));
-    const receiverPlayerId = receiverSnap.data()?.oneSignalPlayerId;
-    if (!receiverPlayerId) return;
-    const senderPlayerId = window._oneSignalPlayerId || null;
-    if (senderPlayerId && senderPlayerId === receiverPlayerId) return;
-    const senderName = currentUserData?.displayName || 'Someone';
-    await fetch('/api/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ receiverPlayerId, senderPlayerId, senderName, messageText })
-    });
-  } catch(e) {
-    console.warn('[Notification] Failed:', e);
-  }
-}
-
-window.msgKeyDown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} };
-
-document.getElementById('msg-input').addEventListener('input',()=>{if(!openChatUser) return; setMyTyping(true); clearTimeout(typingDebounce); typingDebounce=setTimeout(()=>{setMyTyping(false);},2000);});
-
-window.openEditProfile = function() {
-  const lastEdit = currentUserData?.lastProfileEdit;
-  const cooldownMsg = document.getElementById('edit-profile-cooldown-msg');
-  const saveBtn = document.getElementById('edit-profile-save-btn');
-  if (lastEdit) {
-    const lastEditDate = lastEdit.toDate ? lastEdit.toDate() : new Date(lastEdit);
-    const diffDays = (Date.now() - lastEditDate.getTime()) / (1000*60*60*24);
-    if (diffDays < 7) {
-      const daysLeft = Math.ceil(7 - diffDays);
-      cooldownMsg.style.display = 'block';
-      cooldownMsg.innerHTML = `<i class="fas fa-lock" style="margin-right:5px;"></i>You can update your profile again in <strong>${daysLeft} day(s)</strong>.`;
-      saveBtn.disabled = true; saveBtn.style.opacity = '0.5';
-    } else {
-      cooldownMsg.style.display = 'none';
-      saveBtn.disabled = false; saveBtn.style.opacity = '1';
-    }
-  } else {
-    cooldownMsg.style.display = 'none';
-    saveBtn.disabled = false; saveBtn.style.opacity = '1';
-  }
-  document.getElementById('edit-name').value = currentUserData?.displayName||'';
-  document.getElementById('edit-phone').value = currentUserData?.phone||'';
-  const curGender = currentUserData?.gender || '';
-  document.getElementById('edit-gender').value = curGender;
-  const editGenderDisplay = document.getElementById('edit-gender-display-text');
-  if (editGenderDisplay) { editGenderDisplay.textContent = curGender || 'Select Gender'; if(curGender) editGenderDisplay.classList.add('selected'); else editGenderDisplay.classList.remove('selected'); }
-  document.getElementById('edit-profile-modal').classList.add('open');
-};
-
-window.saveProfile = async function() {
-  const n=document.getElementById('edit-name').value.trim(), p=document.getElementById('edit-phone').value.trim();
-  const g=document.getElementById('edit-gender').value;
-  if(!n){showToast('Name required','error');return;}
-  if(!g){showToast('Please select gender','error');openGenderPopupEdit();return;}
-  const lastEdit = currentUserData?.lastProfileEdit;
-  if (lastEdit) {
-    const lastEditDate = lastEdit.toDate ? lastEdit.toDate() : new Date(lastEdit);
-    const diffDays = (Date.now() - lastEditDate.getTime()) / (1000*60*60*24);
-    if (diffDays < 7) { const daysLeft = Math.ceil(7-diffDays); showToast(`You can update again in ${daysLeft} day(s)`, 'error'); return; }
-  }
-  if (p && p !== currentUserData?.phone) {
-    try {
-      const phoneQ = query(collection(db,'users'), where('phone','==',p));
-      const phoneSnap = await getDocs(phoneQ);
-      if (!phoneSnap.empty) { showToast('This phone number is already registered','error'); return; }
-    } catch(e) {}
-  }
-  try {
-    const newPhotoURL = avatarUrl(n, g);
-    await updateDoc(doc(db,'users',currentUser.uid),{displayName:n,phone:p,gender:g,photoURL:newPhotoURL,lastProfileEdit:serverTimestamp()});
-    currentUserData={...currentUserData,displayName:n,phone:p,gender:g,photoURL:newPhotoURL,lastProfileEdit:new Date()};
-    updateUI(); closeModal('edit-profile-modal'); showToast('Profile updated!');
-  } catch(e){showToast('Failed','error');}
-};
-window.openChangePassword = function() { document.getElementById('old-pass').value=''; document.getElementById('new-pass').value=''; document.getElementById('confirm-pass').value=''; document.getElementById('pass-error').textContent=''; document.getElementById('change-pass-modal').classList.add('open'); };
-window.changePassword = async function() {
-  const o=document.getElementById('old-pass').value, n=document.getElementById('new-pass').value, c=document.getElementById('confirm-pass').value;
-  if(!o||!n||!c){document.getElementById('pass-error').textContent='Fill all fields';return;}
-  if(n!==c){document.getElementById('pass-error').textContent='Passwords do not match';return;}
-  if(n.length<6){document.getElementById('pass-error').textContent='Min 6 characters';return;}
-  try { await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(currentUser.email,o)); await updatePassword(auth.currentUser,n); closeModal('change-pass-modal'); showToast('Password updated!'); }
-  catch(e){document.getElementById('pass-error').textContent=e.code==='auth/wrong-password'?'Incorrect old password':friendlyError(e.code);}
-};
-window.openAvatarUrlModal = function() { document.getElementById('avatar-url-input').value=''; document.getElementById('avatar-url-modal').classList.add('open'); };
-window.updateAvatarUrl = async function() {
-  const url=document.getElementById('avatar-url-input').value.trim();
-  if(!url){showToast('Enter valid URL','error');return;}
-  const testImg = new Image();
-  testImg.onload = async () => { try { await updateDoc(doc(db,'users',currentUser.uid),{photoURL:url}); currentUserData={...currentUserData,photoURL:url}; updateUI(); closeModal('avatar-url-modal'); showToast('Picture updated!'); } catch(e){showToast('Failed','error');} };
-  testImg.onerror = () => showToast('Invalid image URL','error');
-  testImg.src = url;
-};
-window.openUserProfileModal = function(user) {
-  if(!user) return;
-  document.getElementById('upm-avatar').src=user.photoURL||avatarUrl(user.displayName||'U',user.gender);
-  document.getElementById('upm-name').textContent=user.displayName||'User';
-  document.getElementById('upm-phone').textContent=user.phone||'Not provided';
-  document.getElementById('upm-email').textContent=user.email||'Not provided';
-  document.getElementById('upm-gender').textContent=user.gender||'Not specified';
-  document.getElementById('user-profile-modal').classList.add('open');
-};
+// ========== Forgot Password ==========
 window.openForgotPopup = function() {
-  const overlay = document.getElementById('forgot-overlay');
-  if (!overlay) return;
   document.getElementById('forgot-email').value = '';
-  const msg = document.getElementById('forgot-msg');
-  msg.className = 'forgot-msg'; msg.textContent = '';
-  overlay.classList.add('open');
+  document.getElementById('forgot-msg').textContent = '';
+  document.getElementById('forgot-overlay').classList.add('open');
 };
 
 window.closeForgotPopup = function() {
@@ -1934,375 +2107,184 @@ window.closeForgotPopup = function() {
 window.handleForgotPassword = async function() {
   const email = document.getElementById('forgot-email').value.trim();
   const msgEl = document.getElementById('forgot-msg');
-  msgEl.className = 'forgot-msg'; msgEl.textContent = '';
   if (!email) {
-    msgEl.className = 'forgot-msg error';
-    msgEl.textContent = 'Please enter your email.';
+    msgEl.textContent = 'Please enter your email';
+    msgEl.style.color = 'var(--red)';
     return;
   }
   try {
-    await sendPasswordResetEmail(auth, email);
-    msgEl.className = 'forgot-msg success';
-    msgEl.textContent = 'Reset link sent! Please check your email.';
-  } catch(e) {
-    msgEl.className = 'forgot-msg error';
-    msgEl.textContent = 'No account found with this email.';
+    await auth.sendPasswordResetEmail(email);
+    msgEl.textContent = 'Reset link sent! Check your email.';
+    msgEl.style.color = 'var(--green)';
+  } catch (e) {
+    msgEl.textContent = 'No account found with this email';
+    msgEl.style.color = 'var(--red)';
   }
 };
 
-window.copyProfileLink = function() {
-  navigator.clipboard.writeText('https://phototourl.com/sv').then(() => {
-    const btn = document.getElementById('copy-link-btn');
-    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    btn.style.background = 'rgba(74,222,128,0.15)';
-    btn.style.borderColor = 'rgba(74,222,128,0.4)';
-    btn.style.color = '#4ade80';
-    setTimeout(() => {
-      btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
-      btn.style.background = 'rgba(0,212,255,0.15)';
-      btn.style.borderColor = 'rgba(0,212,255,0.3)';
-      btn.style.color = '#00d4ff';
-    }, 2000);
-  }).catch(() => {
-    showToast('Link copied!');
-  });
-};
-
-window.closeInAppBrowser = function() {
-  const browser = document.getElementById('inapp-browser');
-  const iframe = document.getElementById('inapp-iframe');
-  browser.classList.remove('open');
-  iframe.src = '';
-};
-
-window.addEventListener('popstate', function(e) {
-  const browser = document.getElementById('inapp-browser');
-  const convScreen = document.getElementById('conv-screen');
-  if (browser && browser.classList.contains('open')) {
-    closeInAppBrowser();
-  } else if (convScreen && convScreen.classList.contains('open')) {
-    closeConversation();
-  }
-});
-window.showLogoutConfirm = function() { document.getElementById('logout-confirm-modal').classList.add('open'); };
-window.confirmLogout = async function() {
-  closeModal('logout-confirm-modal');
-  try {
-    if (currentUser) { await set(ref(rtdb, `status/${currentUser.uid}`), { online: false, lastSeen: rtdbTimestamp() }); }
-    await signOut(auth);
-    setTimeout(()=>{
-      const el = document.getElementById('auth-screen');
-      let msg = el.querySelector('#logout-success-msg');
-      if (!msg) { msg = document.createElement('div'); msg.id='logout-success-msg'; msg.style.cssText='background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:12px 18px;font-size:0.82rem;color:#4ade80;text-align:center;margin-top:-8px;margin-bottom:12px;display:flex;align-items:center;gap:8px;max-width:360px;width:100%;'; msg.innerHTML='<i class="fas fa-check-circle"></i> Successfully Logged Out Your Account'; const card = el.querySelector('.auth-card'); if(card) el.insertBefore(msg, card); }
-      msg.style.display='flex';
-      setTimeout(()=>{ msg.style.display='none'; }, 4000);
-    }, 300);
-  } catch(e) { showToast('Logout failed','error'); }
-};
-window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
-window.showToast = function(msg,type) { const t=document.getElementById('toast'); t.textContent=msg; t.className=type==='error'?'show error':'show'; setTimeout(()=>t.className='',2500); };
-window.autoResize = function(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,80)+'px'; };
-window.openAboutDeveloper = function() { document.getElementById('about-overlay').classList.add('open'); };
-window.closeAboutDeveloper = function() { document.getElementById('about-overlay').classList.remove('open'); };
-window.handleAboutOverlayClick = function(e) { if(e.target===document.getElementById('about-overlay')) closeAboutDeveloper(); };
-
-window.togglePassVis = function(inputId, iconId) {
-  const input = document.getElementById(inputId);
-  const icon = document.getElementById(iconId);
-  if (!input || !icon) return;
-  if (input.type === 'password') { input.type = 'text'; icon.className = 'fas fa-eye-slash'; }
-  else { input.type = 'password'; icon.className = 'fas fa-eye'; }
-};
-
-window.showDeleteAccountStep1 = function() {
-  document.getElementById('delete-account-step1-modal').classList.add('open');
-};
-window.showDeleteAccountStep2 = function() {
-  closeModal('delete-account-step1-modal');
-  document.getElementById('delete-confirm-input').value = '';
-  const btn = document.getElementById('delete-account-btn');
-  btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed';
-  document.getElementById('delete-account-step2-modal').classList.add('open');
-};
-window.checkDeletePhrase = function() {
-  const val = document.getElementById('delete-confirm-input').value;
-  const btn = document.getElementById('delete-account-btn');
-  if (val === 'i want delete my Account') {
-    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
-  } else {
-    btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed';
-  }
-};
-window.confirmDeleteAccount = async function() {
-  if (!currentUser) return;
-  const btn = document.getElementById('delete-account-btn');
-  btn.disabled = true; btn.textContent = 'Deleting…';
-  try {
-    const uid = currentUser.uid;
-    const sentQ = query(collection(db,'messages'), where('senderId','==',uid));
-    const recvQ = query(collection(db,'messages'), where('receiverId','==',uid));
-    const [sentSnap, recvSnap] = await Promise.all([getDocs(sentQ), getDocs(recvQ)]);
-    const delPromises = [];
-    sentSnap.forEach(d => delPromises.push(deleteDoc(doc(db,'messages',d.id))));
-    recvSnap.forEach(d => delPromises.push(deleteDoc(doc(db,'messages',d.id))));
-    await Promise.all(delPromises);
-    await deleteDoc(doc(db,'users',uid));
-    await set(ref(rtdb, `status/${uid}`), { online: false });
-    await auth.currentUser.delete();
-    closeModal('delete-account-step2-modal');
-    showToast('Account deleted');
-  } catch(e) {
-    if (e.code === 'auth/requires-recent-login') {
-      showToast('Please log out and log in again before deleting', 'error');
+// ========== Edit Profile ==========
+window.openEditProfile = function() {
+  const lastEdit = currentUserData?.lastProfileEdit;
+  const cooldownMsg = document.getElementById('edit-profile-cooldown-msg');
+  const saveBtn = document.getElementById('edit-profile-save-btn');
+  
+  if (lastEdit) {
+    const lastEditDate = lastEdit.toDate ? lastEdit.toDate() : new Date(lastEdit);
+    const diffDays = (Date.now() - lastEditDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays < 7) {
+      const daysLeft = Math.ceil(7 - diffDays);
+      cooldownMsg.style.display = 'block';
+      cooldownMsg.innerHTML = `<i class="fa-solid fa-lock"></i> You can update again in <strong>${daysLeft} day(s)</strong>.`;
+      saveBtn.disabled = true;
     } else {
-      showToast('Failed to delete account', 'error');
+      cooldownMsg.style.display = 'none';
+      saveBtn.disabled = false;
     }
-    btn.disabled = false; btn.textContent = 'Delete Account';
+  } else {
+    cooldownMsg.style.display = 'none';
+    saveBtn.disabled = false;
+  }
+  
+  document.getElementById('edit-name').value = currentUserData?.displayName || '';
+  document.getElementById('edit-phone').value = currentUserData?.phone || '';
+  document.getElementById('edit-gender').value = currentUserData?.gender || '';
+  document.getElementById('edit-gender-display-text').textContent = currentUserData?.gender || 'Select Gender';
+  document.getElementById('edit-profile-modal').classList.add('open');
+};
+
+window.saveProfile = async function() {
+  const n = document.getElementById('edit-name').value.trim();
+  const p = document.getElementById('edit-phone').value.trim();
+  const g = document.getElementById('edit-gender').value;
+  
+  if (!n) { showToast('Name required', 'error'); return; }
+  if (!g) { showToast('Select gender', 'error'); return; }
+  
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      displayName: n,
+      phone: p,
+      gender: g,
+      photoURL: avatarUrl(n, g),
+      lastProfileEdit: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    currentUserData = { ...currentUserData, displayName: n, phone: p, gender: g, photoURL: avatarUrl(n, g) };
+    updateMyUI();
+    closeModal('edit-profile-modal');
+    showToast('Profile updated!');
+  } catch (e) {
+    showToast('Failed', 'error');
   }
 };
 
-let _isLightTheme = false;
+// ========== Change Password ==========
+window.openChangePassword = function() {
+  document.getElementById('old-pass').value = '';
+  document.getElementById('new-pass').value = '';
+  document.getElementById('confirm-pass').value = '';
+  document.getElementById('pass-error').textContent = '';
+  document.getElementById('change-pass-modal').classList.add('open');
+};
+
+window.changePassword = async function() {
+  const o = document.getElementById('old-pass').value;
+  const n = document.getElementById('new-pass').value;
+  const c = document.getElementById('confirm-pass').value;
+  if (!o || !n || !c) { document.getElementById('pass-error').textContent = 'Fill all fields'; return; }
+  if (n !== c) { document.getElementById('pass-error').textContent = 'Passwords do not match'; return; }
+  if (n.length < 6) { document.getElementById('pass-error').textContent = 'Min 6 characters'; return; }
+  try {
+    const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, o);
+    await currentUser.reauthenticateWithCredential(cred);
+    await currentUser.updatePassword(n);
+    closeModal('change-pass-modal');
+    showToast('Password updated!');
+  } catch (e) {
+    document.getElementById('pass-error').textContent = e.code === 'auth/wrong-password' ? 'Incorrect old password' : friendlyError(e.code);
+  }
+};
+
+// ========== About Developer ==========
+window.openAboutDeveloper = function() {
+  document.getElementById('about-overlay').classList.add('open');
+};
+
+window.closeAboutDeveloper = function() {
+  document.getElementById('about-overlay').classList.remove('open');
+};
+
+window.handleAboutOverlayClick = function(e) {
+  if (e.target === document.getElementById('about-overlay')) closeAboutDeveloper();
+};
+
+// ========== Theme ==========
 (function initTheme() {
   const saved = localStorage.getItem('kb_theme');
   if (saved === 'light') { _isLightTheme = true; applyTheme(true); }
 })();
+
 function applyTheme(light) {
   const root = document.documentElement;
   if (light) {
-    root.style.setProperty('--bg-primary','#f0f4f8');
-    root.style.setProperty('--bg-secondary','#ffffff');
-    root.style.setProperty('--bg-tertiary','#e8edf3');
-    root.style.setProperty('--bg-card','#ffffff');
-    root.style.setProperty('--bg-input','#e2e8f0');
-    root.style.setProperty('--bubble-recv','#e2e8f0');
-    root.style.setProperty('--text-primary','#1a202c');
-    root.style.setProperty('--text-secondary','#4a5568');
-    root.style.setProperty('--text-muted','#a0aec0');
-    root.style.setProperty('--border','rgba(0,0,0,0.1)');
+    root.style.setProperty('--bg-primary', '#f0f4f8');
+    root.style.setProperty('--bg-secondary', '#ffffff');
+    root.style.setProperty('--bg-tertiary', '#e8edf3');
+    root.style.setProperty('--bg-card', '#ffffff');
+    root.style.setProperty('--bg-input', '#e2e8f0');
+    root.style.setProperty('--bubble-recv', '#e2e8f0');
+    root.style.setProperty('--text-primary', '#1a202c');
+    root.style.setProperty('--text-secondary', '#4a5568');
+    root.style.setProperty('--text-muted', '#a0aec0');
+    root.style.setProperty('--border', 'rgba(0,0,0,0.1)');
   } else {
-    root.style.setProperty('--bg-primary','#0a0e1a');
-    root.style.setProperty('--bg-secondary','#111827');
-    root.style.setProperty('--bg-tertiary','#1a2235');
-    root.style.setProperty('--bg-card','#151e30');
-    root.style.setProperty('--bg-input','#1e2d44');
-    root.style.setProperty('--bubble-recv','#1e2d44');
-    root.style.setProperty('--text-primary','#e8f0fe');
-    root.style.setProperty('--text-secondary','#8899bb');
-    root.style.setProperty('--text-muted','#4a5a78');
-    root.style.setProperty('--border','rgba(0,212,255,0.12)');
+    root.style.setProperty('--bg-primary', '#0a0e1a');
+    root.style.setProperty('--bg-secondary', '#111827');
+    root.style.setProperty('--bg-tertiary', '#1a2235');
+    root.style.setProperty('--bg-card', '#151e30');
+    root.style.setProperty('--bg-input', '#1e2d44');
+    root.style.setProperty('--bubble-recv', '#1e2d44');
+    root.style.setProperty('--text-primary', '#e8f0fe');
+    root.style.setProperty('--text-secondary', '#8899bb');
+    root.style.setProperty('--text-muted', '#4a5a78');
+    root.style.setProperty('--border', 'rgba(0,212,255,0.12)');
   }
   const label = document.getElementById('theme-label');
-  const knob = document.getElementById('theme-toggle-knob');
-  const trackEl = document.getElementById('theme-toggle-btn');
   if (label) label.textContent = light ? 'Theme - Light' : 'Theme - Dark';
-  if (knob) { knob.style.transform = light ? 'translateX(16px)' : 'translateX(0)'; knob.style.background = light ? '#00d4ff' : 'var(--text-muted)'; }
-  if (trackEl) trackEl.style.background = light ? 'rgba(0,212,255,0.18)' : 'var(--bg-input)';
 }
+
 window.toggleTheme = function() {
   _isLightTheme = !_isLightTheme;
   applyTheme(_isLightTheme);
   localStorage.setItem('kb_theme', _isLightTheme ? 'light' : 'dark');
+  showToast(_isLightTheme ? 'Light mode' : 'Dark mode', 'info');
 };
 
-let _replyingTo = null;
-
-window.cancelReply = function() {
-  _replyingTo = null;
-  document.getElementById('reply-preview-bar').style.display = 'none';
-  document.getElementById('reply-preview-text').textContent = '';
+// ========== Modal ==========
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('open');
 };
 
-function setReplyTo(msgId, text, senderName) {
-  _replyingTo = { id: msgId, text, senderName };
-  const bar = document.getElementById('reply-preview-bar');
-  const preview = document.getElementById('reply-preview-text');
-  preview.textContent = (senderName ? senderName + ': ' : '') + text;
-  bar.style.display = 'block';
-  document.getElementById('msg-input').focus();
-}
+// ========== Misc ==========
+window.autoResize = function(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+};
 
-function addSwipeReply(row, msgId, text, senderName) {
-  let startX = 0, startY = 0, swiped = false;
-  row.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    swiped = false;
-  }, { passive: true });
-  row.addEventListener('touchmove', (e) => {
-    const dx = e.touches[0].clientX - startX;
-    const dy = Math.abs(e.touches[0].clientY - startY);
-    if (dx > 40 && dy < 30 && !swiped) {
-      row.style.transition = 'transform 0.1s';
-      row.style.transform = `translateX(${Math.min(dx * 0.4, 28)}px)`;
-    }
-  }, { passive: true });
-  row.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - startX;
-    row.style.transition = 'transform 0.2s';
-    row.style.transform = 'translateX(0)';
-    if (dx > 55) {
-      swiped = true;
-      setReplyTo(msgId, text, senderName);
-    }
+window.requestNotificationPermission = async function() {
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+  updateNotifStatus();
+};
+
+// ========== Service Worker ==========
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
   });
 }
 
-function formatTime(d) {
-  const n=new Date();
-  if(d.toDateString()===n.toDateString()) return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-  const diff=Math.floor((n-d)/86400000);
-  if(diff<7) return d.toLocaleDateString('en-US',{weekday:'short'});
-  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-}
-
-let _ctxMsgId = null;
-let _ctxMsgText = '';
-let _ctxIsSent = false;
-let _longPressTimer = null;
-let _editingMsgId = null;
-
-function addLongPress(row, msgId, isSent, text) {
-  const startMenu = () => {
-    _ctxMsgId = msgId;
-    _ctxMsgText = text;
-    _ctxIsSent = isSent;
-    if (navigator.vibrate) navigator.vibrate(40);
-    const editBtn = document.getElementById('msg-ctx-edit-btn');
-    const editDiv = document.getElementById('msg-ctx-edit-divider');
-    if (editBtn) { editBtn.style.display = isSent ? 'flex' : 'none'; }
-    if (editDiv) { editDiv.style.display = isSent ? 'block' : 'none'; }
-    const preview = document.getElementById('msg-ctx-preview');
-    if (preview) preview.textContent = text ? (text.length > 50 ? text.substring(0,50)+'…' : text) : 'Message';
-    document.getElementById('msg-ctx-backdrop').classList.add('open');
-    document.getElementById('msg-ctx-sheet').classList.add('open');
-  };
-
-  row.addEventListener('touchstart', (e) => {
-    _longPressTimer = setTimeout(startMenu, 520);
-  }, { passive: true });
-  row.addEventListener('touchend', () => clearTimeout(_longPressTimer), { passive: true });
-  row.addEventListener('touchmove', () => clearTimeout(_longPressTimer), { passive: true });
-  row.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    startMenu();
-  });
-}
-
-window.closeMsgContextMenu = function() {
-  document.getElementById('msg-ctx-backdrop').classList.remove('open');
-  document.getElementById('msg-ctx-sheet').classList.remove('open');
-};
-
-window.openEditMsg = function() {
-  if (!_ctxMsgId || !_ctxIsSent) return;
-  _editingMsgId = _ctxMsgId;
-  const savedText = _ctxMsgText;
-  closeMsgContextMenu();
-  const input = document.getElementById('edit-msg-input');
-  input.value = savedText;
-  document.getElementById('edit-msg-modal').classList.add('open');
-  setTimeout(() => input.focus(), 300);
-};
-
-window.saveEditedMessage = async function() {
-  const newText = document.getElementById('edit-msg-input').value.trim();
-  if (!newText) { showToast('Message cannot be empty', 'error'); return; }
-  if (!_editingMsgId) { showToast('Error: message not found', 'error'); return; }
-  const btn = document.getElementById('edit-msg-save-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  try {
-    await updateDoc(doc(db, 'messages', _editingMsgId), { text: newText, edited: true });
-    closeModal('edit-msg-modal');
-    _editingMsgId = null;
-    showToast('Message updated ✓');
-  } catch(e) {
-    showToast('Failed to update message', 'error');
-  }
-  btn.disabled = false; btn.textContent = 'Save Changes';
-};
-
-window.deleteMessage = async function() {
-  if (!_ctxMsgId) return;
-  const msgId = _ctxMsgId;
-  closeMsgContextMenu();
-  try {
-    await deleteDoc(doc(db, 'messages', msgId));
-    showToast('Message deleted');
-  } catch(e) {
-    showToast('Failed to delete message', 'error');
-  }
-};
+console.log('✅ Kotha Bolbo Compat Ready - Created by Sayem');
 </script>
-
-<div class="modal-backdrop" id="delete-account-step1-modal">
-  <div class="modal" style="text-align:center;">
-    <div class="confirm-icon warning" style="background:rgba(139,0,0,0.15);color:#8b0000;"><i class="fas fa-user-times"></i></div>
-    <h2 style="margin-bottom:6px;">Delete Account</h2>
-    <p class="confirm-text">Are you sure you want to delete your account? This cannot be undone.</p>
-    <div class="modal-buttons">
-      <button class="btn-secondary" onclick="closeModal('delete-account-step1-modal')">No</button>
-      <button class="btn-danger" onclick="showDeleteAccountStep2()">Yes</button>
-    </div>
-  </div>
-</div>
-<div class="modal-backdrop" id="delete-account-step2-modal">
-  <div class="modal">
-    <button class="close-btn" onclick="closeModal('delete-account-step2-modal')"><i class="fas fa-times"></i></button>
-    <h2 style="margin-bottom:8px;color:#8b0000;">Confirm Deletion</h2>
-    <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:14px;">To confirm, type exactly: <strong style="color:var(--text-primary);">i want delete my Account</strong></p>
-    <div class="form-group">
-      <input type="text" id="delete-confirm-input" placeholder="Type the phrase above…" oninput="checkDeletePhrase()" />
-    </div>
-    <button class="btn-danger" id="delete-account-btn" onclick="confirmDeleteAccount()" disabled style="opacity:0.4;cursor:not-allowed;">Delete Account</button>
-  </div>
-</div>
-
-<div id="inapp-browser">
-  <div class="inapp-header">
-    <button class="inapp-back-btn" onclick="closeInAppBrowser()" id="inapp-back-btn">
-      <i class="fas fa-arrow-left"></i>
-    </button>
-    <div class="inapp-url-bar" id="inapp-url-bar">phototourl.com/sv</div>
-  </div>
-  <iframe class="inapp-iframe" id="inapp-iframe" src="" allowfullscreen></iframe>
-</div>
-
-<div class="msg-ctx-backdrop" id="msg-ctx-backdrop" onclick="closeMsgContextMenu()"></div>
-<div class="msg-ctx-sheet" id="msg-ctx-sheet">
-  <div class="msg-ctx-handle"></div>
-  <div class="msg-ctx-preview" id="msg-ctx-preview"></div>
-  <button class="msg-ctx-btn" id="msg-ctx-edit-btn" onclick="openEditMsg()">
-    <i class="fas fa-edit"></i> Edit Message
-  </button>
-  <div class="msg-ctx-divider" id="msg-ctx-edit-divider"></div>
-  <button class="msg-ctx-btn danger" onclick="deleteMessage()">
-    <i class="fas fa-trash-alt"></i> Delete Message
-  </button>
-  <button class="msg-ctx-btn" onclick="closeMsgContextMenu()" style="color:var(--text-muted);padding-bottom:18px;">
-    <i class="fas fa-times" style="color:var(--text-muted);"></i> Cancel
-  </button>
-</div>
-
-<div class="modal-backdrop" id="edit-msg-modal">
-  <div class="modal">
-    <button class="close-btn" onclick="closeModal('edit-msg-modal')"><i class="fas fa-times"></i></button>
-    <h2>Edit Message</h2>
-    <div class="form-group">
-      <textarea id="edit-msg-input" rows="4" style="width:100%;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:inherit;font-size:0.88rem;padding:10px 12px;outline:none;resize:none;transition:var(--transition);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-    </div>
-    <button class="btn-primary" id="edit-msg-save-btn" onclick="saveEditedMessage()">Save Changes</button>
-  </div>
-</div>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(function(reg) { console.log('[SW] Registered:', reg.scope); })
-        .catch(function(err) { console.warn('[SW] Failed:', err); });
-    });
-  }
-</script>
-
 </body>
 </html>
