@@ -513,7 +513,7 @@ const NOTIFY_API = "/api/send-notification";
 /* ===================================================================== */
 
 /* ============== Firebase init ============== */
-firebase.initializeApp(FIREBASE_CONFIG);
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const fs   = firebase.firestore();
 const rtdb = firebase.database();
