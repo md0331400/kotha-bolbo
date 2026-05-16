@@ -5,16 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Kotha Bolbo</title>
 
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#00d4ff" />
-  <meta name="description" content="Kotha Bolbo – Talk, stay connected. Created by Sayem." />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Kotha Bolbo" />
-  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,500;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
@@ -779,48 +769,6 @@
 
   </style>
 </head>
-<style>
-  #browser-block {
-    display:none; position:fixed; inset:0; z-index:99999;
-    background: radial-gradient(ellipse at center, #0f172a 0%, #020617 100%);
-    flex-direction:column; align-items:center; justify-content:center;
-    gap:24px; padding:32px; text-align:center;
-  }
-  #browser-block.visible { display:flex; }
-  .block-logo { width:80px; height:80px; background:linear-gradient(135deg,#00d4ff,#7c3aed); border-radius:50% 50% 50% 20%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 40px rgba(0,212,255,0.4); margin-bottom:8px; }
-  .block-logo i { font-size:36px; color:#fff; margin-left:4px; }
-  .block-title { font-family:'Exo 2',sans-serif; font-size:1.6rem; font-weight:700; background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .block-msg { font-size:0.95rem; color:#8899bb; line-height:1.6; max-width:300px; }
-  .block-download-btn { display:flex; align-items:center; gap:10px; padding:14px 28px; background:linear-gradient(135deg,#00d4ff,#0099cc); color:#000; font-weight:700; font-size:0.95rem; border:none; border-radius:999px; cursor:pointer; text-decoration:none; box-shadow:0 6px 24px rgba(0,212,255,0.4); transition:transform 0.2s; }
-  .block-download-btn:hover { transform:translateY(-2px); }
-  .block-download-btn i { font-size:18px; }
-  .block-sub { font-size:0.72rem; color:#4a5a78; }
-</style>
-
-<div id="browser-block">
-  <div class="block-logo"><i class="fas fa-comment-dots"></i></div>
-  <div class="block-title">Kotha Bolbo</div>
-  <div class="block-msg">এই app টি browser এ চালানো যাবে না। Please app install করে ব্যবহার করুন।</div>
-  <div class="block-msg" style="font-size:0.8rem;margin-top:-12px;">This app is not available on browsers. Please download and install the app.</div>
-  <a href="https://sayemwebstore.vercel.app" class="block-download-btn" target="_blank" rel="noopener">
-    <i class="fas fa-download"></i> Download App
-  </a>
-  <div class="block-sub">Only works as installed PWA</div>
-</div>
-
-<script>
-  (function(){
-    var isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                window.navigator.standalone === true;
-    if (!isPWA) {
-      document.getElementById('browser-block').classList.add('visible');
-      document.addEventListener('DOMContentLoaded', function(){
-        var el = document.getElementById('splash');
-        if(el) el.style.display='none';
-      });
-    }
-  })();
-</script>
 
 <div id="splash">
   <div class="splash-logo-wrap">
@@ -2542,16 +2490,6 @@ window.deleteMessage = async function() {
     </div>
   </div>
 </div>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(function(reg) { console.log('[SW] Registered:', reg.scope); })
-        .catch(function(err) { console.warn('[SW] Failed:', err); });
-    });
-  }
-</script>
 
 </body>
 </html>
