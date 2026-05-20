@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kotha Bolbo" />
-  <!-- ImageKit Auth Endpoint — Vercel deploy করার পরে এই URL তোমার Vercel URL দিয়ে replace করো -->
+  <!-- ImageKit Auth Endpoint — Replace this URL with your Vercel deployment URL -->
   <script>window.IK_AUTH_ENDPOINT = 'https://kothabolbo.vercel.app/api/imagekit-auth';</script>
 
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,500;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -1081,7 +1081,7 @@
         </div>
         <div>
           <div style="font-size:0.95rem;font-weight:700;color:var(--text-primary);">Profile Setup Guideline</div>
-          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:1px;">ধাপগুলো অনুসরণ করুন</div>
+          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:1px;">Follow the steps below</div>
         </div>
       </div>
     </div>
@@ -2265,7 +2265,7 @@ function _voiceStopTimer() {
 }
 
 // ── start recording ───────────────────────────────
-async function startVoiceRecording() {
+window.startVoiceRecording = async function startVoiceRecording() {
   if (_isRecording) return;
   if (!openChatUser) { showToast('Open a chat first', 'error'); return; }
 
@@ -2298,13 +2298,14 @@ async function startVoiceRecording() {
 }
 
 // ── stop recording ────────────────────────────────
-function stopVoiceRecording() {
+window.stopVoiceRecording = function stopVoiceRecording() {
   if (!_isRecording || !_mediaRecorder) return;
   _mediaRecorder.stop();
   _recStream.getTracks().forEach(t => t.stop());
   _isRecording = false;
-  _voiceSetRecordingUI(false);
+  _isPaused = false;
   _voiceStopTimer();
+  // UI update is handled by _voiceOnRecordStop → showVoicePreviewInline
 }
 
 // ── cancel recording ──────────────────────────────
@@ -3142,7 +3143,7 @@ window.openProfilePage = function(user) {
     bioEl.innerHTML = user.bio;
     bioEl.className = '';
   } else {
-    bioEl.innerHTML = '<span class="pp-bio-empty"><i class="fas fa-pen-nib"></i>User কোনো কিছু বায়োতে লিখেনি।</span>';
+    bioEl.innerHTML = '<span class="pp-bio-empty"><i class="fas fa-pen-nib"></i>This user hasn\'t written a bio yet.</span>';
     bioEl.className = '';
   }
 
@@ -3607,7 +3608,7 @@ window.replyFromContextMenu = function() {
     </div>
     <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5;padding:10px 12px;background:rgba(255,152,0,0.06);border-radius:10px;border:1px solid rgba(255,152,0,0.15);">
       <i class="fas fa-info-circle" style="color:#ff9800;margin-right:5px;"></i>
-      তুমি যদি নির্দিষ্ট সময় inactive থাকো, তাহলে account automatically delete হয়ে যাবে।
+      If you remain inactive for the selected period, your account will be automatically deleted.
     </p>
     <div id="inactive-options-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
       <div class="inactive-option" data-val="1" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>1 month</span></div>
