@@ -936,8 +936,12 @@
           <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:8px;opacity:0.4;"></span>
         </div>
       </div>
-      <div style="display:flex;gap:6px;">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <!-- LEFT: Stop (discard) button -->
+        <button id="voice-preview-stop-btn" onclick="cancelVoicePreviewInline()" style="width:38px;height:38px;border:1.5px solid rgba(255,77,109,0.4);background:rgba(255,77,109,0.1);color:var(--danger);border-radius:10px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><i class="fas fa-stop"></i></button>
+        <!-- MIDDLE: Play/Pause button -->
         <button id="voice-preview-play-btn" onclick="toggleVoicePreviewPlayInline()" style="flex:1;padding:6px;border:1.5px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.08);color:var(--accent);border-radius:10px;cursor:pointer;font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="fas fa-play" id="voice-preview-play-icon"></i><span id="voice-preview-play-label">Play</span></button>
+        <!-- RIGHT: Send button -->
         <button onclick="sendVoiceMessageInline()" style="flex:1;padding:6px;border:none;background:linear-gradient(135deg,#00d4ff,#0099cc);color:#000;border-radius:10px;cursor:pointer;font-size:0.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="fas fa-paper-plane"></i>Send</button>
       </div>
       <audio id="voice-preview-audio-inline" style="display:none;" onended="resetVoicePreviewPlayInline()"></audio>
@@ -1053,7 +1057,7 @@
         <div class="settings-row" onclick="showDeleteAccountStep1()"><div class="settings-row-icon" style="background:rgba(139,0,0,0.15);color:#ff4d6d;"><i class="fas fa-user-times"></i></div><div class="settings-row-info"><strong style="color:#ff4d6d;">Delete Account</strong><small style="color:#ff4d6d;opacity:0.7;">Permanently remove your account</small></div><i class="fas fa-chevron-right chevron" style="color:#ff4d6d;opacity:0.5;"></i></div>
       </div></div>
       <div class="settings-section"><h3>App</h3><div class="settings-card">
-        <div class="settings-row" onclick="toggleTheme()" style="cursor:pointer;"><div class="settings-row-icon" style="background:#7c3aed22;color:#a78bfa;"><i class="fas fa-adjust"></i></div><div class="settings-row-info"><strong id="theme-label">Theme - Dark</strong><small>Toggle light/dark mode</small></div><div id="theme-toggle-btn" style="width:38px;height:22px;border-radius:999px;background:var(--bg-input);border:1.5px solid var(--border);position:relative;flex-shrink:0;pointer-events:none;"><div id="theme-toggle-knob" style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-muted);transition:transform 0.25s,background 0.25s;"></div></div></div>
+        <div class="settings-row" onclick="openThemePopup()" style="cursor:pointer;"><div class="settings-row-icon" style="background:#7c3aed22;color:#a78bfa;"><i class="fas fa-palette"></i></div><div class="settings-row-info"><strong>Theme</strong><small id="theme-current-label">Default (Dark Blue)</small></div><div id="theme-preview-dot" style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#00d4ff,#7c3aed);border:2px solid rgba(255,255,255,0.15);flex-shrink:0;"></div></div>
         <div class="settings-row"><div class="settings-row-icon" style="background:#4ade8022;color:var(--success);"><i class="fas fa-info-circle"></i></div><div class="settings-row-info"><strong>Version</strong><small>Kotha Bolbo v1.0 • By Sayem</small></div></div>
         <div class="settings-row" onclick="openAboutDeveloper()"><div class="settings-row-icon" style="background:#f59e0b22;color:#f59e0b;"><i class="fas fa-code"></i></div><div class="settings-row-info"><strong>About Developer</strong><small>Meet the creator of this app</small></div><i class="fas fa-chevron-right chevron"></i></div>
         <div class="settings-row" onclick="showLogoutConfirm()"><div class="settings-row-icon" style="background:#ff4d6d22;color:var(--danger);"><i class="fas fa-sign-out-alt"></i></div><div class="settings-row-info"><strong>Logout</strong><small>Sign out of your account</small></div><i class="fas fa-chevron-right chevron"></i></div>
@@ -2426,6 +2430,16 @@ window.resetVoicePreviewPlayInline = function() {
   if (label) label.textContent = 'Play';
 };
 
+window.cancelVoicePreviewInline = function() {
+  const audio = document.getElementById('voice-preview-audio-inline');
+  if (audio) { audio.pause(); audio.src = ''; }
+  if (window._vpUrl) { URL.revokeObjectURL(window._vpUrl); window._vpUrl = null; }
+  window._vpBlob = null;
+  window._vpDuration = null;
+  _voiceSetRecordingUI(false);
+  showToast('Recording discarded');
+};
+
 window.sendVoiceMessageInline = async function() {
   const blob = window._vpBlob;
   if (!blob || !currentUser || !openChatUser) return;
@@ -3030,46 +3044,223 @@ window.confirmDeleteAccount = async function() {
 };
 
 let _isLightTheme = false;
-(function initTheme() {
-  const saved = localStorage.getItem('kb_theme');
-  if (saved === 'light') { _isLightTheme = true; applyTheme(true); }
-})();
-function applyTheme(light) {
+
+// ─── THEME SYSTEM ───────────────────────────────────────────────
+const THEMES = {
+  default: {
+    name: 'Default', subtitle: 'Dark Blue',
+    preview: 'linear-gradient(135deg,#00d4ff,#7c3aed)',
+    vars: {
+      '--bg-primary':'#0a0e1a','--bg-secondary':'#111827','--bg-tertiary':'#1a2235',
+      '--bg-card':'#151e30','--bg-input':'#1e2d44','--accent':'#00d4ff',
+      '--accent-glow':'rgba(0,212,255,0.18)','--accent-2':'#7c3aed',
+      '--bubble-sent':'linear-gradient(135deg,#00d4ff 0%,#0099cc 100%)','--bubble-recv':'#1e2d44',
+      '--text-primary':'#e8f0fe','--text-secondary':'#8899bb','--text-muted':'#4a5a78',
+      '--border':'rgba(0,212,255,0.12)',
+    }
+  },
+  midnight: {
+    name: 'Midnight', subtitle: 'Deep Navy',
+    preview: 'linear-gradient(135deg,#4a9eff,#1a3a6e)',
+    vars: {
+      '--bg-primary':'#080c18','--bg-secondary':'#0e1628','--bg-tertiary':'#162038',
+      '--bg-card':'#111c30','--bg-input':'#1a2840','--accent':'#4a9eff',
+      '--accent-glow':'rgba(74,158,255,0.18)','--accent-2':'#2563eb',
+      '--bubble-sent':'linear-gradient(135deg,#4a9eff 0%,#1d6fd8 100%)','--bubble-recv':'#1a2840',
+      '--text-primary':'#deeaff','--text-secondary':'#7a9acc','--text-muted':'#3a5278',
+      '--border':'rgba(74,158,255,0.14)',
+    }
+  },
+  aurora: {
+    name: 'Aurora', subtitle: 'Teal & Violet',
+    preview: 'linear-gradient(135deg,#00e5cc,#8b5cf6)',
+    vars: {
+      '--bg-primary':'#080f18','--bg-secondary':'#0d1a28','--bg-tertiary':'#14253a',
+      '--bg-card':'#101e30','--bg-input':'#182d40','--accent':'#00e5cc',
+      '--accent-glow':'rgba(0,229,204,0.18)','--accent-2':'#8b5cf6',
+      '--bubble-sent':'linear-gradient(135deg,#00e5cc 0%,#00a896 100%)','--bubble-recv':'#182d40',
+      '--text-primary':'#d8f5f0','--text-secondary':'#7ab5ae','--text-muted':'#3a5c58',
+      '--border':'rgba(0,229,204,0.14)',
+    }
+  },
+  rose: {
+    name: 'Rose', subtitle: 'Soft Pink',
+    preview: 'linear-gradient(135deg,#f472b6,#9d174d)',
+    vars: {
+      '--bg-primary':'#130a12','--bg-secondary':'#1e1020','--bg-tertiary':'#2a1430',
+      '--bg-card':'#1a0e1e','--bg-input':'#281628','--accent':'#f472b6',
+      '--accent-glow':'rgba(244,114,182,0.18)','--accent-2':'#9d174d',
+      '--bubble-sent':'linear-gradient(135deg,#f472b6 0%,#db2777 100%)','--bubble-recv':'#281628',
+      '--text-primary':'#fde8f5','--text-secondary':'#b87aa8','--text-muted':'#5a3a55',
+      '--border':'rgba(244,114,182,0.14)',
+    }
+  },
+  ocean: {
+    name: 'Ocean', subtitle: 'Steel Blue',
+    preview: 'linear-gradient(135deg,#38bdf8,#0369a1)',
+    vars: {
+      '--bg-primary':'#070e18','--bg-secondary':'#0d1a28','--bg-tertiary':'#132436',
+      '--bg-card':'#0f1e30','--bg-input':'#182c40','--accent':'#38bdf8',
+      '--accent-glow':'rgba(56,189,248,0.18)','--accent-2':'#0369a1',
+      '--bubble-sent':'linear-gradient(135deg,#38bdf8 0%,#0284c7 100%)','--bubble-recv':'#182c40',
+      '--text-primary':'#d8f0ff','--text-secondary':'#7aaabe','--text-muted':'#3a5a70',
+      '--border':'rgba(56,189,248,0.13)',
+    }
+  },
+  ember: {
+    name: 'Ember', subtitle: 'Warm Amber',
+    preview: 'linear-gradient(135deg,#fbbf24,#b45309)',
+    vars: {
+      '--bg-primary':'#110e06','--bg-secondary':'#1c1608','--bg-tertiary':'#271e0a',
+      '--bg-card':'#1a1408','--bg-input':'#261c0c','--accent':'#fbbf24',
+      '--accent-glow':'rgba(251,191,36,0.18)','--accent-2':'#b45309',
+      '--bubble-sent':'linear-gradient(135deg,#fbbf24 0%,#d97706 100%)','--bubble-recv':'#261c0c',
+      '--text-primary':'#fef3c7','--text-secondary':'#b89a60','--text-muted':'#6b5a30',
+      '--border':'rgba(251,191,36,0.14)',
+    }
+  },
+  forest: {
+    name: 'Forest', subtitle: 'Deep Green',
+    preview: 'linear-gradient(135deg,#34d399,#065f46)',
+    vars: {
+      '--bg-primary':'#060f0c','--bg-secondary':'#0c1a14','--bg-tertiary':'#12251c',
+      '--bg-card':'#0e1e18','--bg-input':'#162c22','--accent':'#34d399',
+      '--accent-glow':'rgba(52,211,153,0.18)','--accent-2':'#065f46',
+      '--bubble-sent':'linear-gradient(135deg,#34d399 0%,#059669 100%)','--bubble-recv':'#162c22',
+      '--text-primary':'#d1fae5','--text-secondary':'#6aaa8a','--text-muted':'#2e5e48',
+      '--border':'rgba(52,211,153,0.13)',
+    }
+  },
+  neon: {
+    name: 'Neon', subtitle: 'Electric',
+    preview: 'linear-gradient(135deg,#39ff14,#8b00ff)',
+    vars: {
+      '--bg-primary':'#050508','--bg-secondary':'#09090f','--bg-tertiary':'#101018',
+      '--bg-card':'#0c0c15','--bg-input':'#131320','--accent':'#39ff14',
+      '--accent-glow':'rgba(57,255,20,0.2)','--accent-2':'#8b00ff',
+      '--bubble-sent':'linear-gradient(135deg,#39ff14 0%,#00cc0a 100%)','--bubble-recv':'#131320',
+      '--text-primary':'#e8ffe8','--text-secondary':'#7acc7a','--text-muted':'#3a5a3a',
+      '--border':'rgba(57,255,20,0.16)',
+    }
+  },
+  cosmic: {
+    name: 'Cosmic', subtitle: 'Purple Night',
+    preview: 'linear-gradient(135deg,#a78bfa,#4c1d95)',
+    vars: {
+      '--bg-primary':'#08060f','--bg-secondary':'#100d1e','--bg-tertiary':'#18142c',
+      '--bg-card':'#120f20','--bg-input':'#1c1830','--accent':'#a78bfa',
+      '--accent-glow':'rgba(167,139,250,0.18)','--accent-2':'#7c3aed',
+      '--bubble-sent':'linear-gradient(135deg,#a78bfa 0%,#7c3aed 100%)','--bubble-recv':'#1c1830',
+      '--text-primary':'#ede9fe','--text-secondary':'#9880cc','--text-muted':'#4a3a70',
+      '--border':'rgba(167,139,250,0.14)',
+    }
+  },
+  crimson: {
+    name: 'Crimson', subtitle: 'Deep Red',
+    preview: 'linear-gradient(135deg,#f87171,#7f1d1d)',
+    vars: {
+      '--bg-primary':'#110707','--bg-secondary':'#1c0c0c','--bg-tertiary':'#281212',
+      '--bg-card':'#1a0e0e','--bg-input':'#261414','--accent':'#f87171',
+      '--accent-glow':'rgba(248,113,113,0.18)','--accent-2':'#7f1d1d',
+      '--bubble-sent':'linear-gradient(135deg,#f87171 0%,#dc2626 100%)','--bubble-recv':'#261414',
+      '--text-primary':'#fee2e2','--text-secondary':'#b87a7a','--text-muted':'#5a3030',
+      '--border':'rgba(248,113,113,0.14)',
+    }
+  },
+  light: {
+    name: 'Light', subtitle: 'Clean White',
+    preview: 'linear-gradient(135deg,#60a5fa,#e0f2fe)',
+    vars: {
+      '--bg-primary':'#f0f6ff','--bg-secondary':'#ffffff','--bg-tertiary':'#e8f0fb',
+      '--bg-card':'#ffffff','--bg-input':'#dde8f8','--accent':'#2563eb',
+      '--accent-glow':'rgba(37,99,235,0.15)','--accent-2':'#7c3aed',
+      '--bubble-sent':'linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%)','--bubble-recv':'#dde8f8',
+      '--text-primary':'#1e293b','--text-secondary':'#475569','--text-muted':'#94a3b8',
+      '--border':'rgba(37,99,235,0.12)',
+    }
+  },
+};
+
+let _currentThemeKey = 'default';
+
+function applyThemeByKey(key) {
+  const theme = THEMES[key] || THEMES['default'];
   const root = document.documentElement;
-  if (light) {
-    root.style.setProperty('--bg-primary','#f0f4f8');
-    root.style.setProperty('--bg-secondary','#ffffff');
-    root.style.setProperty('--bg-tertiary','#e8edf3');
-    root.style.setProperty('--bg-card','#ffffff');
-    root.style.setProperty('--bg-input','#e2e8f0');
-    root.style.setProperty('--bubble-recv','#e2e8f0');
-    root.style.setProperty('--text-primary','#1a202c');
-    root.style.setProperty('--text-secondary','#4a5568');
-    root.style.setProperty('--text-muted','#a0aec0');
-    root.style.setProperty('--border','rgba(0,0,0,0.1)');
-  } else {
-    root.style.setProperty('--bg-primary','#0a0e1a');
-    root.style.setProperty('--bg-secondary','#111827');
-    root.style.setProperty('--bg-tertiary','#1a2235');
-    root.style.setProperty('--bg-card','#151e30');
-    root.style.setProperty('--bg-input','#1e2d44');
-    root.style.setProperty('--bubble-recv','#1e2d44');
-    root.style.setProperty('--text-primary','#e8f0fe');
-    root.style.setProperty('--text-secondary','#8899bb');
-    root.style.setProperty('--text-muted','#4a5a78');
-    root.style.setProperty('--border','rgba(0,212,255,0.12)');
-  }
-  const label = document.getElementById('theme-label');
-  const knob = document.getElementById('theme-toggle-knob');
-  const trackEl = document.getElementById('theme-toggle-btn');
-  if (label) label.textContent = light ? 'Theme - Light' : 'Theme - Dark';
-  if (knob) { knob.style.transform = light ? 'translateX(16px)' : 'translateX(0)'; knob.style.background = light ? '#00d4ff' : 'var(--text-muted)'; }
-  if (trackEl) trackEl.style.background = light ? 'rgba(0,212,255,0.18)' : 'var(--bg-input)';
+  Object.entries(theme.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+  _currentThemeKey = key;
+  // Update preview dot and label
+  const dot = document.getElementById('theme-preview-dot');
+  const label = document.getElementById('theme-current-label');
+  if (dot) dot.style.background = theme.preview;
+  if (label) label.textContent = theme.name + ' — ' + theme.subtitle;
+  localStorage.setItem('kb_theme_key', key);
 }
-window.toggleTheme = function() {
-  _isLightTheme = !_isLightTheme;
-  applyTheme(_isLightTheme);
-  localStorage.setItem('kb_theme', _isLightTheme ? 'light' : 'dark');
+
+(function initTheme() {
+  const saved = localStorage.getItem('kb_theme_key') || 'default';
+  applyThemeByKey(saved);
+})();
+
+// Legacy applyTheme kept for safety (not used now)
+function applyTheme(light) { applyThemeByKey(light ? 'light' : 'default'); }
+window.toggleTheme = function() {};
+
+window.openThemePopup = function() {
+  const existing = document.getElementById('theme-popup-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'theme-popup-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    background:rgba(5,8,20,0.82);
+    display:flex;align-items:flex-end;justify-content:center;
+    animation:fade-in 0.2s ease;
+  `;
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const themeCards = Object.entries(THEMES).map(([key, t]) => `
+    <div onclick="applyThemeByKey('${key}');document.getElementById('theme-popup-overlay').querySelectorAll('.theme-card').forEach(c=>c.classList.remove('selected'));this.classList.add('selected');"
+      class="theme-card${_currentThemeKey===key?' selected':''}"
+      style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:10px 8px;border-radius:14px;border:1.5px solid ${_currentThemeKey===key?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.08)'};background:${_currentThemeKey===key?'rgba(255,255,255,0.07)':'transparent'};transition:all 0.2s;min-width:64px;flex:1;">
+      <div style="width:40px;height:40px;border-radius:50%;background:${t.preview};box-shadow:${_currentThemeKey===key?'0 0 14px rgba(255,255,255,0.25)':'none'};border:2px solid ${_currentThemeKey===key?'rgba(255,255,255,0.5)':'rgba(255,255,255,0.12)'};flex-shrink:0;"></div>
+      <div style="font-size:0.68rem;font-weight:700;color:${_currentThemeKey===key?'#fff':'rgba(255,255,255,0.6)'};text-align:center;line-height:1.2;">${t.name}</div>
+      <div style="font-size:0.58rem;color:rgba(255,255,255,0.35);text-align:center;">${t.subtitle}</div>
+    </div>
+  `).join('');
+
+  overlay.innerHTML = `
+    <div style="
+      width:100%;max-width:480px;
+      background:var(--bg-card);
+      border-radius:24px 24px 0 0;
+      border:1px solid rgba(255,255,255,0.08);
+      border-bottom:none;
+      padding:0 0 env(safe-area-inset-bottom,16px);
+      box-shadow:0 -16px 60px rgba(0,0,0,0.6);
+      animation:slide-up-sheet 0.32s cubic-bezier(0.34,1.4,0.64,1);
+    ">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:14px auto 0;"></div>
+      <div style="padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:var(--text-primary);">Choose Theme</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Select your favourite colour palette</div>
+        </div>
+        <button onclick="document.getElementById('theme-popup-overlay').remove()" style="width:28px;height:28px;border:none;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <div style="padding:0 14px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;" id="theme-grid">
+        ${themeCards}
+      </div>
+      <div style="padding:0 14px 16px;">
+        <button onclick="document.getElementById('theme-popup-overlay').remove();showToast('Theme applied!');" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+          <i class="fas fa-check" style="margin-right:6px;"></i>Apply & Close
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
 };
 
 let _replyingTo = null;
