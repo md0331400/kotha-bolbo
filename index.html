@@ -3226,10 +3226,21 @@ window.applyThemeByKey = function applyThemeByKey(key) {
   localStorage.setItem('kb_theme_key', key);
 }
 
-(function initTheme) {
-  const saved = localStorage.getItem('kb_theme_key') || 'default';
-  window.applyThemeByKey(saved);
-}
+window.applyThemeByKey = function applyThemeByKey(key) {  // ✅ এখানে `key` প্যারামিটার নিতে হবে
+    const theme = THEMES[key] || THEMES['default'];
+    const root = document.documentElement;
+    Object.entries(theme.vars).forEach(([k, v]) => {
+        root.style.setProperty(k, v);
+    });
+    _currentThemeKey = key;
+    
+    // Update preview dot and label
+    const dot = document.getElementById('theme-preview-dot');
+    const label = document.getElementById('theme-label');
+    if (dot) dot.style.backgroundColor = theme.previewColor;
+    if (label) label.textContent = theme.name;
+    localStorage.setItem('kb_theme_key', key);
+};
 
 // Legacy applyTheme kept for safety (not used now)
 function applyTheme(light) { window.applyThemeByKey(light ? 'light' : 'default'); }
