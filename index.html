@@ -566,6 +566,16 @@
 
     .edited-tag { font-size:0.6rem; color:var(--text-muted); font-style:italic; margin-left:4px; opacity:0.75; }
 
+    .inactive-option { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--border); background:var(--bg-tertiary); cursor:pointer; transition:all 0.2s ease; user-select:none; }
+    .inactive-option:hover { border-color:rgba(255,152,0,0.4); background:rgba(255,152,0,0.05); }
+    .inactive-option.selected { border-color:#ff9800; background:rgba(255,152,0,0.08); }
+    .inactive-radio { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s ease; }
+    .inactive-option.selected .inactive-radio { border-color:#ff9800; background:#ff9800; box-shadow:0 0 8px rgba(255,152,0,0.5); }
+    .inactive-radio-inner { width:8px; height:8px; border-radius:50%; background:#fff; opacity:0; transform:scale(0); transition:all 0.2s ease; }
+    .inactive-option.selected .inactive-radio-inner { opacity:1; transform:scale(1); }
+    .inactive-option span { font-size:0.88rem; color:var(--text-primary); font-weight:500; }
+    .inactive-option.selected span { color:#ff9800; font-weight:600; }
+
     .reply-preview-bubble {
       background:rgba(0,0,0,0.18);
       border-left:3px solid rgba(0,212,255,0.7);
@@ -871,39 +881,69 @@
     <div id="reply-preview-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
   </div>
   <div class="msg-input-area">
-    <button class="voice-btn" id="img-attach-btn" onclick="triggerImagePicker()" title="Send Image" style="background:var(--bg-tertiary);color:var(--text-secondary);border:1.5px solid var(--border);"><i class="fas fa-image"></i></button>
-    <input type="file" id="img-file-input" accept="image/*" style="display:none;" onchange="handleImageSelected(event)" />
-    <!-- recording in-progress bar -->
-    <div id="voice-rec-bar" style="display:none;flex:1;align-items:center;gap:8px;background:rgba(255,77,109,0.08);border:1.5px solid rgba(255,77,109,0.3);border-radius:999px;padding:0 12px;height:40px;">
-      <div style="width:8px;height:8px;border-radius:50%;background:var(--danger);animation:rec-pulse 1s infinite;flex-shrink:0;"></div>
-      <span id="rec-timer-inline" style="font-size:0.75rem;color:var(--danger);font-weight:600;flex-shrink:0;">0:00</span>
-      <div style="flex:1;height:20px;display:flex;align-items:center;gap:1.5px;" id="rec-live-wave">
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:4px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.00s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:7px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.04s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:12px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.08s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:18px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.12s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:14px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.16s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:10px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.20s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:16px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.24s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:20px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.28s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:14px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.32s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:8px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.36s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:12px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.40s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:18px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.44s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:14px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.48s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:10px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.52s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:16px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.56s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:12px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.60s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:8px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.64s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:14px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.68s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:10px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.72s infinite alternate;"></span>
-        <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:6px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.76s infinite alternate;"></span>
-      </div>
-      <button onclick="window.cancelVoiceRecording()" style="background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-muted);width:26px;height:26px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;" title="Cancel"><i class="fas fa-times"></i></button>
+    <!-- Left side: image + voice permanently side by side -->
+    <div style="display:flex;gap:5px;flex-shrink:0;" id="input-left-btns">
+      <button class="voice-btn" id="img-attach-btn" onclick="triggerImagePicker()" title="Send Image" style="background:var(--bg-tertiary);color:var(--text-secondary);border:1.5px solid var(--border);width:34px;height:34px;font-size:14px;"><i class="fas fa-image"></i></button>
+      <button class="voice-btn" id="voice-btn" onclick="startVoiceRecording()" title="Voice Message" style="width:34px;height:34px;font-size:14px;"><i class="fas fa-microphone" id="voice-btn-icon"></i></button>
     </div>
-    <div class="msg-input-wrap"><textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);msgInputChanged();" onkeydown="msgKeyDown(event)"></textarea></div>
-    <span class="recording-timer" id="rec-timer">0:00</span>
-    <button class="voice-btn" id="voice-btn" onclick="toggleVoiceRecord()"><i class="fas fa-microphone" id="voice-btn-icon"></i></button>
+    <input type="file" id="img-file-input" accept="image/*" style="display:none;" onchange="handleImageSelected(event)" />
+    <!-- recording in-progress bar: waveform + pause/stop or resume/discard -->
+    <div id="voice-rec-bar" style="display:none;flex:1;flex-direction:column;gap:6px;background:rgba(255,77,109,0.06);border:1.5px solid rgba(255,77,109,0.3);border-radius:16px;padding:8px 10px;">
+      <!-- top row: timer + waveform animation -->
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--danger);animation:rec-pulse 1s infinite;flex-shrink:0;"></div>
+        <span id="rec-timer-inline" style="font-size:0.72rem;color:var(--danger);font-weight:700;flex-shrink:0;min-width:30px;">0:00</span>
+        <div style="flex:1;height:18px;display:flex;align-items:center;gap:1.5px;overflow:hidden;" id="rec-live-wave">
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:4px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.00s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:7px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.04s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:12px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.08s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:16px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.12s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:10px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.16s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:14px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.20s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:18px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.24s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:12px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.28s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:8px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.32s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:14px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.36s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:10px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.40s infinite alternate;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--danger);height:6px;opacity:0.5;animation:rec-wave 0.8s ease-in-out 0.44s infinite alternate;"></span>
+        </div>
+      </div>
+      <!-- bottom row: pause(left) + stop(right) OR resume + discard -->
+      <div style="display:flex;gap:6px;justify-content:space-between;">
+        <!-- Pause/Resume btn (left) -->
+        <button id="rec-pause-btn" onclick="toggleVoicePause()" style="flex:1;padding:6px;border:1.5px solid rgba(255,77,109,0.4);background:rgba(255,77,109,0.1);color:var(--danger);border-radius:10px;cursor:pointer;font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="fas fa-pause" id="rec-pause-icon"></i><span id="rec-pause-label">Pause</span></button>
+        <!-- Stop/Discard btn (right) -->
+        <button id="rec-stop-btn" onclick="handleRecStopOrDiscard()" style="flex:1;padding:6px;border:none;background:var(--danger);color:#fff;border-radius:10px;cursor:pointer;font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="fas fa-stop" id="rec-stop-icon"></i><span id="rec-stop-label">Stop</span></button>
+      </div>
+    </div>
+    <!-- After stop: preview row with play + send -->
+    <div id="voice-preview-bar" style="display:none;flex:1;flex-direction:column;gap:6px;background:rgba(0,212,255,0.05);border:1.5px solid rgba(0,212,255,0.2);border-radius:16px;padding:8px 10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="voice-preview-dur" style="font-size:0.72rem;color:var(--accent);font-weight:700;flex-shrink:0;min-width:30px;">0:00</span>
+        <div style="flex:1;height:18px;display:flex;align-items:center;gap:2px;overflow:hidden;" id="preview-waveform">
+          <!-- static waveform bars -->
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:4px;opacity:0.4;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:10px;opacity:0.5;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:16px;opacity:0.6;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:12px;opacity:0.5;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:8px;opacity:0.4;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:14px;opacity:0.6;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:18px;opacity:0.7;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:10px;opacity:0.5;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:6px;opacity:0.4;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:12px;opacity:0.5;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:16px;opacity:0.6;"></span>
+          <span style="display:inline-block;width:3px;border-radius:2px;background:var(--accent);height:8px;opacity:0.4;"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button id="voice-preview-play-btn" onclick="toggleVoicePreviewPlayInline()" style="flex:1;padding:6px;border:1.5px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.08);color:var(--accent);border-radius:10px;cursor:pointer;font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="fas fa-play" id="voice-preview-play-icon"></i><span id="voice-preview-play-label">Play</span></button>
+        <button onclick="sendVoiceMessageInline()" style="flex:1;padding:6px;border:none;background:linear-gradient(135deg,#00d4ff,#0099cc);color:#000;border-radius:10px;cursor:pointer;font-size:0.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="fas fa-paper-plane"></i>Send</button>
+      </div>
+      <audio id="voice-preview-audio-inline" style="display:none;" onended="resetVoicePreviewPlayInline()"></audio>
+    </div>
+    <div class="msg-input-wrap" id="msg-input-wrap-main"><textarea id="msg-input" rows="1" placeholder="Type a message…" oninput="autoResize(this);msgInputChanged();" onkeydown="msgKeyDown(event)"></textarea></div>
+    <span class="recording-timer" id="rec-timer" style="display:none;">0:00</span>
     <button class="send-btn" id="send-btn" onclick="sendMessage()" style="display:none;"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
@@ -1009,6 +1049,7 @@
         <div class="settings-row" onclick="openEditProfile()"><div class="settings-row-icon" style="background:#00d4ff22;color:var(--accent);"><i class="fas fa-user"></i></div><div class="settings-row-info"><strong>Edit Profile</strong><small>Update name, phone, gender, bio</small></div><i class="fas fa-chevron-right chevron"></i></div>
         <div class="settings-row" onclick="openChangePassword()"><div class="settings-row-icon" style="background:#7c3aed22;color:#a78bfa;"><i class="fas fa-lock"></i></div><div class="settings-row-info"><strong>Change Password</strong><small>Update your password</small></div><i class="fas fa-chevron-right chevron"></i></div>
         <div class="settings-row" onclick="openPrivacyPopup()"><div class="settings-row-icon" style="background:#4ade8022;color:#4ade80;"><i class="fas fa-shield-alt"></i></div><div class="settings-row-info"><strong>Privacy</strong><small>Control who sees your info</small></div><i class="fas fa-chevron-right chevron"></i></div>
+        <div class="settings-row" onclick="openInactiveAccountPopup()"><div class="settings-row-icon" style="background:rgba(255,152,0,0.15);color:#ff9800;"><i class="fas fa-user-clock"></i></div><div class="settings-row-info"><strong style="color:#ff9800;">Inactive Account</strong><small style="color:#ff9800;opacity:0.8;">Auto-delete if inactive for a period</small></div><i class="fas fa-chevron-right chevron" style="color:#ff9800;opacity:0.5;"></i></div>
         <div class="settings-row" onclick="showDeleteAccountStep1()"><div class="settings-row-icon" style="background:rgba(139,0,0,0.15);color:#ff4d6d;"><i class="fas fa-user-times"></i></div><div class="settings-row-info"><strong style="color:#ff4d6d;">Delete Account</strong><small style="color:#ff4d6d;opacity:0.7;">Permanently remove your account</small></div><i class="fas fa-chevron-right chevron" style="color:#ff4d6d;opacity:0.5;"></i></div>
       </div></div>
       <div class="settings-section"><h3>App</h3><div class="settings-card">
@@ -2153,12 +2194,11 @@ function updateMessageStatus(m, c) {
 window.msgInputChanged = function() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
-  const voiceBtn = document.getElementById('voice-btn');
   const sendBtn = document.getElementById('send-btn');
   // Don't mess with buttons during recording
   if (_isRecording) return;
-  if (text) { voiceBtn.style.display='none'; sendBtn.style.display='flex'; }
-  else { voiceBtn.style.display='flex'; sendBtn.style.display='none'; }
+  if (text) { sendBtn.style.display='flex'; }
+  else { sendBtn.style.display='none'; }
   // Save draft
   if (openChatUser) saveDraft(openChatUser.uid, input.value);
 };
@@ -2173,6 +2213,7 @@ let _recStartTime  = 0;
 let _recTimerInterval = null;
 let _recDurationSec  = 0;
 let _isRecording   = false;
+let _isPaused      = false;
 
 // ── helpers ──────────────────────────────────────
 function _voiceFormatTime(sec) {
@@ -2181,35 +2222,25 @@ function _voiceFormatTime(sec) {
 }
 
 function _voiceSetRecordingUI(on) {
-  const btn     = document.getElementById('voice-btn');
-  const icon    = document.getElementById('voice-btn-icon');
-  const timer   = document.getElementById('rec-timer');
-  const inputW  = document.querySelector('.msg-input-wrap');
-  const recBar  = document.getElementById('voice-rec-bar');
-  const sendBtn = document.getElementById('send-btn');
-  const imgBtn  = document.getElementById('img-attach-btn');
+  const inputW   = document.getElementById('msg-input-wrap-main');
+  const recBar   = document.getElementById('voice-rec-bar');
+  const previewBar = document.getElementById('voice-preview-bar');
+  const sendBtn  = document.getElementById('send-btn');
+  const leftBtns = document.getElementById('input-left-btns');
 
   if (on) {
-    btn.classList.add('recording');
-    icon.className = 'fas fa-stop';
-    timer.style.display = 'none'; // timer is inside recBar now
     if (inputW) inputW.style.display = 'none';
+    if (previewBar) previewBar.style.display = 'none';
     if (recBar) recBar.style.display = 'flex';
+    if (recBar) recBar.style.flexDirection = 'column';
     if (sendBtn) sendBtn.style.display = 'none';
-    if (imgBtn) imgBtn.style.display = 'none';
-    // Hide voice-btn during recording (recBar cancel handles cancel, btn handles stop)
-    btn.style.display = 'flex';
+    if (leftBtns) leftBtns.style.display = 'none';
   } else {
-    btn.classList.remove('recording');
-    icon.className = 'fas fa-microphone';
-    timer.style.display = 'none';
-    timer.textContent = '0:00';
     if (inputW) inputW.style.display = 'flex';
     if (recBar) recBar.style.display = 'none';
-    if (sendBtn) sendBtn.style.display = 'none'; // will be shown by msgInputChanged
-    if (imgBtn) imgBtn.style.display = 'flex';
-    btn.style.display = 'flex';
-    // Re-evaluate voice/send based on input text
+    if (previewBar) previewBar.style.display = 'none';
+    if (sendBtn) sendBtn.style.display = 'none';
+    if (leftBtns) leftBtns.style.display = 'flex';
     msgInputChanged();
   }
 }
@@ -2278,13 +2309,14 @@ function stopVoiceRecording() {
 
 // ── cancel recording ──────────────────────────────
 window.cancelVoiceRecording = function() {
-  if (_mediaRecorder && _isRecording) {
+  if (_mediaRecorder && (_isRecording || _isPaused)) {
     _mediaRecorder.ondataavailable = null;
     _mediaRecorder.onstop = null;
     try { _mediaRecorder.stop(); } catch(e) {}
   }
   if (_recStream) _recStream.getTracks().forEach(t => t.stop());
   _isRecording = false;
+  _isPaused = false;
   _audioChunks = [];
   _mediaRecorder = null;
   _recStream = null;
@@ -2294,14 +2326,134 @@ window.cancelVoiceRecording = function() {
 }
 function cancelVoiceRecording() { window.cancelVoiceRecording(); }
 
-// ── after stop: build blob → show preview ─────────
+window.toggleVoicePause = function() {
+  if (!_mediaRecorder) return;
+  const pauseIcon = document.getElementById('rec-pause-icon');
+  const pauseLabel = document.getElementById('rec-pause-label');
+  const stopIcon = document.getElementById('rec-stop-icon');
+  const stopLabel = document.getElementById('rec-stop-label');
+  const waveEl = document.getElementById('rec-live-wave');
+  if (!_isPaused) {
+    // Pause
+    try { _mediaRecorder.pause(); } catch(e){}
+    _isPaused = true;
+    _voiceStopTimer();
+    if (pauseIcon) pauseIcon.className = 'fas fa-play';
+    if (pauseLabel) pauseLabel.textContent = 'Resume';
+    if (stopIcon) stopIcon.className = 'fas fa-trash-alt';
+    if (stopLabel) stopLabel.textContent = 'Discard';
+    if (waveEl) waveEl.style.opacity = '0.3';
+  } else {
+    // Resume
+    try { _mediaRecorder.resume(); } catch(e){}
+    _isPaused = false;
+    _voiceStartTimer();
+    if (pauseIcon) pauseIcon.className = 'fas fa-pause';
+    if (pauseLabel) pauseLabel.textContent = 'Pause';
+    if (stopIcon) stopIcon.className = 'fas fa-stop';
+    if (stopLabel) stopLabel.textContent = 'Stop';
+    if (waveEl) waveEl.style.opacity = '1';
+  }
+};
+
+window.handleRecStopOrDiscard = function() {
+  if (_isPaused) {
+    // Discard
+    window.cancelVoiceRecording();
+  } else {
+    // Stop and go to preview
+    stopVoiceRecording();
+  }
+};
+
+// ── after stop: build blob → show inline preview bar ─
 function _voiceOnRecordStop() {
   const mimeType = _mediaRecorder?.mimeType || 'audio/webm';
   const blob = new Blob(_audioChunks, { type: mimeType });
   _audioChunks = [];
-  if (blob.size < 1000) { showToast('Recording too short', 'error'); return; }
-  showVoicePreview(blob, _recDurationSec);
+  if (blob.size < 1000) { showToast('Recording too short', 'error'); _voiceSetRecordingUI(false); return; }
+  showVoicePreviewInline(blob, _recDurationSec);
 }
+
+// ── inline preview bar (replaces modal popup) ────────
+function showVoicePreviewInline(blob, duration) {
+  const url = URL.createObjectURL(blob);
+  const durStr = _voiceFormatTime(duration || 1);
+  window._vpBlob = blob;
+  window._vpDuration = duration;
+  window._vpUrl = url;
+
+  // Show preview bar, hide rec bar, show left btns
+  const inputW   = document.getElementById('msg-input-wrap-main');
+  const recBar   = document.getElementById('voice-rec-bar');
+  const previewBar = document.getElementById('voice-preview-bar');
+  const leftBtns = document.getElementById('input-left-btns');
+  if (inputW) inputW.style.display = 'none';
+  if (recBar) recBar.style.display = 'none';
+  if (previewBar) { previewBar.style.display = 'flex'; previewBar.style.flexDirection = 'column'; }
+  if (leftBtns) leftBtns.style.display = 'none';
+
+  // Update duration
+  const durEl = document.getElementById('voice-preview-dur');
+  if (durEl) durEl.textContent = durStr;
+
+  // Wire audio
+  const audio = document.getElementById('voice-preview-audio-inline');
+  if (audio) audio.src = url;
+}
+
+window.toggleVoicePreviewPlayInline = function() {
+  const audio = document.getElementById('voice-preview-audio-inline');
+  const icon = document.getElementById('voice-preview-play-icon');
+  const label = document.getElementById('voice-preview-play-label');
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().catch(()=>{});
+    if (icon) icon.className = 'fas fa-pause';
+    if (label) label.textContent = 'Pause';
+  } else {
+    audio.pause();
+    if (icon) icon.className = 'fas fa-play';
+    if (label) label.textContent = 'Play';
+  }
+};
+
+window.resetVoicePreviewPlayInline = function() {
+  const icon = document.getElementById('voice-preview-play-icon');
+  const label = document.getElementById('voice-preview-play-label');
+  if (icon) icon.className = 'fas fa-play';
+  if (label) label.textContent = 'Play';
+};
+
+window.sendVoiceMessageInline = async function() {
+  const blob = window._vpBlob;
+  if (!blob || !currentUser || !openChatUser) return;
+  const sendBtn = document.querySelector('#voice-preview-bar button:last-child');
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+  try {
+    const ext  = blob.type.includes('ogg') ? 'ogg' : 'webm';
+    const file = new File([blob], 'voice_' + Date.now() + '.' + ext, { type: blob.type });
+    const voiceUrl = await uploadToImageKit(file, 'voice_messages');
+    const duration  = window._vpDuration || 0;
+    if (window._vpUrl) URL.revokeObjectURL(window._vpUrl);
+    window._vpBlob = null;
+    const msgData = {
+      senderId: currentUser.uid, receiverId: openChatUser.uid,
+      text: '', type: 'voice', voiceUrl, voiceDuration: duration,
+      timestamp: serverTimestamp(), delivered: false, read: false, seen: false
+    };
+    if (_replyingTo) { msgData.replyTo = { id: _replyingTo.id, text: _replyingTo.text, senderName: _replyingTo.senderName }; cancelReply(); }
+    await addDoc(collection(db, 'messages'), msgData);
+    _voiceSetRecordingUI(false);
+    const c = document.getElementById('conv-messages');
+    if (c) requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
+    showToast('Voice message sent! 🎤');
+  } catch(e) {
+    console.error('Voice upload error:', e);
+    showToast('Upload failed. Check connection.', 'error');
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>Send'; }
+  }
+};
 
 // ── preview modal ─────────────────────────────────
 function showVoicePreview(blob, duration) {
@@ -2540,36 +2692,9 @@ window.toggleVoiceRecord = function() {
   }
 };
 
-// ── touch-and-hold support on mic button ──────────
-(function wireVoiceHold() {
-  document.addEventListener('DOMContentLoaded', () => { _attachVoiceHold(); });
-  // also try immediately in case DOM is already ready
-  if (document.readyState !== 'loading') _attachVoiceHold();
-})();
-
+// ── _attachVoiceHold: kept for compatibility (called from openConversation) ──
 function _attachVoiceHold() {
-  const btn = document.getElementById('voice-btn');
-  if (!btn || btn._voiceHoldWired) return;
-  btn._voiceHoldWired = true;
-
-  let _holdActive = false;
-
-  btn.addEventListener('touchstart', async (e) => {
-    e.preventDefault();
-    _holdActive = true;
-    await startVoiceRecording();
-  }, { passive: false });
-
-  btn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    if (_holdActive && _isRecording) stopVoiceRecording();
-    _holdActive = false;
-  }, { passive: false });
-
-  btn.addEventListener('touchcancel', () => {
-    if (_holdActive && _isRecording) cancelVoiceRecording();
-    _holdActive = false;
-  });
+  // Voice button now uses onclick="startVoiceRecording()" directly — no hold needed
 }
 
 function makeWaveform() {
@@ -2806,6 +2931,27 @@ window.addEventListener('popstate', function(e) {
   }
 });
 window.showLogoutConfirm = function() { document.getElementById('logout-confirm-modal').classList.add('open'); };
+window.openInactiveAccountPopup = function() {
+  const saved = localStorage.getItem("kb_inactive_months") || "12";
+  document.querySelectorAll(".inactive-option").forEach(el => {
+    el.classList.toggle("selected", el.dataset.val === saved);
+  });
+  document.getElementById("inactive-account-overlay").classList.add("open");
+};
+window.closeInactiveAccountPopup = function() { document.getElementById("inactive-account-overlay").classList.remove("open"); };
+window.handleInactiveOverlayClick = function(e) { if(e.target===document.getElementById("inactive-account-overlay")) closeInactiveAccountPopup(); };
+window.selectInactivePeriod = function(el) {
+  document.querySelectorAll(".inactive-option").forEach(o => o.classList.remove("selected"));
+  el.classList.add("selected");
+};
+window.saveInactivePeriod = function() {
+  const sel = document.querySelector(".inactive-option.selected");
+  if (!sel) return;
+  const months = sel.dataset.val;
+  localStorage.setItem("kb_inactive_months", months);
+  closeInactiveAccountPopup();
+  showToast("Inactive period set to " + months + " months");
+};
 window.confirmLogout = async function() {
   closeModal('logout-confirm-modal');
   try {
@@ -3443,6 +3589,39 @@ window.replyFromContextMenu = function() {
   setReplyTo(msgId, text, senderName);
 };
 </script>
+
+<!-- INACTIVE ACCOUNT POPUP -->
+<div class="modal-backdrop" id="inactive-account-overlay" onclick="handleInactiveOverlayClick(event)">
+  <div class="modal" style="text-align:left;padding:22px 20px 18px;max-width:340px;border-radius:20px;border:1px solid rgba(255,152,0,0.25);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:38px;height:38px;border-radius:12px;background:rgba(255,152,0,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-user-clock" style="font-size:16px;color:#ff9800;"></i>
+        </div>
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:var(--text-primary);">Inactive Account</div>
+          <div style="font-size:0.68rem;color:var(--text-muted);">Self-destruct if inactive for...</div>
+        </div>
+      </div>
+      <button onclick="closeInactiveAccountPopup()" style="width:28px;height:28px;border:none;background:var(--bg-tertiary);color:var(--text-muted);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-times"></i></button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5;padding:10px 12px;background:rgba(255,152,0,0.06);border-radius:10px;border:1px solid rgba(255,152,0,0.15);">
+      <i class="fas fa-info-circle" style="color:#ff9800;margin-right:5px;"></i>
+      তুমি যদি নির্দিষ্ট সময় inactive থাকো, তাহলে account automatically delete হয়ে যাবে।
+    </p>
+    <div id="inactive-options-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+      <div class="inactive-option" data-val="1" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>1 month</span></div>
+      <div class="inactive-option" data-val="3" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>3 months</span></div>
+      <div class="inactive-option" data-val="6" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>6 months</span></div>
+      <div class="inactive-option selected" data-val="12" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>12 months</span></div>
+      <div class="inactive-option" data-val="18" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>18 months</span></div>
+      <div class="inactive-option" data-val="24" onclick="selectInactivePeriod(this)"><div class="inactive-radio"><div class="inactive-radio-inner"></div></div><span>24 months</span></div>
+    </div>
+    <button onclick="saveInactivePeriod()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#ff9800,#e65100);color:#fff;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(255,152,0,0.3);">
+      <i class="fas fa-save" style="margin-right:6px;"></i>Save Settings
+    </button>
+  </div>
+</div>
 
 <!-- DELETE ACCOUNT MODALS -->
 <div class="modal-backdrop" id="delete-account-step1-modal">
