@@ -3229,7 +3229,7 @@ window.applyThemeByKey = function applyThemeByKey(key) {
 (function initTheme() {
   const saved = localStorage.getItem('kb_theme_key') || 'default';
   window.applyThemeByKey(saved);
-})();
+}
 
 // Legacy applyTheme kept for safety (not used now)
 function applyTheme(light) { window.applyThemeByKey(light ? 'light' : 'default'); }
