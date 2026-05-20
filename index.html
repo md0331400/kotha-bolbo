@@ -3213,25 +3213,26 @@ const THEMES = {
 
 let _currentThemeKey = 'default';
 
+let _currentThemeKey = 'default';
+
 window.applyThemeByKey = function applyThemeByKey(key) {
   const theme = THEMES[key] || THEMES['default'];
   const root = document.documentElement;
-  Object.entries(theme.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+  
+  Object.entries(theme.vars).forEach(([k, v]) => {
+    root.style.setProperty(k, v);
+  });
+  
   _currentThemeKey = key;
-  // Update preview dot and label
+  
   const dot = document.getElementById('theme-preview-dot');
-  const label = document.getElementById('theme-current-label');
-  if (dot) dot.style.background = theme.preview;
-  if (label) label.textContent = theme.name + ' — ' + theme.subtitle;
+  const label = document.getElementById('theme-label');
+  
+  if (dot) dot.style.backgroundColor = theme.previewColor;
+  if (label) label.textContent = theme.name;
+  
   localStorage.setItem('kb_theme_key', key);
-}
-
-window.applyThemeByKey = function applyThemeByKey(key) {  // ✅ এখানে `key` প্যারামিটার নিতে হবে
-    const theme = THEMES[key] || THEMES['default'];
-    const root = document.documentElement;
-    Object.entries(theme.vars).forEach(([k, v]) => {
-        root.style.setProperty(k, v);
-    });
+};
     _currentThemeKey = key;
     
     // Update preview dot and label
