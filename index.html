@@ -3226,7 +3226,7 @@ window.applyThemeByKey = function applyThemeByKey(key) {
   localStorage.setItem('kb_theme_key', key);
 }
 
-(function initTheme() {
+(function initTheme) {
   const saved = localStorage.getItem('kb_theme_key') || 'default';
   window.applyThemeByKey(saved);
 }
