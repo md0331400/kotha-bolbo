@@ -1513,15 +1513,23 @@ async function loadChats() {
 
     unreadCounts = counts;
     
-    // ── Load persistent contacts (users we had chats with, even if messages are gone) ──
-    let contactUids = new Set(Object.keys(chatMap));
+    // ── Load persistent contacts ──
+    let removedUids = new Set();
+    let savedContactUids = new Set();
     try {
       const contactsSnap = await getDocs(collection(db, `chatContacts/${currentUser.uid}/contacts`));
       contactsSnap.forEach(d => {
-        // Only add if not removed by user
-        if (d.data().removed !== true) contactUids.add(d.id);
+        if (d.data().removed === true) removedUids.add(d.id);
+        else savedContactUids.add(d.id);
       });
     } catch(e) {}
+
+    // Build final uid list: chatMap uids (not removed) + saved contacts (not removed)
+    let contactUids = new Set();
+    Object.keys(chatMap).forEach(uid => {
+      if (!removedUids.has(uid)) contactUids.add(uid);
+    });
+    savedContactUids.forEach(uid => contactUids.add(uid));
 
     const cu = [];
     for (const uid of contactUids) {
@@ -1671,19 +1679,16 @@ async function deleteOldMessages() {
     const cutoffTs = Timestamp.fromDate(cutoff);
     const q = query(collection(db,'messages'), where('timestamp','<',cutoffTs));
     const snap = await getDocs(q);
-    const updates = [];
+    const dels = [];
     snap.forEach(d => {
       const msg = d.data();
       if (msg.senderId===currentUser.uid || msg.receiverId===currentUser.uid) {
-        // Soft-delete for current user only — other user keeps their copy
-        if (!Array.isArray(msg.deletedFor) || !msg.deletedFor.includes(currentUser.uid)) {
-          updates.push(updateDoc(doc(db,'messages',d.id), { deletedFor: arrayUnion(currentUser.uid) }));
-        }
+        dels.push(deleteDoc(doc(db,'messages',d.id)));
       }
     });
-    if (updates.length > 0) {
-      await Promise.all(updates);
-      console.log(`[Auto-clean] Soft-deleted ${updates.length} message(s) older than ${AUTO_DELETE_HOURS} hours`);
+    if (dels.length > 0) {
+      await Promise.all(dels);
+      console.log(`[Auto-clean] Deleted ${dels.length} message(s) older than ${AUTO_DELETE_HOURS} hours`);
     }
   } catch(e) {
     console.warn('[Auto-clean] Error:', e);
@@ -3024,6 +3029,31 @@ window.openFriendProfile = function(user) {
   openProfilePage(user);
 };
   
+// ── Smart soft-delete: if both users deleted → permanent delete from server ──
+async function softDeleteMessages(msgDocs, myUid, otherUid) {
+  const softUpdates = [];
+  const permDeletes = [];
+
+  msgDocs.forEach(d => {
+    const msg = d.data();
+    const alreadyDeleted = Array.isArray(msg.deletedFor) ? msg.deletedFor : [];
+    const otherAlreadyDeleted = alreadyDeleted.includes(otherUid);
+
+    if (otherAlreadyDeleted) {
+      // Other user already deleted this → permanently delete from server
+      permDeletes.push(deleteDoc(doc(db, 'messages', d.id)));
+    } else {
+      // Only I'm deleting → soft-delete for me only
+      softUpdates.push(updateDoc(doc(db, 'messages', d.id), { deletedFor: arrayUnion(myUid) }));
+    }
+  });
+
+  await Promise.all([...softUpdates, ...permDeletes]);
+  if (permDeletes.length > 0) {
+    console.log(`[Smart-delete] Permanently deleted ${permDeletes.length} message(s) — both users deleted`);
+  }
+}
+
 // ── Remove from chat list (right swipe) ──
 let _chatActionUser = null;
 window.openRemoveFromListConfirm = function(user) {
@@ -3037,16 +3067,12 @@ window.confirmRemoveFromList = async function() {
   const uid = _chatActionUser.uid;
   showToast('Removing from chat list…');
   try {
-    // Mark as removed in chatContacts (for current user only)
     await setDoc(doc(db, `chatContacts/${currentUser.uid}/contacts`, uid), { removed: true }, { merge: true });
-    // Also soft-delete all messages for current user only
     const q1 = query(collection(db,'messages'), where('senderId','==',currentUser.uid), where('receiverId','==',uid));
     const q2 = query(collection(db,'messages'), where('senderId','==',uid), where('receiverId','==',currentUser.uid));
     const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    const updates = [];
-    s1.forEach(d => updates.push(updateDoc(doc(db,'messages',d.id), { deletedFor: arrayUnion(currentUser.uid) })));
-    s2.forEach(d => updates.push(updateDoc(doc(db,'messages',d.id), { deletedFor: arrayUnion(currentUser.uid) })));
-    await Promise.all(updates);
+    const allDocs = [...s1.docs, ...s2.docs];
+    await softDeleteMessages(allDocs, currentUser.uid, uid);
     showToast('Removed from chat list');
     _chatActionUser = null;
   } catch(e) { console.error(e); showToast('Failed to remove','error'); }
@@ -3064,15 +3090,11 @@ window.confirmClearConversation = async function() {
   const uid = _chatActionUser.uid;
   showToast('Clearing conversation…');
   try {
-    // Soft-delete messages for current user only — other user is unaffected
     const q1 = query(collection(db,'messages'), where('senderId','==',currentUser.uid), where('receiverId','==',uid));
     const q2 = query(collection(db,'messages'), where('senderId','==',uid), where('receiverId','==',currentUser.uid));
     const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    const updates = [];
-    s1.forEach(d => updates.push(updateDoc(doc(db,'messages',d.id), { deletedFor: arrayUnion(currentUser.uid) })));
-    s2.forEach(d => updates.push(updateDoc(doc(db,'messages',d.id), { deletedFor: arrayUnion(currentUser.uid) })));
-    await Promise.all(updates);
-    // Chat list entry stays — just no messages visible
+    const allDocs = [...s1.docs, ...s2.docs];
+    await softDeleteMessages(allDocs, currentUser.uid, uid);
     showToast('Conversation cleared');
     _chatActionUser = null;
   } catch(e) { console.error(e); showToast('Failed to clear','error'); }
