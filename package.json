@@ -1,0 +1,9 @@
+{
+  "name": "kotha-bolbo-pwa",
+  "version": "1.0.5",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "imagekit": "^5.2.0"
+  }
+}
