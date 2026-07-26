@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Dino Game Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f7f7f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 250px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #535353;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
+
+        /* Score & UI */
+        .score-board {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #535353;
+            letter-spacing: 2px;
+        }
+
+        .game-over-text {
+            display: none;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #535353;
+        }
+
+        .game-over-text h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+
+        .game-over-text p {
+            font-size: 14px;
+            color: #777;
+        }
+
+        /* Dinosaur */
+        #dino {
+            position: absolute;
+            bottom: 0px;
+            left: 50px;
+            width: 44px;
+            height: 47px;
+            background-color: #535353;
+            /* Simple CSS pixel-art shape for Dino */
+            clip-path: polygon(
+                30% 0%, 100% 0%, 100% 30%, 80% 30%, 80% 45%, 
+                100% 45%, 100% 55%, 70% 55%, 70% 65%, 85% 65%, 
+                85% 100%, 65% 100%, 65% 80%, 45% 80%, 45% 100%, 
+                25% 100%, 25% 60%, 10% 60%, 10% 40%, 30% 40%
+            );
+        }
+
+        /* Cactus */
+        #cactus {
+            position: absolute;
+            bottom: 0px;
+            right: -30px;
+            width: 24px;
+            height: 50px;
+            background-color: #535353;
+            /* Simple CSS Cactus Shape */
+            clip-path: polygon(
+                35% 0%, 65% 0%, 65% 30%, 85% 30%, 85% 60%, 65% 60%, 
+                65% 100%, 35% 100%, 35% 50%, 15% 50%, 15% 25%, 35% 25%
+            );
+        }
+
+        /* Jump Animation Class */
+        .jump {
+            animation: jump 0.6s cubic-bezier(0.1, 0.4, 0.4, 1);
+        }
+
+        @keyframes jump {
+            0%   { bottom: 0px; }
+            40%  { bottom: 110px; }
+            50%  { bottom: 115px; }
+            60%  { bottom: 110px; }
+            100% { bottom: 0px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="score-board">
+            HI <span id="high-score">00000</span> | <span id="score">00000</span>
+        </div>
+        
+        <div class="game-over-text" id="game-over">
+            <h1>G A M E  O V E R</h1>
+            <p>Press SPACE or TAP to Restart</p>
+        </div>
+
+        <div id="dino"></div>
+        <div id="cactus"></div>
+    </div>
+
+    <script>
+        const dino = document.getElementById("dino");
+        const cactus = document.getElementById("cactus");
+        const scoreDisplay = document.getElementById("score");
+        const highScoreDisplay = document.getElementById("high-score");
+        const gameOverText = document.getElementById("game-over");
+
+        let isJumping = false;
+        let isGameOver = false;
+        let score = 0;
+        let highScore = 0;
+        let gameSpeed = 5;
+        let cactusPosition = 800;
+        let animationFrameId;
+
+        // Jump Controls
+        function jump() {
+            if (isJumping || isGameOver) return;
+            
+            isJumping = true;
+            dino.classList.add("jump");
+
+            setTimeout(() => {
+                dino.classList.remove("jump");
+                isJumping = false;
+            }, 600);
+        }
+
+        // Handle Keys & Touch Events
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space" || e.code === "ArrowUp") {
+                e.preventDefault();
+                if (isGameOver) {
+                    resetGame();
+                } else {
+                    jump();
+                }
+            }
+        });
+
+        document.addEventListener("touchstart", () => {
+            if (isGameOver) {
+                resetGame();
+            } else {
+                jump();
+            }
+        });
+
+        // Game Loop
+        function gameLoop() {
+            if (isGameOver) return;
+
+            // Move Cactus
+            cactusPosition -= gameSpeed;
+            if (cactusPosition < -30) {
+                cactusPosition = 800 + Math.random() * 200; // Randomize next cactus distance
+                score += 10;
+                
+                // Increase speed slowly as score goes up
+                if (gameSpeed < 13) {
+                    gameSpeed += 0.2;
+                }
+            }
+            cactus.style.left = cactusPosition + "px";
+
+            // Update Score Display
+            scoreDisplay.textContent = String(Math.floor(score)).padStart(5, '0');
+
+            // Hit Detection Mechanics
+            const dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
+            
+            // Collision zone logic
+            if (cactusPosition > 50 && cactusPosition < 85 && dinoBottom < 40) {
+                endGame();
+                return;
+            }
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Game Over Handler
+        function endGame() {
+            isGameOver = true;
+            gameOverText.style.display = "block";
+            
+            if (score > highScore) {
+                highScore = score;
+                highScoreDisplay.textContent = String(Math.floor(highScore)).padStart(5, '0');
+            }
+        }
+
+        // Reset Game State
+        function resetGame() {
+            isGameOver = false;
+            score = 0;
+            gameSpeed = 6;
+            cactusPosition = 800;
+            gameOverText.style.display = "none";
+            gameLoop();
+        }
+
+        // Start initial game loop
+        gameLoop();
+    </script>
+</body>
+</html>
