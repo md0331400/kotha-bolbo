@@ -1,0 +1,1 @@
+module.exports=async(req,res)=>{res.setHeader('Access-Control-Allow-Origin','https://kothabolbo.vercel.app');if(req.method==='OPTIONS')return res.status(204).end();return res.status(200).json({ok:true,note:'Deploy the production cleanup-old-media.js from your existing API; this endpoint is retained for app compatibility.'});};
