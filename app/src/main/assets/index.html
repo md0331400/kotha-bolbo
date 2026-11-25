@@ -1,0 +1,13 @@
+async function getImageKitAuth(folder) {
+  try {
+    const idToken = currentUser ? await currentUser.getIdToken() : '';
+    const res = await fetch(IK_AUTH_ENDPOINT + '?folder=' + encodeURIComponent(folder || 'uploads'), {
+      headers: idToken ? { 'Authorization': 'Bearer ' + idToken } : {}
+    });
+    if (!res.ok) throw new Error('Auth endpoint failed: ' + res.status);
+    return await res.json();
+  } catch (e) {
+    console.warn('[ImageKit] Auth endpoint failed:', e.message);
+    return null;
+  }
+}
