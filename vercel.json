@@ -1,8 +1,5 @@
 {
   "functions": {
     "api/cleanup-old-media.js": { "maxDuration": 30 }
-  },
-  "crons": [
-    { "path": "/api/cleanup-old-media", "schedule": "0 * * * *" }
-  ]
+  }
 }
